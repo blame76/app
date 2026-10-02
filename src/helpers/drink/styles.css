@@ -1,0 +1,10 @@
+.drink { overflow-wrap: anywhere; }
+.drink-last { margin-bottom: 2rem; }
+.drink-last h2 { margin: 0 0 .75rem; font-size: .875rem; font-weight: 400; color: var(--muted); }
+.drink-last p { margin: 0; }
+#drinkLast { display: inline-block; font-family: var(--display-font); font-size: clamp(2.5rem, 9vw, 3.5rem); line-height: 1.2; font-weight: 400; }
+#drinkRecord { width: 100%; }
+.drink-history { margin-top: 2.5rem; }
+.drink-history h2 { font-size: .9375rem; font-weight: 500; margin-bottom: .75rem; }
+.drink-history ol { list-style: none; padding: 0; margin: 0; }
+.drink-history li { padding: 1rem 0; border-top: 1px solid var(--border); font-variant-numeric: tabular-nums; }
