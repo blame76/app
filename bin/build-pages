@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+import { copyFileSync, lstatSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { HELPERS } from '../src/helpers/registry.js';
+import { validateRegistry } from '../src/helpers/contract.js';
+
+const root = fileURLToPath(new URL('../', import.meta.url));
+const output = join(root, 'dist');
+// Explicit shell whitelist; helper files come only from their declared runtime assets.
+const files = [...new Set([
+  'index.html', 'manifest.webmanifest', 'sw.js',
+  'assets/styles.css', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
+  'src/app.js', 'src/db.js', 'src/schema.js', 'src/context.js', 'src/retention.js',
+  'src/helpers/contract.js', 'src/helpers/registry.js',
+  ...validateRegistry(HELPERS).flatMap(helper => [
+    `src/helpers/${helper.id}/index.js`,
+    ...(helper.offlineAssets || []).map(path => path.slice(2))
+  ])
+])].sort();
+
+// Validate before replacing the previous output. Never follow local symlinks.
+for (const file of files) {
+  const parts = file.split('/');
+  if (parts.some(part => !part || part === '.' || part === '..') || file.includes('\\')) {
+    throw new Error(`Invalid runtime path: ${file}`);
+  }
+  for (let i = 1; i <= parts.length; i++) {
+    if (lstatSync(join(root, ...parts.slice(0, i))).isSymbolicLink()) {
+      throw new Error(`Runtime symlink: ${file}`);
+    }
+  }
+  if (!lstatSync(join(root, file)).isFile()) throw new Error(`Missing runtime file: ${file}`);
+}
+rmSync(output, { recursive: true, force: true });
+mkdirSync(output);
+for (const file of files) {
+  const target = join(output, file);
+  mkdirSync(dirname(target), { recursive: true });
+  copyFileSync(join(root, file), target);
+}
+writeFileSync(join(output, '.nojekyll'), '');
+console.log(`Pages: ${files.length + 1} runtime files in dist/`);

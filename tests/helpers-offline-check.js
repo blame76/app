@@ -1,0 +1,68 @@
+// Real worker and actual registered helpers; fresh context, no network after activation.
+async (page) => {
+  const context = await page.context().browser().newContext({ viewport: { width: 320, height: 700 } });
+  const app = await context.newPage();
+  const results = [];
+  const errors = [];
+  const requests = [];
+  app.on('pageerror', error => errors.push(error.message));
+  app.on('request', request => requests.push(request.url()));
+  function check(condition, label) { if (!condition) throw new Error(label); results.push(label); }
+  async function open(id, selector) {
+    await app.locator('.home-accordion').last().evaluate(element => { element.open = true; });
+    await app.locator(`#allHelperList [data-helper="${id}"]`).click();
+    await app.waitForSelector(selector);
+  }
+  try {
+    await app.goto('http://127.0.0.1:8080/manifest.webmanifest');
+    await app.evaluate(async () => { await caches.open('foreign-cache'); await caches.open('0815-v0.4.1'); });
+    await app.goto('http://127.0.0.1:8080/');
+    await app.evaluate(() => navigator.serviceWorker.ready);
+    await app.waitForFunction(() => !!navigator.serviceWorker.controller);
+    const state = await app.evaluate(async () => {
+      const { version } = await (await fetch('/package.json')).json();
+      const { HELPERS } = await import('/src/helpers/registry.js');
+      const paths = (await (await caches.open(`0815-v${version}`)).keys()).map(request => new URL(request.url).pathname);
+      const expected = HELPERS.flatMap(helper => [`/src/helpers/${helper.id}/index.js`, ...(helper.offlineAssets || []).map(path => new URL(path, location.href).pathname)]);
+      return { version, paths, expected, caches: await caches.keys() };
+    });
+    check(state.caches.includes(`0815-v${state.version}`) && !state.caches.includes('0815-v0.4.1') && state.caches.includes('foreign-cache'), 'Worker activates the current release and preserves foreign caches');
+    check(state.expected.every(path => state.paths.includes(path)), 'Worker precaches every registered helper module and declared asset');
+    await context.setOffline(true);
+    await app.reload();
+    await open('discount', '#discountForm');
+    await app.locator('input[name="price"]').fill('75,00');
+    await app.locator('input[name="discount"]').fill('30');
+    await app.locator('#discountForm button').click();
+    await app.waitForFunction(() => document.querySelector('#discountResult').textContent.replace(/\s/g, '') === '52,50€');
+    check(await app.evaluate(async () => (await (await import('/src/db.js')).list('entries')).some(entry => entry.helperId === 'discount' && entry.calculations[0].priceCents === 7500)), 'Offline discount calculation commits to IndexedDB');
+    await app.locator('#backButton').click();
+    await app.reload();
+    await open('discount', '#discountForm');
+    check((await app.locator('.discount-history li').textContent()).replace(/\s/g, '').includes('75,00€·30%→52,50€'), 'Offline reload restores the discount history');
+    await app.locator('#backButton').click();
+    await open('drink', '#drinkRecord');
+    await app.locator('#drinkRecord').click();
+    await app.waitForFunction(() => !document.querySelector('.drink-last').hidden && !document.querySelector('#drinkRecord').disabled);
+    check(await app.evaluate(async () => (await (await import('/src/db.js')).list('entries')).some(entry => entry.helperId === 'drink' && entry.recordedAt === entry.createdAt)), 'Offline drink action commits its minimal event');
+    await app.locator('#backButton').click();
+    await app.reload();
+    await open('drink', '#drinkRecord');
+    check(await app.locator('.drink-history li').count() === 1 && await app.locator('#drinkRecord').textContent() === 'Ja, gerade', 'Offline reload restores the documented drink');
+    await app.locator('#backButton').click();
+    await open('pain', '#painAreaForm');
+    await app.locator('input[name="bodyArea"][value="Bauch"]').check();
+    await app.locator('#painAreaForm button').click();
+    await app.waitForSelector('#painEntryForm');
+    await app.locator('input[name="intensity"][value="4"]').check();
+    await app.locator('#painEntryForm button[type="submit"]').click();
+    await app.waitForFunction(() => document.querySelector('.pain h2')?.textContent === 'Bauch · 4 gespeichert');
+    await app.locator('[data-pain="done"]').click();
+    await app.reload();
+    await open('pain', '.pain-last-value');
+    check((await app.locator('.pain-last-value').textContent()).includes('Bauch · 4'), 'Pain still saves and restores offline alongside the new helper');
+    check(requests.every(url => url.startsWith('http://127.0.0.1:8080/')), 'Offline helper flows request no external resources');
+    check(errors.length === 0, `No offline browser errors: ${errors.join(', ')}`);
+    return results;
+  } finally { await context.close(); }
+}

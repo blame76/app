@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5f1">
+  <meta name="description" content="0815 – Alltagshelfer mit lokal gespeicherten Inhalten.">
+  <title>0815 – Alltagshelfer</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icons/icon-192.png">
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Zum Inhalt</a>
+
+  <header class="app-header">
+    <button id="backButton" class="icon-button quiet" type="button" aria-label="Zurück zur Startseite" hidden>←</button>
+    <button id="brandButton" class="brand-button" type="button" aria-label="Zur Startseite">0815</button>
+    <h1 id="focusTitle" class="focus-title" hidden></h1>
+    <button id="helperSettingsButton" class="icon-button quiet" type="button" aria-label="Helfer-Einstellungen" hidden>⚙</button>
+    <div id="headerMenuWrap" class="header-menu-wrap">
+      <button id="menuButton" class="icon-button quiet" type="button" aria-label="Menü öffnen" aria-expanded="false">⋯</button>
+      <div id="menuPanel" class="menu-panel" hidden>
+        <button type="button" data-view="settings">Verknüpfungen & Orte</button>
+        <button type="button" data-view="data">Daten</button>
+        <button type="button" data-static="privacy">Datenschutz</button>
+        <button type="button" data-static="imprint">Impressum</button>
+        <button type="button" data-static="appinfo">App-Info & Open Source</button>
+        <button id="installButton" type="button" hidden>Installieren</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section id="view-dashboard" class="view" aria-labelledby="dashboardTitle">
+      <h1 id="dashboardTitle" class="visually-hidden">Startseite</h1>
+
+      <details class="home-accordion" open>
+        <summary>Jetzt</summary>
+        <div class="home-panel">
+          <div id="nowRows" class="dashboard-rows" aria-live="polite"></div>
+        </div>
+      </details>
+
+      <details class="home-accordion">
+        <summary>Favoriten</summary>
+        <div class="home-panel">
+          <div id="favoriteTiles" class="tile-grid"></div>
+        </div>
+      </details>
+
+      <details class="home-accordion">
+        <summary>Alle Helfer</summary>
+        <div class="home-panel stack">
+          <div id="helperToolbar" class="helper-toolbar">
+            <label class="visually-hidden" for="helperSearch">Helfer suchen</label>
+            <input id="helperSearch" type="search" placeholder="Helfer suchen …" autocomplete="off">
+            <label class="visually-hidden" for="helperCategory">Kategorie filtern</label>
+            <select id="helperCategory"><option value="">Alle Kategorien</option></select>
+          </div>
+          <div id="allHelperList" class="helper-list"></div>
+        </div>
+      </details>
+    </section>
+
+    <section id="view-helper" class="view focus-view" hidden aria-label="Helfer">
+      <div id="helperHost" class="focus-host"></div>
+    </section>
+
+    <section id="view-helper-settings" class="view focus-view" hidden aria-label="Helfer-Einstellungen">
+      <div id="helperSettingsHost" class="focus-host"></div>
+    </section>
+
+    <section id="view-settings" class="view focus-view" hidden aria-labelledby="settingsTitle">
+      <div class="focus-host">
+        <h2 id="settingsTitle" class="section-title">Verknüpfungen & Orte</h2>
+
+        <details class="settings-block" open>
+          <summary>Verknüpfungen</summary>
+          <div class="settings-content"><div id="rulesList" class="list"></div></div>
+        </details>
+
+        <details class="settings-block">
+          <summary>Orte</summary>
+          <div class="settings-content">
+            <button id="settingsAddPlace" type="button" class="secondary">Diesen Ort merken</button>
+            <div id="placesList" class="list"></div>
+          </div>
+        </details>
+
+        <details class="settings-block">
+          <summary>Helfer</summary>
+          <div class="settings-content">
+            <p class="muted">Ausblenden löscht keine Daten.</p>
+            <div id="helperVisibilityList" class="list"></div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="view-data" class="view focus-view" hidden aria-labelledby="dataTitle">
+      <div class="focus-host stack data-actions">
+        <h2 id="dataTitle" class="section-title">Daten</h2>
+        <p class="muted">Inhalte werden in diesem Browser gespeichert. Ein Export sichert eine Kopie.</p>
+        <button id="persistStorageButton" type="button">Vor automatischem Löschen schützen</button>
+        <button id="exportButton" type="button" class="secondary">Exportieren</button>
+        <div class="import-control">
+          <label class="button-like secondary" for="importInput">Importieren</label>
+          <input id="importInput" class="visually-hidden" type="file" accept="application/json,.json">
+        </div>
+        <p id="storageStatus" class="muted" aria-live="polite"></p>
+        <hr>
+        <button id="resetButton" class="danger" type="button">Alle lokalen Daten löschen</button>
+      </div>
+    </section>
+
+    <section id="view-static" class="view focus-view" hidden aria-labelledby="staticTitle">
+      <div class="focus-host prose">
+        <h2 id="staticTitle" class="section-title">Info</h2>
+        <div id="staticContent"></div>
+      </div>
+    </section>
+  </main>
+
+  <section id="quickComposer" class="quick-composer" aria-labelledby="quickComposerTitle" hidden>
+    <div class="quick-composer-head">
+      <strong id="quickComposerTitle">Schnell erfassen</strong>
+      <button id="quickComposerClose" class="icon-button quiet" type="button" aria-label="Schließen">×</button>
+    </div>
+    <div id="quickComposerBody"></div>
+  </section>
+
+  <footer class="action-footer" aria-label="Schnell erfassen">
+    <button type="button" data-composer="place"><span aria-hidden="true">◎</span><span>Ort</span></button>
+    <button type="button" data-composer="note"><span aria-hidden="true">＋</span><span>Notiz</span></button>
+    <button type="button" data-composer="person"><span aria-hidden="true">○</span><span>Person</span></button>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

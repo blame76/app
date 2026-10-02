@@ -1,0 +1,65 @@
+/* One question owns the page. Native fieldsets and controls keep their semantics. */
+.pain { overflow-wrap: anywhere; }
+.pain-status { margin: 0; color: var(--accent); font-size: .875rem; }
+.pain-status:empty { display: none; }
+.pain-status:not(:empty) { margin-bottom: 1rem; }
+.pain-content fieldset { padding: 0; }
+.pain-content legend { margin-bottom: 1rem; }
+#painAreaForm legend, #painEntryForm legend {
+  width: 100%;
+  font-family: var(--display-font);
+  font-size: clamp(2.125rem, 5.5vw, 3.25rem);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -.025em;
+}
+#painAreaForm, #painEntryForm { gap: 1.75rem; }
+.pain-areas, .pain-intensities { display: grid; gap: .5rem 1rem; }
+/* Rem minima let larger text reduce the column count without splitting answers. */
+.pain-areas { grid-template-columns: repeat(auto-fit, minmax(min(100%, max(8rem, 45%)), 1fr)); }
+.pain-intensities { grid-template-columns: repeat(auto-fit, minmax(min(100%, max(3.25rem, 18%)), 1fr)); gap: .5rem; }
+.pain-choice { display: flex; align-items: center; gap: .5rem; min-height: 60px; border: 0; border-bottom: 1px solid var(--border); padding: .75rem .5rem; font-weight: 400; cursor: pointer; transition: background-color 140ms ease, border-color 140ms ease; }
+.pain-choice span { min-width: 0; overflow-wrap: anywhere; }
+.pain-choice input { width: 20px; min-height: 20px; height: 20px; margin: 0; }
+.pain-choice:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
+.pain-choice:focus-within { outline: 3px solid var(--ink); outline-offset: 3px; }
+.pain-number { flex-direction: column; justify-content: center; min-height: 80px; gap: .25rem; }
+.pain-number span { font-family: var(--display-font); font-size: 1.625rem; line-height: 1.25; font-variant-numeric: lining-nums tabular-nums; }
+.pain-other { display: grid; gap: .5rem; margin-top: 1.5rem; }
+.pain-hint { margin: 1rem 0 0; font-size: .875rem; }
+.pain-actions { margin-top: 2rem; }
+.pain-actions > .stack { gap: .25rem; }
+.pain-actions .pain-hint { margin-top: .25rem; }
+.pain-guidance { margin-bottom: 2.5rem; max-width: 48ch; font-size: .875rem; }
+.pain-guidance p { margin-bottom: .5rem; }
+.pain-guidance button { padding-left: 0; padding-right: .75rem; }
+.pain-question-hint { margin: .25rem 0 1.5rem; max-width: 46ch; font-size: .9375rem; }
+.pain-selected-area { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; margin-bottom: 2rem; }
+.pain-selected-area strong { overflow-wrap: anywhere; min-width: 0; font-weight: 500; }
+.pain-resolved { border-top: 1px solid var(--border); margin-top: 2.5rem; padding-top: 1.5rem; }
+.pain-resolved h3 { font-size: 1rem; font-weight: 500; margin: 0 0 1rem; }
+.pain-last-value { margin: 0 0 2rem; line-height: 1.6; }
+.pain-last-value strong { display: inline-block; font-family: var(--display-font); font-size: clamp(2.5rem, 8vw, 3.5rem); line-height: 1.15; font-weight: 400; margin-bottom: .75rem; }
+.pain-last-value time { color: var(--muted); font-size: .875rem; }
+.pain-content:has(.pain-last-value) > .section-title { font-family: var(--interface-font); font-size: .875rem; letter-spacing: normal; line-height: 1.5; color: var(--muted); margin-bottom: .75rem; }
+.pain-confirmation-title { position: relative; padding-top: 1.5rem; }
+/* The same short diagonal as the corner of a Now tile, used only after saving. */
+.pain-confirmation-title::before { content: ''; position: absolute; top: 0; left: calc(100% - 18px); width: 25.46px; height: 1px; background: var(--accent); transform: rotate(45deg); transform-origin: top left; }
+.pain-history-picker { margin-top: 2rem; border-top: 1px solid var(--border); }
+.pain-history-picker > summary { min-height: 48px; padding: 1rem .25rem; cursor: pointer; font-weight: 500; }
+.pain-history-picker > form { margin: .75rem 0 0; }
+.pain-day { margin: 2.5rem 0; }
+.pain-day h3 { font-size: .9375rem; font-weight: 500; margin-bottom: .75rem; }
+.pain-history { list-style: none; padding: 0; margin: 0; }
+.pain-history li { padding: 1rem 0; border-top: 1px solid var(--border); }
+.pain-history-value { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1.5rem; font-variant-numeric: tabular-nums; }
+.pain-history-value strong { font-family: var(--display-font); font-size: 1.5rem; font-weight: 400; line-height: 1.3; }
+.pain-history-value time { color: var(--muted); font-size: .875rem; }
+.pain-history .quiet { font-size: .875rem; padding-left: 0; }
+.pain-detail-text { margin: .75rem 0 0; overflow-wrap: anywhere; white-space: pre-wrap; font-size: .875rem; }
+.pain .section-title { overflow-wrap: anywhere; }
+#painDetailsForm { gap: 1.5rem; }
+@media (prefers-reduced-motion: no-preference) {
+  #painAreaForm, #painEntryForm, .pain-confirmation-title { animation: pain-arrive 140ms ease-out; }
+}
+@keyframes pain-arrive { from { transform: translateY(2px); } to { transform: translateY(0); } }
