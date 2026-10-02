@@ -46,8 +46,8 @@ async function transaction(stores, mode, enqueue) {
   } finally { db.close(); }
 }
 
-export async function list(storeName) {
-  if (storeName === 'entries') await pruneEntries();
+export async function list(storeName, { prune = true } = {}) {
+  if (storeName === 'entries' && prune) await pruneEntries();
   let result;
   await transaction(storeName, 'readonly', tx => {
     tx.objectStore(storeName).getAll().onsuccess = event => { result = event.target.result; };

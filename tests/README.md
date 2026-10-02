@@ -129,6 +129,19 @@ Metadatenfehler ohne Doppeleintrag, Mehrfachklick, Retention, Ausblenden,
 werden ausgeschlossen. `TZ=Europe/Berlin node --test tests/drink.mjs` prüft die
 Tagesgrenzen auch mit Berliner Sommerzeit in Node.
 
-Alle acht Browserdateien sind über das vorhandene Browsertool zusätzlich zu
+Alle neun Browserdateien sind über das vorhandene Browsertool zusätzlich zu
 `npm test` auszuführen. CSS-Textvergrößerung ist ein strenger Layout-Test, kein Ersatz
 für einen manuellen Zoom- und Screenreader-Test auf den Zielgeräten.
+
+## Notizen und Personen READ
+
+`read-views.mjs` prüft Auswahl, Reihenfolge, lokale Tagesgruppen einschließlich
+Jahreswechsel und Sommerzeitgrenzen sowie die Trennung nach Person und Eintragsart.
+Zusätzlich mit `TZ=Europe/Berlin node --test tests/read-views.mjs` ausführen.
+
+`read-browser-check.js` prüft die echten Menüansichten und IndexedDB: Empty States,
+Tastatur/Fokus, Person → Personen → Startseite, keinerlei Schreibtransaktionen,
+unveränderte Stores auch bei Lesefehlern, Retry und Navigation während ausstehender
+Lesezugriffe. Gespeichertes Markup bleibt Text; lange Namen und mehrzeilige Notizen
+passen bei 320 CSS px und 200 % Text. Bestehende Notiz- und Personen-Erfassung sowie
+Referenzen/Geschenkideen bleiben append-only. Keine externen Requests.

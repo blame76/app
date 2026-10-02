@@ -1,6 +1,7 @@
 # 0815 – Alltagshelfer
 
-v0.5.5 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**. Die gehärtete technische
+v0.5.6 enthält **Schmerz v0.1**, **Rabatt** und **Trinken** sowie Leseansichten für
+**Notizen** und **Personen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
 Die visuelle Richtung „Personal Object“ ab v0.5.2 steht in [`DESIGN.md`](DESIGN.md).
@@ -89,6 +90,13 @@ Die drei Grundaktionen sind keine Helfer:
 - **Ort** – aktuellen Ort lokal merken
 - **Notiz** – schnelle lokale Notiz
 - **Person** – Person anlegen/auswählen und Referenz oder Geschenkidee **hinzufügen**; bestehende Einträge werden nicht überschrieben
+
+Im `…`-Menü öffnen **Notizen** und **Personen** die vorhandenen lokalen Inhalte.
+Notizen erscheinen nach Tagen gruppiert, neueste zuerst. Personen sind alphabetisch
+sortiert; ihre Detailansicht trennt **Referenzen** und **Geschenkideen**, jeweils
+neueste zuerst. Zurück führt Person → Personen → Startseite und stellt in der Liste
+den Fokus wieder her. Die Ansichten lesen ausschließlich, ohne neue Stores,
+Migrationen oder Bearbeitungs-/Löschfunktionen. Die Erfassungsformulare bleiben bestehen.
 
 ## Entwicklung
 
