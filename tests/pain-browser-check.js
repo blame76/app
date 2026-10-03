@@ -138,6 +138,8 @@ async (page) => {
     const rule = await savedRule();
     check(rule.favorite && rule.timeBuckets.includes('morning') && rule.intervalMinutes === 60 && rule.toleranceMinutes === 15, 'Favorite and user-defined context rules persist');
     await app.locator('#backButton').click();
+    await app.waitForSelector('.pain-last-value');
+    await app.locator('#backButton').click();
     await app.waitForSelector('#nowRows [data-helper="pain"]');
     await app.waitForSelector('#favoriteTiles [data-helper="pain"]', { state: 'attached' });
     check(await app.locator('#favoriteTiles [data-helper="pain"]').count() === 1, 'Visible pain favorite is presented');
@@ -183,7 +185,7 @@ async (page) => {
     await app.locator('input[name="guidance"]').check();
     await saveRule();
     await app.locator('#backButton').click();
-    await open();
+    await app.waitForSelector('.pain-last-value');
     check(await app.locator('.pain-guidance').isVisible(), 'Helper settings reactivate guidance');
     await settings();
     await app.locator('input[name="visible"]').uncheck();

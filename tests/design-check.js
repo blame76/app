@@ -68,6 +68,7 @@ async (page) => {
       return bounds.top >= 0 && bounds.bottom <= footer.top;
     }), 'Composer scroll keeps submit reachable above footer on a short viewport');
     await app.locator('#quickComposerClose').click();
+    await app.locator('#backButton').click();
     await app.setViewportSize({ width: 320, height: 700 });
     await app.locator('#menuButton').click();
     await app.getByRole('button', { name: 'Daten', exact: true }).click();

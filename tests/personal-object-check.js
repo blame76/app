@@ -64,6 +64,7 @@ async (page) => {
     await app.locator('[data-entry]').first().click();
     await reflow('Optional details reflow with 200% text at 320 CSS px');
     await app.locator('[data-pain="cancel"]').click();
+    await app.locator('#backButton').click();
     await app.locator('[data-pain="done"]').click();
     await app.waitForSelector('#nowRows [data-helper="pain"]');
     await reflow('Dashboard reflows with 200% text at 320 CSS px');

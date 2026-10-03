@@ -5,6 +5,7 @@ import { getPosition, matchingPlaces, timeBucket, timeBucketLabel } from './cont
 import { TIME_BUCKETS, validateRule } from './schema.js';
 import { RETENTION_WINDOWS } from './retention.js';
 import { renderNotes, renderPeople, renderPerson } from './read-views.js';
+import { createNavigation } from './navigation.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -18,7 +19,8 @@ let dashboardVersion = 0;
 let composerVersion = 0;
 let installPrompt = null;
 let composerReturnFocus = null;
-let backAction = goHome;
+const navigation = createNavigation({ title: 'Startseite', open: goHome });
+let helperBackAction = null;
 
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
@@ -100,6 +102,7 @@ function stopHelper() {
   const cleanup = helperCleanup;
   helperCleanup = null;
   activeHelper = null;
+  helperBackAction = null;
   $('#helperHost').replaceChildren();
   if (cleanup) { try { cleanup(); } catch (error) { reportError(error); } }
 }
@@ -108,7 +111,31 @@ async function lastUsed(helperId) {
   return (await get('settings', `usage:${helperId}`))?.lastUsedAt || 0;
 }
 
-function showView(name, title = '', back = goHome, backLabel = 'Zurück zur Startseite') {
+function returnFocusTarget() {
+  const element = document.activeElement;
+  if (element?.id) return `#${CSS.escape(element.id)}`;
+  for (const attribute of ['data-helper', 'data-person']) {
+    if (element?.hasAttribute(attribute)) {
+      const host = element.closest('[id]');
+      return `${host ? `#${CSS.escape(host.id)} ` : ''}[${attribute}="${CSS.escape(element.getAttribute(attribute))}"]`;
+    }
+  }
+  return null;
+}
+
+function restoreFocus(selector) {
+  const target = selector && $(selector);
+  if (target?.getClientRects().length && !target.disabled) target.focus();
+  else ($('#view-dashboard').hidden ? $('#focusTitle') : $('#main')).focus({ preventScroll: true });
+}
+
+function updateBackLabel() {
+  const title = helperBackAction?.title || navigation.parent?.title;
+  $('#backButton').setAttribute('aria-label', title && title !== 'Startseite' ? `Zurück zu ${title}` : 'Zurück zur Startseite');
+}
+
+function showView(name, title, open, options = {}) {
+  navigation.enter({ title: title || 'Startseite', open }, { ...options, returnFocus: returnFocusTarget() });
   viewVersion++;
   stopHelper();
   $$('.view').forEach(view => { view.hidden = true; });
@@ -116,8 +143,7 @@ function showView(name, title = '', back = goHome, backLabel = 'Zurück zur Star
 
   const dashboard = name === 'dashboard';
   $('#backButton').hidden = dashboard;
-  backAction = back;
-  $('#backButton').setAttribute('aria-label', backLabel);
+  updateBackLabel();
   $('#brandButton').hidden = !dashboard;
   $('#focusTitle').hidden = dashboard;
   $('#focusTitle').textContent = title;
@@ -129,9 +155,22 @@ function showView(name, title = '', back = goHome, backLabel = 'Zurück zur Star
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
-function goHome() {
-  showView('dashboard');
-  guarded(renderDashboard)();
+async function goHome() {
+  const focus = navigation.root.returnFocus;
+  showView('dashboard', '', goHome, { reset: true });
+  const version = viewVersion;
+  await renderDashboard();
+  if (version === viewVersion) restoreFocus(focus);
+}
+
+async function goBack() {
+  if (helperBackAction) { await helperBackAction.action(); return; }
+  const target = navigation.back();
+  if (!target) { await goHome(); return; }
+  const pending = target.open();
+  const version = viewVersion;
+  await pending;
+  if (version === viewVersion) restoreFocus(target.returnFocus);
 }
 
 function openMenu() {
@@ -145,10 +184,10 @@ function closeMenu() {
   $('#menuButton').setAttribute('aria-expanded', 'false');
 }
 
-async function openHelper(id) {
+async function openHelper(id, options = {}) {
   const helper = helperById(id);
   if (!helper) return;
-  showView('helper', helper.label);
+  showView('helper', helper.label, () => openHelper(id, { replace: true }), options);
   const version = viewVersion;
   const controller = new AbortController();
   helperController = controller;
@@ -164,7 +203,7 @@ async function openHelper(id) {
   };
   try {
     if (!(await getRule(helper)).visible) {
-      if (current()) goHome();
+      if (current()) await goHome();
       return;
     }
     if (!current()) return;
@@ -178,7 +217,7 @@ async function openHelper(id) {
           await put('entries', entry);
           return entry;
         }),
-        listEntries: requireCurrent(async () => (await list('entries')).filter(entry => entry.helperId === id)),
+        listEntries: requireCurrent(async () => (await list('entries', { prune: false })).filter(entry => entry.helperId === id)),
         getGuidance: requireCurrent(async () => (await getRule(helper)).guidance !== false),
         setGuidance: requireCurrent(async guidance => {
           if (!helper.guidance || typeof guidance !== 'boolean') throw new Error('Ungültige Hinweiseinstellung.');
@@ -187,7 +226,14 @@ async function openHelper(id) {
           await put('helperRules', { ...rule, guidance });
         }),
         openSettings: requireCurrent(() => guarded(() => openHelperSettings(id))()),
-        goHome: requireCurrent(goHome),
+        // Helpers register only their internal parent; the shell owns the global button.
+        setBackAction: requireCurrent((action = null, title = helper.label) => {
+          if (action !== null && typeof action !== 'function') throw new TypeError('Ungültige Zurück-Aktion.');
+          helperBackAction = action ? { action, title } : null;
+          updateBackLabel();
+        }),
+        goBack: requireCurrent(() => guarded(goBack)()),
+        goHome: requireCurrent(() => guarded(goHome)()),
         toast: requireCurrent(toast)
       }
     });
@@ -196,14 +242,14 @@ async function openHelper(id) {
       else cleanup();
     }
   } catch (error) {
-    if (current()) { goHome(); throw error; }
+    if (current()) { await goHome(); throw error; }
   }
 }
 
-async function openHelperSettings(id) {
+async function openHelperSettings(id, options = {}) {
   const helper = helperById(id);
   if (!helper) return;
-  showView('helper-settings', `${helper.label} · Einstellungen`);
+  showView('helper-settings', `${helper.label} · Einstellungen`, () => openHelperSettings(id, { replace: true }), options);
   const version = viewVersion;
   const root = $('#helperSettingsHost');
   root.replaceChildren();
@@ -323,9 +369,10 @@ async function renderSettings() {
   if (version === viewVersion) $('#helperVisibilityList').innerHTML = visibilityHtml;
 }
 
-async function openCoreView(name, focusPersonId = null) {
+async function openCoreView(name, options = {}) {
+  const open = () => openCoreView(name, { replace: true });
   if (name === 'notes' || name === 'people') {
-    showView('read', name === 'notes' ? 'Notizen' : 'Personen');
+    showView('read', name === 'notes' ? 'Notizen' : 'Personen', open, options);
     const version = viewVersion;
     const root = $('#readHost');
     root.replaceChildren();
@@ -337,7 +384,6 @@ async function openCoreView(name, focusPersonId = null) {
       if (name === 'notes') renderNotes(root, records);
       else {
         renderPeople(root, records);
-        if (focusPersonId) [...root.querySelectorAll('[data-person]')].find(button => button.dataset.person === focusPersonId)?.focus();
       }
     } catch (error) {
       if (version === viewVersion) reportError(error, 'Inhalte konnten nicht geladen werden. Bitte erneut versuchen.');
@@ -345,15 +391,15 @@ async function openCoreView(name, focusPersonId = null) {
       if (version === viewVersion) root.removeAttribute('aria-busy');
     }
   } else if (name === 'settings') {
-    showView('settings', 'Verknüpfungen & Orte');
+    showView('settings', 'Verknüpfungen & Orte', open, options);
     await renderSettings();
   } else if (name === 'data') {
-    showView('data', 'Daten');
+    showView('data', 'Daten', open, options);
   }
 }
 
-async function openPerson(id, name) {
-  showView('read', name, () => openCoreView('people', id), 'Zurück zu Personen');
+async function openPerson(id, name, options = {}) {
+  showView('read', name, () => openPerson(id, name, { replace: true }), options);
   const version = viewVersion;
   const root = $('#readHost');
   root.replaceChildren();
@@ -361,7 +407,7 @@ async function openPerson(id, name) {
   try {
     const [person, entries] = await Promise.all([get('people', id), list('entries', { prune: false })]);
     if (version !== viewVersion) return;
-    if (!person) { await openCoreView('people'); return; }
+    if (!person) { await goBack(); return; }
     $('#focusTitle').textContent = person.name;
     renderPerson(root, person, entries);
   } catch (error) {
@@ -386,12 +432,12 @@ const staticViews = {
   }
 };
 
-function openStatic(key) {
+function openStatic(key, options = {}) {
   const view = staticViews[key];
   if (!view) return;
   $('#staticTitle').textContent = view.title;
   $('#staticContent').innerHTML = view.html;
-  showView('static', view.title);
+  showView('static', view.title, () => openStatic(key, { replace: true }), options);
 }
 
 function closeComposer() {
@@ -487,7 +533,6 @@ async function openComposer(type, trigger = null) {
 }
 
 async function addPlaceFromSettings() {
-  showView('settings', 'Verknüpfungen & Orte');
   await openComposer('place', $('#settingsAddPlace'));
 }
 
@@ -506,8 +551,8 @@ async function initStorageStatus() {
 }
 
 function bindEvents() {
-  $('#brandButton').addEventListener('click', goHome);
-  $('#backButton').addEventListener('click', guarded(() => backAction()));
+  $('#brandButton').addEventListener('click', guarded(goHome));
+  $('#backButton').addEventListener('click', guarded(goBack));
   $('#menuButton').addEventListener('click', openMenu);
   $('#helperSettingsButton').addEventListener('click', guarded(() => { if (activeHelper) return openHelperSettings(activeHelper.id); }));
   $('#quickComposerClose').addEventListener('click', closeComposer);
@@ -571,7 +616,7 @@ function bindEvents() {
   });
   $('#resetButton').addEventListener('click', guarded(async () => {
     if (!confirm('Alle lokalen Daten dieser App wirklich löschen?')) return;
-    await clearAll(); toast('Lokale Daten gelöscht.'); goHome();
+    await clearAll(); toast('Lokale Daten gelöscht.'); await goHome();
   }));
 
   window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event; $('#installButton').hidden = false; });

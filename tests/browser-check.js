@@ -53,6 +53,9 @@ async (page) => {
     await app.waitForFunction(() => document.querySelector('#toast').textContent.includes('kleiner'));
     check(await app.evaluate(async () => (await (await import('/src/db.js')).get('helperRules', 'example')).toleranceMinutes) === 15, 'Invalid tolerance is rejected without saving');
     await app.locator('#backButton').click();
+    await app.waitForFunction(() => document.querySelector('#helperHost').textContent === 'Fachinhalt');
+    check(await app.locator('#helperHost').textContent() === 'Fachinhalt', 'Settings Back restores the same helper');
+    await app.locator('#backButton').click();
     await app.getByText('Alle Helfer', { exact: true }).click();
     await app.locator('#allHelperList [data-helper="slow"]').click();
     await app.waitForFunction(() => !!window.finishMount);

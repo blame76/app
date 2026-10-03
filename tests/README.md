@@ -129,7 +129,7 @@ Metadatenfehler ohne Doppeleintrag, Mehrfachklick, Retention, Ausblenden,
 werden ausgeschlossen. `TZ=Europe/Berlin node --test tests/drink.mjs` prüft die
 Tagesgrenzen auch mit Berliner Sommerzeit in Node.
 
-Alle neun Browserdateien sind über das vorhandene Browsertool zusätzlich zu
+Alle zehn Browserdateien sind über das vorhandene Browsertool zusätzlich zu
 `npm test` auszuführen. CSS-Textvergrößerung ist ein strenger Layout-Test, kein Ersatz
 für einen manuellen Zoom- und Screenreader-Test auf den Zielgeräten.
 
@@ -145,3 +145,16 @@ unveränderte Stores auch bei Lesefehlern, Retry und Navigation während aussteh
 Lesezugriffe. Gespeichertes Markup bleibt Text; lange Namen und mehrzeilige Notizen
 passen bei 320 CSS px und 200 % Text. Bestehende Notiz- und Personen-Erfassung sowie
 Referenzen/Geschenkideen bleiben append-only. Keine externen Requests.
+
+## Zurück-Navigation
+
+`navigation-browser-check.js` prüft die echte Shell, alle drei Helper und IndexedDB:
+Dashboard → Helper → Einstellungen → Helper → Dashboard inklusive Fokus auf dem
+Einstellungs-Trigger und der ursprünglichen Kachel; wiederholte Einstellungen ohne
+doppelte Parent-Ebenen; Schmerz → Verlauf → Details mit lokalem und globalem Zurück;
+Fragen und erhaltene Entwürfe; Personen → Person → Personen mit Trigger-Fokus.
+Ausstehende Einstellungen-/Mount-Lesezugriffe dürfen neue Ansichten nicht ersetzen
+oder deren Fokus stehlen. Alle Stores und Nutzungsmetadaten bleiben identisch, und
+keine Navigation öffnet Schreibtransaktionen. Browser-Zurück verlässt die App zum
+vorherigen Dokument; interne Navigation erzeugt keine Browser-History-Einträge.
+Dieses Gate läuft wie die übrigen Browserfunktionen über das bereitgestellte Tool.

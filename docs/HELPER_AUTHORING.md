@@ -41,16 +41,32 @@ bereinigen. Alte API-Aufrufe werden abgewiesen; schon gestartete Transaktionen
 können abschließen. Fehler in eigenen Eventhandlern selbst behandeln. Formulare
 synchron mit `preventDefault()` stoppen und Mehrfachspeichern verhindern.
 
+Die Shell speichert die vorherige Ansicht in einem kleinen internen Stack. Zurück
+von Helper-Einstellungen mountet denselben Helper erneut, ohne Benutzung zu
+registrieren. Wird er in den Einstellungen ausgeblendet, folgt die Startseite.
+Unteransichten des Helpers registrieren mit `api.setBackAction(callback, title)`
+ihren Parent; dort stellt der Helper den Fokus auf Überschrift oder Trigger wieder
+her. `api.setBackAction(null)` gibt Zurück an die Shell ab. Lokale Zurück-Controls
+verwenden `api.goBack()`. Der Callback wird beim Unmount entfernt und alte APIs
+bleiben gesperrt. Pain nutzt dafür denselben `createNavigation()`-Stack wie die Shell.
+Nach einer Speicherung darf der Eingabe-Stack zurückgesetzt werden, damit Zurück
+keinen abgeschlossenen Speicherschritt wieder öffnet.
+
+Browser-/System-Zurück bleibt Dokumentnavigation. Interne Navigation erzeugt keine
+History-Einträge; Reload startet auf der Startseite. Es gibt keinen URL-Router.
+
 ## Heute verfügbare API
 
 | Funktion / Wert | Zweck und Einsatz | Nicht verwenden für |
 | --- | --- | --- |
 | `await api.saveEntry(value)` | eigenen Datensatz schreiben; liefert ihn erst nach Commit mit ID zurück; vorhandene eigene ID aktualisiert ihn | fremde IDs, Einstellungen, vorweggenommene Erfolgsmeldung |
-| `await api.listEntries()` | eigene gespeicherte Entries lesen, danach fachlich sortieren/filtern | andere Helper, Zugriff auf `people`/`places`/`settings` |
+| `await api.listEntries()` | eigene gespeicherte Entries ohne Löschungen lesen, danach fachlich sortieren/filtern | andere Helper, Zugriff auf `people`/`places`/`settings` |
 | `await api.recordUse()` | Zeitpunkt einer erfolgreichen Fachhandlung speichern | Öffnen, Tippen, ungültige Eingabe oder fehlgeschlagenes Speichern |
 | `await api.getGuidance()` | gespeicherte boolesche Hinweiseinstellung lesen | Navigation oder Fachzustand |
 | `await api.setGuidance(boolean)` | bei `guidance: true` Hinweiseinstellung unter Erhalt anderer Regeln ändern | Tutorial-Fortschritt, eigene Settings-Seite |
 | `api.openSettings()` | zu den gemeinsamen Einstellungen dieses Helpers wechseln | eigene Intervall-/Orts-/Favoritenverwaltung |
+| `api.setBackAction(action, title)` | interne Parent-Ansicht registrieren; `null` auf oberster Ebene | eigene globale Zurück-Buttons oder fachliche Aktionen beim Rücksprung |
+| `api.goBack()` | denselben Rücksprung wie der globale Zurück-Button ausführen | Speichern oder `recordUse()` |
 | `api.goHome()` | nach einer expliziten Handlung zurück zur Startseite | automatisches Verlassen vor einem Commit |
 | `api.toast(message)` | konkrete Fehler oder sonst notwendige Rückmeldung | zusätzliche Erfolgsfeier neben einem eindeutigen Ergebnis |
 | `signal` | Abbruch des Mounts erkennen, eigene Ressourcen stoppen | Rückgängigmachen eines bereits committed Eintrags |
@@ -119,8 +135,9 @@ eine generische Erweiterung erst bei einem konkreten fachlichen Bedarf prüfen.
 `retention: { defaultWindow: 'always' }` aktiviert die gemeinsamen Optionen `7d`,
 `30d`, `365d`, `always`. Betroffen sind nur Entries dieses Helpers anhand von
 `createdAt <= jetzt − N × 24 Stunden`, auch wenn er ausgeblendet ist. Einstellungen
-und Core-Daten bleiben erhalten. Pruning geschieht beim Start, beim Lesen von
-Entries und vor Export. Regeländerung und Löschung committen atomar; Import prüft
+und Core-Daten bleiben erhalten. Pruning geschieht beim Start, bei direkten
+DB-Lesezugriffen auf Entries und vor Export. Die Helper-API liest für reine
+Navigation ohne Pruning. Regeländerung und Löschung committen atomar; Import prüft
 zuerst und pruned nach importierter Regel vor dem atomaren Ersetzen. Kein Timer
 und keine Löschgarantie bei geschlossener App. Ohne Retention-Opt-in unbegrenzt.
 

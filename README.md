@@ -1,6 +1,6 @@
 # 0815 – Alltagshelfer
 
-v0.5.6 enthält **Schmerz v0.1**, **Rabatt** und **Trinken** sowie Leseansichten für
+v0.5.7 enthält **Schmerz v0.1**, **Rabatt** und **Trinken** sowie Leseansichten für
 **Notizen** und **Personen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
@@ -19,7 +19,7 @@ Die Shell bietet nur:
 - **Alle Helfer** – Suche + Kategorie
 - festen Footer: **Ort · Notiz · Person**
 - Fokusansicht: Helfer ersetzt den gesamten Contentbereich; Dashboard und Menü sind dann unsichtbar
-- Zurück führt bewusst zum Dashboard
+- Zurück führt eine Ebene zurück: Einstellungen → Helper, Unteransicht → Parent, Helper → Dashboard
 - lokale Daten in IndexedDB
 - Ort / Tageszeit / Intervall / Favorit / zuletzt verwendet als gemeinsame Kontextbasis
 - Import / Export / Daten löschen

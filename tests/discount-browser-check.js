@@ -133,6 +133,8 @@ async (page) => {
     await app.locator('#helperSettingsForm button').click();
     await app.waitForFunction(() => !document.querySelector('#helperSettingsForm').dataset.saving);
     await app.locator('#backButton').click();
+    await app.waitForSelector('#discountForm');
+    await app.locator('#backButton').click();
     await app.waitForFunction(() => document.querySelector('#nowRows [data-helper="discount"] span')?.textContent === 'Einkaufszentrum');
     check(await app.evaluate(() => window.geoCalls === 1), 'Linked place uses the existing dashboard location query and stored name');
     await app.getByText('Favoriten', { exact: true }).click();

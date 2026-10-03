@@ -87,6 +87,8 @@ async (page) => {
     await app.locator('input[name="interval"]').fill('90');
     await saveSettings();
     await app.locator('#backButton').click();
+    await app.waitForSelector('#drinkRecord');
+    await app.locator('#backButton').click();
     for (const [elapsed, expected] of [[60 * 60000, 'zuletzt verwendet'], [75 * 60000 - 1, 'zuletzt verwendet'], [75 * 60000, 'Intervall · 90 Min.']]) {
       await reason(usedAt + elapsed, expected);
       check(await app.locator('#nowRows [data-helper="drink"] span').textContent() === expected, `Changed interval at ${elapsed} ms: ${expected}`);

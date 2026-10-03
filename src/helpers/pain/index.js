@@ -1,3 +1,4 @@
+import { createNavigation } from '../../navigation.js';
 import { BODY_AREAS, QUALITIES, RELIEF, validatePainEntry, historyForArea, documentedAreas, addDetails, approximateStart, saveObservation } from './model.js';
 
 const escape = value => String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
@@ -42,6 +43,11 @@ export default {
     if (signal.aborted) return;
     entries.forEach(validatePainEntry);
     let saving = false;
+    const navigation = createNavigation({ title: 'Schmerz' });
+    function enterView(title, open, options) {
+      navigation.enter({ title, open }, options);
+      api.setBackAction(navigation.parent ? () => navigation.back().open() : null, navigation.parent?.title);
+    }
 
     function focus(selector) { content.querySelector(selector)?.focus(); }
     function notify(message) { status.textContent = message; }
@@ -119,8 +125,9 @@ export default {
       const form = content.querySelector('#painHistoryForm');
       if (form) bindForm(form, values => showHistory(values.get('area')));
     }
-    function chooseEntry(draft = {}) {
+    function chooseEntry(draft = {}, options = {}) {
       if (signal.aborted) return;
+      enterView('Schmerzort', () => chooseEntry(draft, { replace: true }), options);
       status.textContent = '';
       guidanceView(true);
       const choice = draft.bodyArea ? BODY_AREAS.includes(draft.bodyArea) ? draft.bodyArea : 'Anderer Ort' : '';
@@ -144,13 +151,15 @@ export default {
       bindForm(form, values => {
         const bodyArea = (values.get('bodyArea') === 'Anderer Ort' ? values.get('otherArea') : values.get('bodyArea')).trim();
         if (!bodyArea) { api.toast('Bitte einen Schmerzort angeben.'); return; }
-        showIntensity({ ...draft, bodyArea });
+        draft.bodyArea = bodyArea;
+        showIntensity(draft, { fromArea: true });
       });
       bindHistoryPicker();
       focus('legend');
     }
-    function showIntensity(draft, back = () => chooseEntry(draft)) {
+    function showIntensity(draft, { fromArea = false, ...options } = {}) {
       if (signal.aborted) return;
+      enterView('Schmerzstärke', () => showIntensity(draft, { replace: true, fromArea }), options);
       status.textContent = '';
       guidanceView();
       content.innerHTML = `
@@ -166,12 +175,16 @@ export default {
       const form = content.querySelector('#painEntryForm');
       form.addEventListener('change', () => { draft.intensity = Number(new FormData(form).get('intensity')); });
       bindForm(form, values => record(draft.bodyArea, values.has('intensity') ? Number(values.get('intensity')) : null));
-      content.querySelector('[data-pain="change-area"]').addEventListener('click', () => chooseEntry(draft));
-      content.querySelector('[data-pain="back"]').addEventListener('click', back);
+      content.querySelector('[data-pain="change-area"]').addEventListener('click', () => {
+        if (fromArea) api.goBack();
+        else chooseEntry(draft, { replace: true });
+      });
+      content.querySelector('[data-pain="back"]').addEventListener('click', () => api.goBack());
       focus('legend');
     }
-    function showReturning(entry) {
+    function showReturning(entry, options = {}) {
       if (signal.aborted) return;
+      enterView('Schmerz', () => showReturning(entry, { replace: true }), options);
       status.textContent = '';
       guidanceView(true);
       content.innerHTML = `
@@ -181,14 +194,16 @@ export default {
         ${resolvedAction(entry)}
         <div class="stack pain-actions"><button class="secondary" type="button" data-pain="another">Anderen Schmerz dokumentieren</button></div>
         ${historyPicker()}`;
-      content.querySelector('[data-pain="same-area"]').addEventListener('click', () => showIntensity({ bodyArea: entry.bodyArea }, () => showReturning(entry)));
+      content.querySelector('[data-pain="same-area"]').addEventListener('click', () => showIntensity({ bodyArea: entry.bodyArea }));
       content.querySelector('[data-pain="another"]').addEventListener('click', () => chooseEntry());
       bindResolved(entry);
       bindHistoryPicker();
       focus('h2');
     }
-    function showSaved(entry, prior = previous(entry)) {
+    function showSaved(entry, prior = previous(entry), options = { reset: true }) {
       if (signal.aborted) return;
+      // A committed observation finishes the input flow; Back must never replay it.
+      enterView('Gespeicherter Eintrag', () => showSaved(entry, prior, { replace: true }), options);
       guidanceView();
       content.innerHTML = `
         <h2 class="section-title pain-confirmation-title" tabindex="-1">${escape(entry.bodyArea)} · ${entry.intensity === 0 ? 'schmerzfrei' : entry.intensity} gespeichert</h2>
@@ -208,8 +223,9 @@ export default {
       content.querySelector('[data-pain="history"]').addEventListener('click', () => showHistory(entry.bodyArea));
       focus('h2');
     }
-    function showDetails(entry) {
+    function showDetails(entry, options = {}) {
       if (signal.aborted) return;
+      enterView('Details ergänzen', () => showDetails(entry, { replace: true }), options);
       status.textContent = '';
       guidanceView();
       content.innerHTML = `
@@ -244,11 +260,12 @@ export default {
         showSaved(updated);
         notify('Details gespeichert.');
       });
-      form.querySelector('[data-pain="cancel"]').addEventListener('click', () => showSaved(entry));
+      form.querySelector('[data-pain="cancel"]').addEventListener('click', () => api.goBack());
       focus('h2');
     }
-    function showHistory(area) {
+    function showHistory(area, options = {}) {
       if (signal.aborted) return;
+      enterView(`${area} · Verlauf`, () => showHistory(area, { replace: true }), options);
       status.textContent = '';
       guidanceView();
       const history = historyForArea(entries, area);
@@ -280,8 +297,8 @@ export default {
       return details.length ? `<p class="muted pain-detail-text">${details.map(escape).join('<br>')}</p>` : '';
     }
     const latest = [...entries].sort((a, b) => b.recordedAt - a.recordedAt || b.id.localeCompare(a.id))[0];
-    if (latest) showReturning(latest);
-    else chooseEntry();
+    if (latest) showReturning(latest, { reset: true });
+    else chooseEntry({}, { reset: true });
     return () => { css.remove(); };
   }
 };
