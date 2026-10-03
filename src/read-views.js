@@ -1,4 +1,5 @@
 // Shell read views: existing records only, no storage or capture logic.
+import { noteLinks } from './notes.js';
 const dateFormat = new Intl.DateTimeFormat('de', { day: 'numeric', month: 'long', year: 'numeric' });
 const timeFormat = new Intl.DateTimeFormat('de', { hour: '2-digit', minute: '2-digit' });
 const newestFirst = (a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id);
@@ -65,10 +66,34 @@ function group(root, id, label, entries) {
   root.append(section);
 }
 
-export function renderNotes(root, entries) {
+export function renderNotes(root, entries, places = []) {
   const days = noteDays(entries);
   if (!days.length) { empty(root, 'Noch keine Notizen.'); return; }
-  for (const day of days) group(root, `read-day-${day.key}`, day.label, day.entries);
+  for (const day of days) {
+    const section = element('section', undefined, 'read-group notes-day');
+    const heading = element('h2', day.label, 'section-title');
+    heading.id = `read-day-${day.key}`;
+    section.setAttribute('aria-labelledby', heading.id);
+    const list = element('ol', undefined, 'read-list');
+    for (const note of day.entries) {
+      const item = element('li');
+      const button = element('button', undefined, 'note-read-button');
+      button.type = 'button';
+      button.dataset.note = note.id;
+      const time = element('time', timeFormat.format(note.createdAt), 'muted');
+      time.dateTime = new Date(note.createdAt).toISOString();
+      time.title = `${dateFormat.format(note.createdAt)} · ${timeFormat.format(note.createdAt)}`;
+      const content = element('span', undefined, 'note-read-content');
+      content.append(element('span', note.text, 'read-text'));
+      const links = noteLinks(note, places);
+      if (links.length) content.append(element('span', links.map(link => link.label).join(' · '), 'note-read-context muted'));
+      button.append(time, content);
+      item.append(button);
+      list.append(item);
+    }
+    section.append(heading, list);
+    root.append(section);
+  }
 }
 
 export function renderPeople(root, people) {

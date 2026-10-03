@@ -1,5 +1,10 @@
 # 0815 – Editorial Glow Up
 
+Der ergänzende Notes-Complete-Pass (`0.6.0`) gestaltet die dauerhafte Notizdetailansicht,
+Bearbeitung und Kontextverwaltung sowie eigene Note-Kacheln unter „Jetzt“.
+Tagesüberschriften bleiben kleine Kapitel; Text und Freiraum tragen die Liste.
+Der visuelle zweite Pass, Kompatibilität und Prüfungen stehen in [`docs/NOTES.md`](docs/NOTES.md).
+
 ## Visual language
 
 Ein persönliches Notizbuch ist die Richtung: warme, ruhige Flächen, große Serifentitel,

@@ -33,7 +33,7 @@ async (page) => {
     const response = await route.fetch();
     const source = (await response.text())
       .replace('export async function list(storeName, { prune = true } = {}) {',
-        'export async function list(storeName, { prune = true } = {}) { const watched = !prune && globalThis.readGate; if (watched) await watched;')
+        'export async function list(storeName, { prune = true } = {}) { const watched = !prune && !document.querySelector("#view-read").hidden && globalThis.readGate; if (watched) await watched;')
       .replace('  return result;\n}\n\nexport async function get',
         '  if (watched) globalThis.finishedRead = true; return result;\n}\n\nexport async function get');
     await route.fulfill({ response, body: source });
@@ -165,6 +165,7 @@ async (page) => {
 
     await app.locator('[data-composer="note"]').click();
     await app.locator('#noteText').fill('Neu erfasst'); await app.locator('#noteForm button').click();
+    await app.locator('#quickNoteContextDone').click();
     await app.waitForSelector('#quickComposer', { state: 'hidden' });
     await menu('notes');
     check((await app.locator('#readHost .read-text').allTextContents()).includes('Neu erfasst'), 'Existing note capture remains readable');

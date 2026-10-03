@@ -205,6 +205,56 @@ main { max-width: var(--content-width); margin: 0 auto; padding: 0 var(--gutter)
 .read-person-group .read-text { font-family: var(--interface-font); font-size: 1.0625rem; line-height: 1.6; }
 .read-gifts .read-text { font-family: var(--display-font); font-size: 1.375rem; }
 
+/* Notes are personal content: day chapters, open reading space and quiet actions. */
+.notes-day > .section-title, .note-eyebrow { font-family: var(--interface-font); font-size: .875rem; font-weight: 400; letter-spacing: .09em; line-height: 1.5; text-transform: uppercase; color: var(--text-muted); }
+.notes-day > .section-title { margin-bottom: 1.75rem; }
+.notes-day .read-list { gap: 2.75rem; }
+.notes-day .read-list li { display: block; }
+.note-read-button { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: var(--space-lg); align-items: baseline; width: 100%; border: 0; border-radius: 0; background: transparent; color: var(--text-primary); text-align: left; padding: .5rem 0; font-weight: 400; }
+.note-read-content { min-width: 0; display: grid; gap: .75rem; }
+.note-read-context { font-size: .875rem; line-height: 1.5; overflow-wrap: anywhere; }
+.note-tile { grid-column: 1 / -1; display: grid; justify-items: start; gap: .75rem; background: transparent; color: var(--text-primary); border: 0; border-top: 1px solid var(--border-subtle); border-radius: 0; text-align: left; padding: 1.5rem 0; }
+.note-tile strong { max-width: 38ch; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-family: var(--display-font); font-size: clamp(1.5rem, 4vw, 1.875rem); font-weight: 400; line-height: 1.4; letter-spacing: -.02em; white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-tile-context { font-size: .875rem; color: var(--text-muted); overflow-wrap: anywhere; }
+.note-tile .note-eyebrow { letter-spacing: .12em; }
+.note-detail { max-width: 36rem; margin: 0 auto; }
+.note-text { margin: 0 0 1.5rem; max-width: 32ch; font-family: var(--display-font); font-size: clamp(1.75rem, 5vw, 2.25rem); font-weight: 400; line-height: 1.5; letter-spacing: -.02em; white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-dates { display: grid; gap: .5rem; font-size: .875rem; }
+.note-dates p { margin: 0; }
+.note-context-summary { margin-top: var(--space-section); }
+.note-eyebrow { margin: 0 0 1rem; }
+.note-tile .note-eyebrow { margin: 0; }
+.note-links, .note-context-links { list-style: none; padding: 0; margin: 0; }
+.note-links { display: grid; gap: .5rem; overflow-wrap: anywhere; }
+.note-actions { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
+.note-actions button, .note-delete { padding-left: 0; padding-right: .75rem; }
+.note-delete { margin-top: var(--space-xl); font-size: .875rem; }
+.note-edit { max-width: 36rem; margin: 0 auto; }
+.note-edit textarea { font-family: var(--display-font); font-size: 1.375rem; line-height: 1.6; }
+.note-context { display: grid; gap: var(--space-lg); max-width: 30rem; }
+.note-context-question { margin: 0; font-family: var(--display-font); font-size: 1.75rem; font-weight: 400; letter-spacing: -.025em; line-height: 1.25; }
+.note-context-error { margin: 1rem 0 0; font-size: .875rem; overflow-wrap: anywhere; }
+.note-context-choices { display: flex; flex-wrap: wrap; gap: .75rem; }
+.note-context-choices button { flex: 1 1 8rem; }
+.note-context-links { display: grid; gap: .25rem; }
+.note-context-links li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+.note-context-links span { min-width: 0; flex: 1 1 8rem; overflow-wrap: anywhere; }
+.note-context-links button { font-size: .875rem; }
+.note-context-links li + li { padding-top: .5rem; }
+.note-context-picker { max-width: 30rem; }
+.note-context-picker fieldset { display: grid; gap: .5rem; }
+.note-context-option { display: flex; align-items: center; gap: .75rem; min-height: 56px; padding: .75rem .5rem; font-weight: 400; border-bottom: 1px solid var(--border-subtle); }
+.note-context-option input { width: 20px; min-height: 20px; height: 20px; margin: 0; }
+.note-context-option span { min-width: 0; overflow-wrap: anywhere; }
+.note-context-option:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
+.note-delete-dialog { width: min(30rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-surface); padding: clamp(1.25rem, 5vw, 2rem); background: var(--surface-paper); color: var(--text-primary); box-shadow: var(--shadow-overlay); }
+.note-delete-dialog::backdrop { background: rgb(0 0 0 / .4); }
+.note-delete-dialog .section-title { font-size: 1.75rem; margin-bottom: 0; }
+.note-delete-dialog p { margin: 0; }
+#noteDeleteError:empty { display: none; }
+.note-dialog-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.note-dialog-actions button { flex: 1 1 7rem; }
+
 .quick-composer { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(6.5rem + max(1rem, env(safe-area-inset-bottom))); width: min(620px, calc(100% - 2rem)); max-height: calc(100dvh - 9.5rem - env(safe-area-inset-bottom)); overflow-y: auto; background: var(--surface-paper); border: 1px solid var(--border-subtle); border-radius: var(--radius-surface); padding: 1.25rem; box-shadow: var(--shadow-overlay); z-index: 45; }
 .quick-composer-head { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-bottom: 1.25rem; }
 .quick-composer-head strong { font-family: var(--display-font); font-size: 1.75rem; line-height: 1.2; letter-spacing: -.025em; font-weight: 400; }
@@ -232,6 +282,7 @@ main { max-width: var(--content-width); margin: 0 auto; padding: 0 var(--gutter)
   summary:hover { color: var(--accent); }
   input:hover:not(:disabled):not(:focus-visible), select:hover:not(:disabled):not(:focus-visible), textarea:hover:not(:disabled):not(:focus-visible) { border-color: var(--text-muted); }
   .action-footer button[aria-expanded="true"]:hover:not(:disabled) { background: var(--accent-soft); }
+  .note-read-button:hover:not(:disabled), .note-tile:hover:not(:disabled) { color: var(--accent); background: transparent; border-color: var(--border-subtle); }
 }
 @media (prefers-reduced-motion: no-preference) {
   .view:not([hidden]) > .focus-host { animation: page-arrive var(--motion-duration) var(--motion-ease); }
@@ -251,6 +302,8 @@ main { max-width: var(--content-width); margin: 0 auto; padding: 0 var(--gutter)
   .read-list { gap: 2.5rem; }
   .read-person-group .read-list { gap: 2rem; }
   .read-list li { grid-template-columns: minmax(0, 1fr); gap: var(--space-sm); }
+  .note-read-button { grid-template-columns: minmax(0, 1fr); gap: var(--space-sm); }
+  .note-read-content { gap: .625rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }

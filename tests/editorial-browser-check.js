@@ -207,8 +207,9 @@ async (page) => {
       await home(); await app.locator('[data-composer="note"]').click();
       await app.locator('#noteText').fill('Ein festgehaltener Gedanke.');
       await pendingSave('#noteForm button', '#noteForm', '#noteForm button');
+      await app.locator('#quickNoteContextDone').click();
       await app.waitForSelector('#quickComposer', { state: 'hidden' });
-      check(await app.locator('#toast').textContent() === 'Notiz gespeichert.' && await app.locator('[data-composer="note"]').getAttribute('aria-expanded') === 'false', `${mode}: committed note closes its composer and reports success`);
+      check(await app.locator('#quickComposerTitle').textContent() === 'Gespeichert' && await app.locator('[data-composer="note"]').getAttribute('aria-expanded') === 'false', `${mode}: committed note offers optional context; Done closes its composer`);
       check(requests.every(url => url.startsWith('http://127.0.0.1:8080/')) && !requests.some(url => url.includes('/leak')), `${mode}: no external fonts or unsafe resource requests`);
       check(errors.length === 0, `${mode}: no browser errors`);
     } finally { await context.close(); }

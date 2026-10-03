@@ -89,7 +89,7 @@ async (page) => {
     check(await app.locator('#noteForm').isVisible() && await app.locator('#noteText').inputValue() === 'Nicht gespeichert', 'Quota failure keeps the form and entered text');
     await app.evaluate(() => { IDBObjectStore.prototype.put = window.originalPut; });
     await app.locator('#noteForm button').click();
-    await app.waitForFunction(() => document.querySelector('#toast').textContent === 'Notiz gespeichert.');
+    await app.waitForSelector('#quickNoteContextDone');
     check(await app.locator('#noteForm').count() === 0, 'Saving can be retried after a storage error');
 
     const storageChecks = await app.evaluate(async () => {

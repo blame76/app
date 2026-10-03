@@ -13,6 +13,7 @@ const files = [...new Set([
   'assets/styles.css', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
   'src/app.js', 'src/db.js', 'src/schema.js', 'src/context.js', 'src/retention.js',
   'src/read-views.js', 'src/navigation.js',
+  'src/notes.js', 'src/note-views.js',
   'src/helpers/contract.js', 'src/helpers/registry.js',
   ...validateRegistry(HELPERS).flatMap(helper => [
     `src/helpers/${helper.id}/index.js`,

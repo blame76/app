@@ -146,6 +146,19 @@ Lesezugriffe. Gespeichertes Markup bleibt Text; lange Namen und mehrzeilige Noti
 passen bei 320 CSS px und 200 % Text. Bestehende Notiz- und Personen-Erfassung sowie
 Referenzen/Geschenkideen bleiben append-only. Keine externen Requests.
 
+## Notes Complete
+
+`notes.mjs` ergänzt die Modellprüfungen für alte Notizen, Text-/Kontextänderungen,
+unveränderte Zeitstempel, Ort-ODER-Tageszeit, Ortspriorität und Importvalidierung.
+Zusätzlich: `TZ=Europe/Berlin node --test tests/notes.mjs`.
+
+`notes-browser-check.js` prüft den vollständigen Lebenszyklus mit echter IndexedDB
+in Light/Dark, einschließlich Save/Cancel, Commit-Reihenfolge, Kontextfehler ohne
+Notizverlust, beiden Kontextarten, Matching und Dashboard-Limit, Modal-Löschen/Retry,
+Parent-Navigation/Fokus, Import/Export und langen Texten bei 320 CSS px/200 % Text.
+Der gemeinsame Offline-Gate prüft auch Bearbeiten, Kontext, Wiederfinden und Löschen
+mit dem echten Worker. Details und ausgeführte Gates: [`docs/NOTES.md`](../docs/NOTES.md).
+
 ## Zurück-Navigation
 
 `navigation-browser-check.js` prüft die echte Shell, alle drei Helper und IndexedDB:

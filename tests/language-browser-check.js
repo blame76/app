@@ -116,7 +116,8 @@ async (page) => {
     check(await app.locator('#noteText').inputValue() === 'Eingabe bleibt' && (await entries()).length === 0, 'Storage exception is hidden, with unchanged data and retained input');
     await app.evaluate(() => { IDBObjectStore.prototype.put = window.originalPut; });
     await app.locator('#noteForm button').click();
-    await feedback('Notiz gespeichert.');
+    await app.waitForSelector('#quickNoteContextDone');
+    check(await app.locator('#quickComposerTitle').textContent() === 'Gespeichert', 'Committed capture reports success in its follow-up');
     check((await entries()).some(entry => entry.type === 'note' && entry.text === 'Eingabe bleibt'), 'Retry saves the retained note');
 
     await app.locator('[data-composer="person"]').click();
@@ -163,7 +164,7 @@ async (page) => {
     await app.locator('#importInput').setInputFiles({ name: '0815.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(replacement)) });
     await feedback('Daten importiert. Die Ansicht konnte nicht aktualisiert werden. Bitte neu laden.');
     check((await entries()).length === 1 && (await entries())[0].id === 'imported-note', 'An error after committed import never claims unchanged data');
-    await app.evaluate(() => { delete document.querySelector('#nowRows').innerHTML; });
+    await app.evaluate(() => { delete document.querySelector('#nowRows').innerHTML; window.geoFail = false; });
     await app.locator('#backButton').click();
     await app.waitForSelector('#nowRows [data-helper="place"]');
     await app.evaluate(async () => {

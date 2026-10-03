@@ -121,6 +121,10 @@
       <div id="readHost" class="focus-host"></div>
     </section>
 
+    <section id="view-note" class="view focus-view" hidden aria-labelledby="focusTitle">
+      <div id="noteHost" class="focus-host"></div>
+    </section>
+
     <section id="view-static" class="view focus-view" hidden aria-labelledby="staticTitle">
       <div class="focus-host prose">
         <h2 id="staticTitle" class="visually-hidden">Info</h2>
@@ -144,6 +148,17 @@
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="noteDeleteDialog" class="note-delete-dialog" aria-labelledby="noteDeleteTitle" aria-describedby="noteDeleteDescription">
+    <form id="noteDeleteForm" class="stack">
+      <h2 id="noteDeleteTitle" class="section-title">Notiz löschen?</h2>
+      <p id="noteDeleteDescription">Diese Notiz wird dauerhaft von diesem Gerät gelöscht.</p>
+      <p id="noteDeleteError" class="muted" role="status"></p>
+      <div class="note-dialog-actions">
+        <button id="noteDeleteCancel" type="button" class="secondary" autofocus>Abbrechen</button>
+        <button id="noteDeleteConfirm" type="submit" class="danger">Löschen</button>
+      </div>
+    </form>
+  </dialog>
   <script type="module" src="./src/app.js"></script>
 </body>
 </html>

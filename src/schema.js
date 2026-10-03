@@ -54,6 +54,14 @@ export function validateRecord(store, item) {
     for (const key of ['helperId', 'type', 'personId', 'text', 'kind']) {
       requireValue(item[key] === undefined || typeof item[key] === 'string', `Ungültiges Eintragsfeld ${key}.`);
     }
+    if (item.type === 'note') {
+      requireValue(item.updatedAt === undefined || timestamp(item.updatedAt), 'Ungültiger Bearbeitungszeitpunkt.');
+      if (item.context !== undefined) {
+        requireValue(object(item.context), 'Ungültige Notizverknüpfung.');
+        requireValue(item.context.placeIds === undefined || strings(item.context.placeIds), 'Ungültige Ortsverknüpfungen.');
+        requireValue(item.context.timeBuckets === undefined || (strings(item.context.timeBuckets) && item.context.timeBuckets.every(bucket => TIME_BUCKETS.includes(bucket))), 'Ungültige Tageszeiten.');
+      }
+    }
   }
   if (store === 'people' || store === 'places') {
     requireValue(text(item.name) && timestamp(item.createdAt), `Ungültiger Name/Zeitstempel in ${store}.`);

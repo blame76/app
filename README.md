@@ -1,7 +1,7 @@
 # 0815 – Alltagshelfer
 
-v0.5.8 enthält **Schmerz v0.1**, **Rabatt** und **Trinken** sowie Leseansichten für
-**Notizen** und **Personen**. Die gehärtete technische
+v0.6.0 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
+**Notizen** sowie Leseansichten für **Personen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
 Die visuelle Richtung und der aktuelle Editorial-Design-Pass stehen in [`DESIGN.md`](DESIGN.md).
@@ -14,7 +14,7 @@ Neue Helper: [`docs/HELPER_AUTHORING.md`](docs/HELPER_AUTHORING.md).
 
 Die Shell bietet nur:
 
-- **Jetzt** – kontextuelle Helfer
+- **Jetzt** – kontextuelle Helfer und bewusst verknüpfte Notizen
 - **Favoriten**
 - **Alle Helfer** – Suche + Kategorie
 - festen Footer: **Ort · Notiz · Person**
@@ -81,7 +81,9 @@ Die gemeinsame Shell ist bereits vorbereitet für:
 - Intervall + Toleranz
 - zuletzt verwendet
 
-Standort wird erst abgefragt, wenn mindestens ein sichtbarer Helfer überhaupt eine Ortsverknüpfung besitzt oder der Nutzer aktiv „Ort“ wählt. Kein Hintergrund-Geofencing.
+Standort wird erst abgefragt, wenn ein sichtbarer Helfer eine Ortsverknüpfung besitzt,
+eine Notiz mit einem vorhandenen Ort verknüpft ist oder der Nutzer aktiv „Ort“ wählt.
+Notizen verwenden dasselbe Ortsmatching und dieselben Tageszeiten. Kein Hintergrund-Geofencing.
 
 ## Core-Footer
 
@@ -92,11 +94,15 @@ Die drei Grundaktionen sind keine Helfer:
 - **Person** – Person anlegen/auswählen und Referenz oder Geschenkidee **hinzufügen**; bestehende Einträge werden nicht überschrieben
 
 Im `…`-Menü öffnen **Notizen** und **Personen** die vorhandenen lokalen Inhalte.
-Notizen erscheinen nach Tagen gruppiert, neueste zuerst. Personen sind alphabetisch
+Notizen erscheinen nach Tagen gruppiert, neueste zuerst. Nach dem schnellen Speichern
+können Ort und Tageszeit freiwillig verknüpft werden. Die Detailansicht bietet Textbearbeitung,
+Kontextverwaltung und bestätigtes Löschen. Ort **ODER** Tageszeit lassen eine Notiz unter
+„Jetzt“ wieder auftauchen; Öffnen verändert sie nicht. Modell und Tests: [`docs/NOTES.md`](docs/NOTES.md).
+Personen sind alphabetisch
 sortiert; ihre Detailansicht trennt **Referenzen** und **Geschenkideen**, jeweils
 neueste zuerst. Zurück führt Person → Personen → Startseite und stellt in der Liste
-den Fokus wieder her. Die Ansichten lesen ausschließlich, ohne neue Stores,
-Migrationen oder Bearbeitungs-/Löschfunktionen. Die Erfassungsformulare bleiben bestehen.
+den Fokus wieder her. Personenansichten bleiben lesend; ihre Erfassungsformulare bleiben
+bestehen. Notizen verwenden den bestehenden Store ohne Migration oder neues Importformat.
 
 ## Entwicklung
 
