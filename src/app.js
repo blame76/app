@@ -87,10 +87,12 @@ function bindSubmit(form, save) {
     const data = new FormData(form);
     const buttons = [...form.querySelectorAll('button[type="submit"]')];
     form.dataset.saving = 'true';
+    form.setAttribute('aria-busy', 'true');
     const disabledBefore = buttons.map(button => button.disabled);
     buttons.forEach(button => { button.disabled = true; });
     Promise.resolve().then(() => save(data)).catch(error => reportError(error, 'Konnte nicht gespeichert werden. Deine Eingabe bleibt erhalten. Bitte erneut versuchen.')).finally(() => {
       delete form.dataset.saving;
+      form.removeAttribute('aria-busy');
       buttons.forEach((button, index) => { button.disabled = disabledBefore[index]; });
     });
   });
@@ -375,6 +377,7 @@ async function openCoreView(name, options = {}) {
     showView('read', name === 'notes' ? 'Notizen' : 'Personen', open, options);
     const version = viewVersion;
     const root = $('#readHost');
+    root.classList.remove('read-person');
     root.replaceChildren();
     root.setAttribute('aria-busy', 'true');
     try {
@@ -402,6 +405,7 @@ async function openPerson(id, name, options = {}) {
   showView('read', name, () => openPerson(id, name, { replace: true }), options);
   const version = viewVersion;
   const root = $('#readHost');
+  root.classList.add('read-person');
   root.replaceChildren();
   root.setAttribute('aria-busy', 'true');
   try {
@@ -443,6 +447,7 @@ function openStatic(key, options = {}) {
 function closeComposer() {
   composerVersion++;
   $('#quickComposer').hidden = true;
+  $$('[aria-controls="quickComposer"]').forEach(button => button.setAttribute('aria-expanded', 'false'));
   $('#quickComposerBody').replaceChildren();
   if (composerReturnFocus) composerReturnFocus.focus();
   composerReturnFocus = null;
@@ -457,6 +462,7 @@ async function openComposer(type, trigger = null) {
   const title = $('#quickComposerTitle');
   const body = $('#quickComposerBody');
   panel.hidden = false;
+  trigger?.setAttribute('aria-expanded', 'true');
 
   if (type === 'note') {
     title.textContent = 'Notiz';

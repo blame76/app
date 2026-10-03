@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f6f5f1">
+  <meta name="theme-color" content="#f5f2eb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#211f1e" media="(prefers-color-scheme: dark)">
   <meta name="description" content="0815 – Alltagshelfer mit lokal gespeicherten Inhalten.">
   <title>0815 – Alltagshelfer</title>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -75,7 +76,7 @@
 
     <section id="view-settings" class="view focus-view" hidden aria-labelledby="settingsTitle">
       <div class="focus-host">
-        <h2 id="settingsTitle" class="section-title">Verknüpfungen & Orte</h2>
+        <h2 id="settingsTitle" class="visually-hidden">Verknüpfungen & Orte</h2>
 
         <details class="settings-block" open>
           <summary>Verknüpfungen</summary>
@@ -85,7 +86,7 @@
         <details class="settings-block">
           <summary>Orte</summary>
           <div class="settings-content">
-            <button id="settingsAddPlace" type="button" class="secondary">Diesen Ort merken</button>
+            <button id="settingsAddPlace" type="button" class="secondary" aria-controls="quickComposer" aria-expanded="false">Diesen Ort merken</button>
             <div id="placesList" class="list"></div>
           </div>
         </details>
@@ -102,7 +103,7 @@
 
     <section id="view-data" class="view focus-view" hidden aria-labelledby="dataTitle">
       <div class="focus-host stack data-actions">
-        <h2 id="dataTitle" class="section-title">Daten</h2>
+        <h2 id="dataTitle" class="visually-hidden">Daten</h2>
         <p class="muted">Inhalte werden in diesem Browser gespeichert. Ein Export sichert eine Kopie.</p>
         <button id="persistStorageButton" type="button">Vor automatischem Löschen schützen</button>
         <button id="exportButton" type="button" class="secondary">Exportieren</button>
@@ -122,7 +123,7 @@
 
     <section id="view-static" class="view focus-view" hidden aria-labelledby="staticTitle">
       <div class="focus-host prose">
-        <h2 id="staticTitle" class="section-title">Info</h2>
+        <h2 id="staticTitle" class="visually-hidden">Info</h2>
         <div id="staticContent"></div>
       </div>
     </section>
@@ -137,9 +138,9 @@
   </section>
 
   <footer class="action-footer" aria-label="Schnell erfassen">
-    <button type="button" data-composer="place"><span aria-hidden="true">◎</span><span>Ort</span></button>
-    <button type="button" data-composer="note"><span aria-hidden="true">＋</span><span>Notiz</span></button>
-    <button type="button" data-composer="person"><span aria-hidden="true">○</span><span>Person</span></button>
+    <button type="button" data-composer="place" aria-controls="quickComposer" aria-expanded="false"><span aria-hidden="true">◎</span><span>Ort</span></button>
+    <button type="button" data-composer="note" aria-controls="quickComposer" aria-expanded="false"><span aria-hidden="true">＋</span><span>Notiz</span></button>
+    <button type="button" data-composer="person" aria-controls="quickComposer" aria-expanded="false"><span aria-hidden="true">○</span><span>Person</span></button>
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

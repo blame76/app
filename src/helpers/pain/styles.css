@@ -18,11 +18,12 @@
 /* Rem minima let larger text reduce the column count without splitting answers. */
 .pain-areas { grid-template-columns: repeat(auto-fit, minmax(min(100%, max(8rem, 45%)), 1fr)); }
 .pain-intensities { grid-template-columns: repeat(auto-fit, minmax(min(100%, max(3.25rem, 18%)), 1fr)); gap: .5rem; }
-.pain-choice { display: flex; align-items: center; gap: .5rem; min-height: 60px; border: 0; border-bottom: 1px solid var(--border); padding: .75rem .5rem; font-weight: 400; cursor: pointer; transition: background-color 140ms ease, border-color 140ms ease; }
+.pain-choice { display: flex; align-items: center; gap: .5rem; min-height: 60px; border: 0; border-bottom: 1px solid var(--border-control); padding: .75rem .5rem; font-weight: 400; cursor: pointer; transition: background-color var(--motion-duration) var(--motion-ease), border-color var(--motion-duration) var(--motion-ease), transform var(--motion-duration) var(--motion-ease); }
 .pain-choice span { min-width: 0; overflow-wrap: anywhere; }
 .pain-choice input { width: 20px; min-height: 20px; height: 20px; margin: 0; }
 .pain-choice:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
-.pain-choice:focus-within { outline: 3px solid var(--ink); outline-offset: 3px; }
+.pain-choice:active { transform: translateY(1px); }
+.pain-choice:focus-within { outline: 3px solid var(--text-primary); outline-offset: 3px; }
 .pain-number { flex-direction: column; justify-content: center; min-height: 80px; gap: .25rem; }
 .pain-number span { font-family: var(--display-font); font-size: 1.625rem; line-height: 1.25; font-variant-numeric: lining-nums tabular-nums; }
 .pain-other { display: grid; gap: .5rem; margin-top: 1.5rem; }
@@ -36,30 +37,63 @@
 .pain-question-hint { margin: .25rem 0 1.5rem; max-width: 46ch; font-size: .9375rem; }
 .pain-selected-area { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; margin-bottom: 2rem; }
 .pain-selected-area strong { overflow-wrap: anywhere; min-width: 0; font-weight: 500; }
-.pain-resolved { border-top: 1px solid var(--border); margin-top: 2.5rem; padding-top: 1.5rem; }
+.pain-resolved { border-top: 1px solid var(--border-subtle); margin-top: 2.5rem; padding-top: 1.5rem; }
 .pain-resolved h3 { font-size: 1rem; font-weight: 500; margin: 0 0 1rem; }
 .pain-last-value { margin: 0 0 2rem; line-height: 1.6; }
 .pain-last-value strong { display: inline-block; font-family: var(--display-font); font-size: clamp(2.5rem, 8vw, 3.5rem); line-height: 1.15; font-weight: 400; margin-bottom: .75rem; }
-.pain-last-value time { color: var(--muted); font-size: .875rem; }
-.pain-content:has(.pain-last-value) > .section-title { font-family: var(--interface-font); font-size: .875rem; letter-spacing: normal; line-height: 1.5; color: var(--muted); margin-bottom: .75rem; }
+.pain-last-value time { color: var(--text-muted); font-size: .875rem; }
+.pain-content:has(.pain-last-value) > .section-title { font-family: var(--interface-font); font-size: .875rem; letter-spacing: normal; line-height: 1.5; color: var(--text-muted); margin-bottom: .75rem; }
 .pain-confirmation-title { position: relative; padding-top: 1.5rem; }
-/* The same short diagonal as the corner of a Now tile, used only after saving. */
-.pain-confirmation-title::before { content: ''; position: absolute; top: 0; left: calc(100% - 18px); width: 25.46px; height: 1px; background: var(--accent); transform: rotate(45deg); transform-origin: top left; }
-.pain-history-picker { margin-top: 2rem; border-top: 1px solid var(--border); }
-.pain-history-picker > summary { min-height: 48px; padding: 1rem .25rem; cursor: pointer; font-weight: 500; }
+/* The tile's quiet signature also marks a completed entry. */
+.pain-confirmation-title::before { content: ''; position: absolute; top: 0; left: 0; width: 1.25rem; height: 2px; background: var(--accent); }
+.pain-history-picker { margin-top: 2rem; border-top: 1px solid var(--border-subtle); }
+.pain-history-picker > summary { display: flex; justify-content: space-between; align-items: center; gap: 1rem; list-style: none; min-height: 48px; padding: 1rem 0; cursor: pointer; font-weight: 500; }
+.pain-history-picker > summary::-webkit-details-marker { display: none; }
+.pain-history-picker > summary::after { content: '+'; flex: 0 0 1rem; text-align: center; font-size: 1.25rem; line-height: 1; color: var(--text-muted); }
+.pain-history-picker[open] > summary::after { content: '−'; }
 .pain-history-picker > form { margin: .75rem 0 0; }
-.pain-day { margin: 2.5rem 0; }
-.pain-day h3 { font-size: .9375rem; font-weight: 500; margin-bottom: .75rem; }
+.pain-day { margin: var(--space-section) 0; }
+.pain-day:first-of-type { margin-top: 2.75rem; }
+.pain-day:last-of-type { margin-bottom: 2.5rem; }
+.pain-day h3 { font-family: var(--display-font); font-size: 1.75rem; font-weight: 400; letter-spacing: -.025em; margin: 0 0 var(--space-lg); }
+.pain-day-overview { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-lg); margin: 0; }
+.pain-day-overview dt { color: var(--text-muted); font-size: .875rem; margin-bottom: var(--space-sm); }
+.pain-day-overview dd { margin: 0; }
+.pain-day-overview dd > time, .pain-latest-value { font-family: var(--display-font); font-size: 2.5rem; letter-spacing: -.03em; line-height: 1.2; font-weight: 400; font-variant-numeric: tabular-nums; }
+.pain-day-overview dd > time { font-size: 2rem; }
+.pain-latest-value { font-size: 3.25rem; }
+.pain-day-overview dd > span { color: var(--text-muted); font-size: .875rem; white-space: nowrap; }
+.pain-day-overview p { margin: var(--space-sm) 0 0; font-size: .875rem; }
+.pain-day-beginning { margin: var(--space-md) 0 0; font-size: .875rem; }
+.pain-trend { margin: var(--space-lg) 0 var(--space-xl); }
+.pain-trend svg { display: block; width: 100%; height: auto; }
+.pain-trend polyline { stroke: var(--border-control); stroke-width: 1.5; stroke-linejoin: round; }
+.pain-trend circle { fill: var(--accent); }
+.pain-trend figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-sm); color: var(--text-muted); font-size: .875rem; }
+.pain-trend time { font-variant-numeric: tabular-nums; }
 .pain-history { list-style: none; padding: 0; margin: 0; }
-.pain-history li { padding: 1rem 0; border-top: 1px solid var(--border); }
-.pain-history-value { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1.5rem; font-variant-numeric: tabular-nums; }
-.pain-history-value strong { font-family: var(--display-font); font-size: 1.5rem; font-weight: 400; line-height: 1.3; }
-.pain-history-value time { color: var(--muted); font-size: .875rem; }
-.pain-history .quiet { font-size: .875rem; padding-left: 0; }
-.pain-detail-text { margin: .75rem 0 0; overflow-wrap: anywhere; white-space: pre-wrap; font-size: .875rem; }
+.pain-history li { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-sm) var(--space-md); padding: 1.125rem 0; border-top: 1px solid var(--border-subtle); }
+.pain-history .pain-detail-text { order: 1; flex-basis: 100%; margin-top: 0; }
+.pain-history li > button { align-self: start; max-width: 100%; }
+.pain-history-value { flex: 1 1 9rem; display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); align-items: baseline; gap: 1.25rem; font-variant-numeric: tabular-nums; }
+.pain-history-value strong { font-family: var(--display-font); font-size: 1.75rem; font-weight: 400; line-height: 1.3; }
+.pain-history-value time { color: var(--text-muted); font-size: .875rem; }
+.pain-history .quiet { font-size: .875rem; padding: .75rem .25rem; }
+.pain-detail-text { margin: .75rem 0 0; overflow-wrap: anywhere; }
+.pain-detail-text > div { margin-top: var(--space-md); }
+.pain-detail-text dt { color: var(--text-muted); font-size: .875rem; }
+.pain-detail-text dd { margin: .25rem 0 0; white-space: pre-wrap; font-size: 1rem; }
+.pain-detail-note dd { font-family: var(--display-font); font-size: 1.125rem; line-height: 1.6; }
 .pain .section-title { overflow-wrap: anywhere; }
 #painDetailsForm { gap: 1.5rem; }
+@media (max-width: 560px) {
+  .pain-day-overview { grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); }
+}
+@media (hover: hover) {
+  .pain-choice:hover { background: var(--surface-soft); }
+  .pain-choice:has(input:checked):hover { background: var(--accent-soft); }
+}
 @media (prefers-reduced-motion: no-preference) {
-  #painAreaForm, #painEntryForm, .pain-confirmation-title { animation: pain-arrive 140ms ease-out; }
+  #painAreaForm, #painEntryForm, .pain-confirmation-title { animation: pain-arrive var(--motion-duration) var(--motion-ease); }
 }
 @keyframes pain-arrive { from { transform: translateY(2px); } to { transform: translateY(0); } }

@@ -38,13 +38,17 @@ function element(tag, text, className) {
 
 function empty(root, text) { root.append(element('p', text, 'muted')); }
 
-function entryList(entries) {
+function entryList(entries, includeDate = false) {
   const list = element('ol', undefined, 'read-list');
   for (const entry of entries) {
     const item = element('li');
-    const time = element('time', timeFormat.format(entry.createdAt), 'muted');
+    const time = element('time', includeDate ? dateFormat.format(entry.createdAt) : timeFormat.format(entry.createdAt), 'muted');
     time.dateTime = new Date(entry.createdAt).toISOString();
-    item.append(time, element('p', entry.text, 'read-text'));
+    time.title = `${dateFormat.format(entry.createdAt)} · ${timeFormat.format(entry.createdAt)}`;
+    if (includeDate) time.setAttribute('aria-label', time.title);
+    const text = element('p', entry.text, 'read-text');
+    if (includeDate) item.append(text, time);
+    else item.append(time, text);
     list.append(item);
   }
   return list;
@@ -52,10 +56,12 @@ function entryList(entries) {
 
 function group(root, id, label, entries) {
   const section = element('section', undefined, 'read-group');
+  const personGroup = id === 'read-references' || id === 'read-gifts';
+  if (personGroup) section.classList.add('read-person-group', id);
   const heading = element('h2', label, 'section-title');
   heading.id = id;
   section.setAttribute('aria-labelledby', id);
-  section.append(heading, entryList(entries));
+  section.append(heading, entryList(entries, personGroup));
   root.append(section);
 }
 
