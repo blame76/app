@@ -25,7 +25,7 @@ async (page) => {
         const rgb = hex.slice(1).match(/../g).map(value => parseInt(value, 16) / 255).map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4);
         return .2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2];
       };
-      return [['ink', 'bg', 4.5], ['muted', 'bg', 4.5], ['ink', 'paper', 4.5], ['muted', 'paper', 4.5], ['ink', 'soft', 4.5], ['muted', 'soft', 4.5], ['ink', 'accent-soft', 4.5], ['accent', 'bg', 4.5], ['control-border', 'paper', 3], ['control-border', 'bg', 3], ['accent', 'accent-soft', 3], ['paper', 'danger', 4.5]].map(([foreground, background, minimum]) => {
+      return [['text-primary', 'surface-page', 4.5], ['text-muted', 'surface-page', 4.5], ['text-primary', 'surface-paper', 4.5], ['text-muted', 'surface-paper', 4.5], ['text-primary', 'surface-soft', 4.5], ['text-muted', 'surface-soft', 4.5], ['text-primary', 'accent-soft', 4.5], ['accent', 'surface-page', 4.5], ['border-control', 'surface-paper', 3], ['border-control', 'surface-page', 3], ['accent', 'accent-soft', 3], ['surface-paper', 'color-danger', 4.5]].map(([foreground, background, minimum]) => {
         const values = [luminance(color(foreground)), luminance(color(background))].sort((a, b) => b - a);
         return { pair: `${foreground}/${background}`, ratio: (values[0] + .05) / (values[1] + .05), minimum };
       });
@@ -74,7 +74,7 @@ async (page) => {
     check(await tile.evaluate(element => {
       const style = getComputedStyle(element);
       return style.outlineStyle === 'solid' && parseFloat(style.outlineWidth) >= 3 && style.clipPath === 'none' && style.overflow === 'visible';
-    }), 'Cut-corner tile preserves an unclipped visible keyboard focus');
+    }), 'Helper tile preserves an unclipped visible keyboard focus');
     await app.keyboard.press('Enter');
     await app.waitForSelector('.pain-last-value');
     await reflow('Returning summary reflows with 200% text at 320 CSS px');

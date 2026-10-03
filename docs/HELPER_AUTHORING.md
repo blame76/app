@@ -156,7 +156,7 @@ zur App, ohne Query, Fragment oder `..`. CSS im Mount lokal laden und mit dem Ro
 oder Cleanup entfernen. Keine zweite Liste von Helpern im Worker pflegen.
 Bei Integration Paketversion **und** Worker-Cacheversion erhöhen.
 
-Kleines Helper-CSS darf bestehende Tokens nutzen (`--ink`, `--muted`, `--paper`,
+Kleines Helper-CSS darf bestehende Tokens nutzen (`--text-primary`, `--text-muted`, `--surface-paper`,
 `--accent`, `--display-font`). Vorhandene Controls und Focus View bevorzugen.
 Keine eigene Markenwelt, externen Fonts, Icons oder Bildassets. App-Sprache:
 **ruhig · präzise · selbstverständlich**. Zustände und Handlungen benennen;

@@ -19,6 +19,37 @@ const localDate = value => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 const localDateTime = value => new Date(value - new Date(value).getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+const clockTime = value => new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(value);
+const clock = value => `<time datetime="${new Date(value).toISOString()}">${escape(clockTime(value))}</time>`;
+const beginning = entry => entry.startedAt && (entry.startedAt.kind === 'today' || entry.startedAt.kind === 'yesterday'
+  ? new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(entry.startedAt.at)
+  : dateLabel(entry.startedAt.at));
+
+// Presentation only: chronological observations, with real time spacing and no inferred values.
+function dayOverview(group) {
+  const observations = [...group].reverse();
+  const first = observations[0];
+  const latest = observations.at(-1);
+  const duration = latest.recordedAt - first.recordedAt;
+  const points = observations.map(entry => ({
+    entry,
+    x: duration ? 12 + (entry.recordedAt - first.recordedAt) / duration * 576 : 300,
+    y: 96 - entry.intensity * 8
+  }));
+  return `
+    <dl class="pain-day-overview">
+      <div><dt>Erste Dokumentation</dt><dd>${clock(first.recordedAt)}</dd></div>
+      <div><dt>Zuletzt</dt><dd><strong class="pain-latest-value">${latest.intensity}</strong><span> · ${clock(latest.recordedAt)}</span></dd>${latest.intensity === 0 ? '<p class="muted">schmerzfrei · Schmerz weg</p>' : ''}</div>
+    </dl>
+    ${beginning(first) ? `<p class="muted pain-day-beginning">Beginn ungefähr: ${escape(beginning(first))}</p>` : ''}
+    <figure class="pain-trend" aria-label="Dokumentierte Werte nach Uhrzeit">
+      <svg viewBox="0 0 600 112" aria-hidden="true" focusable="false">
+        ${points.length > 1 ? `<polyline points="${points.map(point => `${point.x.toFixed(2)},${point.y}`).join(' ')}" fill="none" vector-effect="non-scaling-stroke" />` : ''}
+        ${points.map(({ entry, x, y }) => `<circle cx="${x.toFixed(2)}" cy="${y}" r="3.5"><title>${escape(clockTime(entry.recordedAt))} · ${entry.intensity}${entry.intensity === 0 ? ' · schmerzfrei' : ''}</title></circle>`).join('')}
+      </svg>
+      <figcaption><span>${clock(first.recordedAt)}${duration ? `–${clock(latest.recordedAt)}` : ''}</span><span>${points.length === 1 ? 'Ein dokumentierter Wert' : 'Linie verbindet dokumentierte Werte.'}</span></figcaption>
+    </figure>`;
+}
 
 export default {
   id: 'pain', label: 'Schmerz', category: 'Wohlbefinden', defaultVisible: true,
@@ -62,10 +93,12 @@ export default {
         event?.preventDefault();
         if (saving || signal.aborted) return;
         saving = true;
+        host.setAttribute('aria-busy', 'true');
         const buttons = [...host.querySelectorAll('button')];
         buttons.forEach(button => { button.disabled = true; });
         Promise.resolve().then(task).catch(error => failure(error, failureMessage)).finally(() => {
           saving = false;
+          host.removeAttribute('aria-busy');
           buttons.forEach(button => { button.disabled = false; });
         });
       };
@@ -280,7 +313,7 @@ export default {
       content.innerHTML = `
         <h2 class="section-title" tabindex="-1">${escape(area)} · Verlauf</h2>
         <p class="muted">Angezeigt werden nur dokumentierte Werte.</p>
-        ${[...groups].map(([day, group]) => `<section class="pain-day"><h3>${day === localDate(today) ? 'Heute' : day === localDate(yesterday) ? 'Gestern' : escape(new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(group[0].recordedAt))}</h3><ol class="pain-history">${group.map(entry => `<li><div class="pain-history-value"><time datetime="${new Date(entry.recordedAt).toISOString()}">${escape(new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(entry.recordedAt))}</time><strong>${entry.intensity}${entry.intensity === 0 ? ' · schmerzfrei · Schmerz weg' : ''}</strong></div>${detailsText(entry)}<button class="quiet" type="button" data-entry="${escape(entry.id)}">Details ergänzen</button></li>`).join('')}</ol></section>`).join('') || '<p class="muted">Noch keine dokumentierten Werte für diesen Ort.</p>'}
+        ${[...groups].map(([day, group]) => `<section class="pain-day" aria-labelledby="pain-day-${day}"><h3 id="pain-day-${day}">${day === localDate(today) ? 'Heute' : day === localDate(yesterday) ? 'Gestern' : escape(new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(group[0].recordedAt))}</h3>${dayOverview(group)}<ol class="pain-history">${group.map(entry => `<li><div class="pain-history-value">${clock(entry.recordedAt)}<strong>${entry.intensity}${entry.intensity === 0 ? ' · schmerzfrei · Schmerz weg' : ''}</strong></div>${detailsText(entry)}<button class="quiet" type="button" data-entry="${escape(entry.id)}">Details ergänzen</button></li>`).join('')}</ol></section>`).join('') || '<p class="muted">Noch keine dokumentierten Werte für diesen Ort.</p>'}
         <button class="secondary" type="button" data-pain="new">Wert dokumentieren</button>`;
       for (const button of content.querySelectorAll('[data-entry]')) button.addEventListener('click', () => showDetails(history.find(entry => entry.id === button.dataset.entry)));
       content.querySelector('[data-pain="new"]').addEventListener('click', () => chooseEntry());
@@ -288,13 +321,13 @@ export default {
     }
     function detailsText(entry) {
       const details = [];
-      if (entry.startedAt) details.push(`Beginn ungefähr: ${entry.startedAt.kind === 'today' || entry.startedAt.kind === 'yesterday' ? new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(entry.startedAt.at) : dateLabel(entry.startedAt.at)}`);
-      if (entry.quality?.length) details.push(`Schmerzart: ${entry.quality.join(', ')}`);
-      if (entry.interference !== undefined) details.push(`Wie sehr gestört: ${entry.interference}`);
-      if (entry.possibleContext) details.push(`Möglicher Zusammenhang: ${entry.possibleContext}`);
-      if (entry.relief?.length) details.push(`Was getan wurde: ${entry.relief.join(', ')}`);
-      if (entry.note) details.push(`Notiz: ${entry.note}`);
-      return details.length ? `<p class="muted pain-detail-text">${details.map(escape).join('<br>')}</p>` : '';
+      if (entry.startedAt) details.push(['Beginn ungefähr', beginning(entry)]);
+      if (entry.quality?.length) details.push(['Schmerzart', entry.quality.join(', ')]);
+      if (entry.interference !== undefined) details.push(['Wie sehr gestört', entry.interference]);
+      if (entry.possibleContext) details.push(['Möglicher Zusammenhang', entry.possibleContext]);
+      if (entry.relief?.length) details.push(['Was getan wurde', entry.relief.join(', ')]);
+      if (entry.note) details.push(['Notiz', entry.note]);
+      return details.length ? `<dl class="pain-detail-text">${details.map(([label, value]) => `<div${label === 'Notiz' ? ' class="pain-detail-note"' : ''}><dt>${label}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>` : '';
     }
     const latest = [...entries].sort((a, b) => b.recordedAt - a.recordedAt || b.id.localeCompare(a.id))[0];
     if (latest) showReturning(latest, { reset: true });

@@ -1,5 +1,8 @@
 // UI feedback and context labels; real IndexedDB, isolated registry fixtures.
 // Run through the supplied browser tool, without adding a project dependency.
+// newContext() starts with empty, nonpersistent storage; no user profile or storageState
+// is supplied. All writes/import replacements affect this test's own seeded records.
+// The context is closed in finally, including on failure. No existing app data is used.
 async (page) => {
   const context = await page.context().browser().newContext({ serviceWorkers: 'block', viewport: { width: 320, height: 700 } });
   const app = await context.newPage();

@@ -65,6 +65,7 @@ export default {
     button.addEventListener('click', async () => {
       if (saving || signal.aborted) return;
       saving = true;
+      button.setAttribute('aria-busy', 'true');
       button.disabled = true;
       try {
         const { entry, usageError } = await saveDrink(api);
@@ -78,7 +79,7 @@ export default {
         if (!signal.aborted) api.toast(error.name === 'QuotaExceededError'
           ? 'Browser-Speicher voll. Getränk konnte nicht dokumentiert werden.'
           : 'Getränk konnte nicht dokumentiert werden. Bitte erneut versuchen.');
-      } finally { saving = false; button.disabled = false; }
+      } finally { saving = false; button.removeAttribute('aria-busy'); button.disabled = false; }
     });
     (entries.length ? time : question).focus();
     return () => { css.remove(); };

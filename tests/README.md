@@ -129,7 +129,7 @@ Metadatenfehler ohne Doppeleintrag, Mehrfachklick, Retention, Ausblenden,
 werden ausgeschlossen. `TZ=Europe/Berlin node --test tests/drink.mjs` prüft die
 Tagesgrenzen auch mit Berliner Sommerzeit in Node.
 
-Alle zehn Browserdateien sind über das vorhandene Browsertool zusätzlich zu
+Alle elf Browserdateien sind über das vorhandene Browsertool zusätzlich zu
 `npm test` auszuführen. CSS-Textvergrößerung ist ein strenger Layout-Test, kein Ersatz
 für einen manuellen Zoom- und Screenreader-Test auf den Zielgeräten.
 
@@ -158,3 +158,28 @@ oder deren Fokus stehlen. Alle Stores und Nutzungsmetadaten bleiben identisch, u
 keine Navigation öffnet Schreibtransaktionen. Browser-Zurück verlässt die App zum
 vorherigen Dokument; interne Navigation erzeugt keine Browser-History-Einträge.
 Dieses Gate läuft wie die übrigen Browserfunktionen über das bereitgestellte Tool.
+
+## Editorial Glow Up
+
+`editorial-browser-check.js` prüft den echten Bestand in isolierten Light- und Dark-Kontexten.
+Es ergänzt die bestehenden Gates um beide Kontrastpaletten einschließlich Hover, native
+Control-Farbwelten, Tagesübersichten, richtige Zeitabstände und ausschließlich dokumentierte
+Punkte im SVG-Verlauf. Ein Wert erzeugt keine Linie, 120 Werte bleiben vollständig; Beginn
+bleibt qualifiziert und ein dokumentiertes Datum wird nicht zu einer Mitternachtszeit.
+
+Außerdem: 50 Notizen, getrennte Personenabschnitte, lange Texte, leere Historie, 1280 px,
+320 px mit 200 % Text, kurze Composer, Tastaturfokus, Touchhöhen und Reduced Motion in
+beiden Modi. Alle Leseansichten müssen sämtliche Stores und Nutzungsmetadaten erhalten
+und dürfen keine Schreibtransaktion öffnen. Der Rabattablauf zeigt sein gespeichertes
+Ergebnis vor der Eingabe. Keine externen Fonts oder Ressourcenrequests.
+
+Das Gate schreibt Screenshots nach `/tmp/0815-editorial-*.png`. Es ist eine Browserfunktion
+wie die übrigen Gates und führt keine neue Projektabhängigkeit ein. Sichtprüfung ergänzt
+die automatischen Checks; Gerätezoom, echte Screenreader und weitere Browser bleiben offen.
+
+Der Final-Pass ergänzt Kontraste der eigenen Eingabeflächen, inhaltliche DOM-Lesereihenfolge
+auf Personenseiten, erhaltene genaue Zeitmetadaten, Composer-Auswahl und vollständig
+bewegungsfreie Pressed States bei Reduced Motion. Kontrolliert verzögerte echte
+IndexedDB-Commits prüfen `aria-busy`, gesperrte Mehrfachaktionen und den Übergang zu Erfolg
+für Schmerz, Rabatt, Trinken und Notizen. Die Verzögerung existiert nur in der isolierten
+Testantwort für `db.js`; produktive Datenbank und Speichersequenz bleiben unverändert.

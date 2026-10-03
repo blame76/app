@@ -1,10 +1,10 @@
 # 0815 – Alltagshelfer
 
-v0.5.7 enthält **Schmerz v0.1**, **Rabatt** und **Trinken** sowie Leseansichten für
+v0.5.8 enthält **Schmerz v0.1**, **Rabatt** und **Trinken** sowie Leseansichten für
 **Notizen** und **Personen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
-Die visuelle Richtung „Personal Object“ ab v0.5.2 steht in [`DESIGN.md`](DESIGN.md).
+Die visuelle Richtung und der aktuelle Editorial-Design-Pass stehen in [`DESIGN.md`](DESIGN.md).
 Der Language- und UI-Pass ab v0.5.3 ist in [`LANGUAGE_REVIEW.md`](LANGUAGE_REVIEW.md) dokumentiert.
 Neue Helper: [`docs/HELPER_AUTHORING.md`](docs/HELPER_AUTHORING.md).
 

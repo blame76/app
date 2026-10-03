@@ -1,88 +1,155 @@
-# Personal Object / Everyday Jewellery
+# 0815 – Editorial Glow Up
 
-Die technische Baseline bleibt unter `baseline-v0.4.1` eingefroren. Dieser Design-Pass
-setzt auf dem bestehenden Schmerz-Workflow auf. v0.5.2 versioniert die Darstellung;
-der Service Worker erhält ausschließlich einen neuen Cache-Namen für diese Assets.
+## Visual language
 
-0815 besitzt eine ruhige, warme Seitenfläche. Fragen und dokumentierte Werte tragen
-die Identität; Bedienelemente ordnen sich ihnen unter. Das Material entsteht durch
-Flächenfarbe, Typografie, Proportion und wenige Linien. Keine Texturen, Bildassets,
-externen Schriften, neuen Icons oder Runtime-Abhängigkeiten.
+Ein persönliches Notizbuch ist die Richtung: warme, ruhige Flächen, große Serifentitel,
+präzise System-Sans für Bedienung und Metadaten. Abstand und feine Linien gliedern die
+bestehenden Ansichten. Es gibt keine neuen Marketingtexte, Bilder, externen Fonts,
+Frameworks oder Chart-Libraries. Fragen und gespeicherte Inhalte tragen die Gestaltung.
 
-## Palette
+## Art direction / Signature
 
-Die kleine Palette liegt als Arbeits-Tokens in `assets/styles.css`, ohne stabile API:
+Die Sichtung vor diesem Final-Pass unterscheidet drei Gruppen:
 
-| Rolle | Farbe | Verwendung |
+- **KEEP:** lokale Serif-/Sans-Spannung, monolithische Kacheln, native Fragenführung,
+  Fokusnavigation, eigenständige Farbwelten und der ausschließlich dokumentierte SVG-Verlauf.
+- **REFINE:** optische Zahlenhierarchie, Pfeile, Plus/Minus, Eingabeflächen,
+  Settings-Kapitel, Composer, Auswahl, Pressed States und Zustände beim Speichern.
+- **REDESIGN:** der gleichmäßige Zeilenrhythmus der Notizen, der bisher knappe
+  Einstieg einer Personenseite und die vertikale Log-Liste heutiger Trinkzeitpunkte.
+
+Die 0815-Signatur besteht aus genau drei wiederkehrenden Entscheidungen:
+
+1. **Inhalt bekommt Raum:** Serif für Fragen, Namen und zentrale Werte; kleine Sans
+   für Bedienung und Kontext. Ein Personenname eröffnet seine Seite auf der Lesebreite.
+2. **Kurze Linie, lange Pause:** kurze Akzentstriche an Kacheln und Bestätigungen;
+   größere Abstände zwischen Kapiteln. Linien bleiben dort, wo sie Orientierung geben.
+3. **Präzise Zeit, bewusste Zahl:** kleine tabellarische Uhrzeiten neben Inhaltswerten;
+   der letzte Schmerzwert ist stärker gewichtet als der erste Erfassungszeitpunkt.
+
+Keine der Entscheidungen braucht überall Serif oder Akzentfarbe. Der Seiteneinstieg,
+die Nähe zusammengehöriger Information und Pausen zwischen Tagen tragen die Komposition.
+
+## Light / Dark
+
+Die Farbwelten folgen ausschließlich `prefers-color-scheme`. `color-scheme` stimmt auch
+native Formulare auf den Modus ab; passende Theme-Metas färben den Browserrahmen.
+Das Manifest nutzt die Light-Grundfarbe als statischen Startwert.
+
+| Rolle | Light | Dark |
 | --- | --- | --- |
-| Hintergrund | `#f6f5f1` | warme, freie Seitenfläche; unverändert |
-| Papier | `#fffefa` | Jetzt-Kachel und Eingabeflächen |
-| Graphit/Grün | `#293b32` | Text, primäre Handlung, Tastaturfokus |
-| Sekundärtext | `#606359` | Zeit, Hinweise, optionale Navigation |
-| Bronze | `#806445` | Auswahl, Signatur, Speicherbestätigung |
-| Heller Bronzeton | `#eee5d8` | gewählte Antwort und Kachel-Hover |
-| Gefahr | `#852d2b` | ausschließlich gefährliche Aktionen; unverändert |
+| Seite | Alabaster `#f5f2eb` | Obsidian `#211f1e` |
+| Papierfläche | `#fbf9f3` | angehoben `#292625` |
+| Eingabe | helleres `#fffdf8` | zurückgenommenes `#242120` |
+| Sekundäre Fläche | `#ece7de` | `#34302d` |
+| Text | Espresso `#302c29` | Elfenbein `#e8e1d6` |
+| Sekundärtext | Taupe `#686057` | `#b6aaa0` |
+| Akzent | Oxblood `#783d49` | gedämpftes Rosé `#c9959d` |
 
-Textkontrast auf den verwendeten Flächen: mindestens 5,03:1 für den Akzent und
-5,18:1 für Sekundärtext. Eingabekonturen erreichen mindestens 3,72:1, Auswahlmarken
-4,40:1. Feine Trennlinien sind keine alleinigen Grenzen interaktiver Controls.
+Dark besitzt eigene Flächen- und Linienabstände in der Helligkeit. Primäre Controls
+tragen dort ein ruhiges Elfenbein statt Reinweiß. Die Akzentfamilie bleibt sparsam:
+Auswahl, kurze Kachelsignatur, Verlaufspunkte und Interaktionszustände.
 
-## Typografie
+Die Tokens liegen in `assets/styles.css`: `--surface-*`, `--text-*`, `--border-*`,
+`--accent-*`, `--color-danger*`, fünf Abstände, zwei Radien, ein Overlay-Schatten und
+eine gemeinsame Bewegung. Helper verwenden dieselben Tokens.
 
-Display: `ui-serif, Charter, "Iowan Old Style", "Palatino Linotype", Georgia, serif`.
-Die installierte lokale Schrift entscheidet; es wird nichts nachgeladen.
+## Typography
 
-- Helper-Titel: 1,5–1,875 rem, Serif, normales Gewicht.
-- Zentrale Frage: 2,125–3,25 rem, Serif, kompakter, gut lesbarer Zeilenabstand.
-- Dokumentierter Hauptwert: 2,5–3,5 rem, Serif; die dokumentierte Zeit bleibt separat.
-- Bestätigung und Seitenüberschrift: 2–2,75 rem, Serif.
-- Interface: System-Sans, 1 rem; kleine Zeit-/Kontextangaben mindestens 0,875 rem.
+`--display-font`: `ui-serif, Charter, "Iowan Old Style", "Palatino Linotype", Georgia, serif`.
+`--interface-font`: `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`.
+Nur lokal verfügbare Schriften; nichts wird geladen.
 
-Großbuchstaben und starke Gewichte sind kein durchgängiges Gestaltungsprinzip.
-Lange Namen dürfen umbrechen. Antworten und Skalen reduzieren ihre Spaltenzahl bei
-Textvergrößerung, statt kurze Wörter oder die Zahl 10 zu zerlegen.
+- Titel und Fragen: Serif, normales Gewicht, ruhiger Zeilenabstand, leicht negatives Tracking.
+- Schlüsselwerte: große Serifenziffern, tabellarische Zahlen bei Uhrzeiten und Beträgen.
+- Navigation, Formulare und Metadaten: System-Sans; kleine Daten mindestens 0,875 rem.
+- Versalien nur für Referenzen und Geschenkideen als gezielte Abschnittsmarkierung.
 
-## Fläche und Signatur
+Die Kopfzeile trägt den Seitentitel. Identische Titel in Einstellungen, Daten und
+Infoseiten bleiben als semantische Abschnittsüberschrift visuell verborgen.
 
-Der Helper besitzt die Seite selbst: kein äußerer Kartenrahmen und keine umrahmten
-Fieldsets. Native Legends bleiben die Fragen. Antworten besitzen große Touchflächen,
-eine leise Grundlinie und das native Radio als eindeutig erkennbare Auswahl.
+## Data presentation
 
-Die einzige Signatur ist die um 18 px angeschnittene obere rechte Ecke, begleitet
-von einer bronzefarbenen Diagonale. Sie sitzt an den Jetzt-Kacheln; nach dem Speichern
-erscheint dieselbe kurze Diagonale über der Bestätigung. Keine Facetten an Controls.
-Nur die gemalte Kachelfläche wird angeschnitten, der Button und sein Fokus bleiben
-vollständig rechteckig und ungeclippt. Die Signatur trägt keine fachliche Information.
+Schmerz-Verläufe bleiben pro Ort und lokalem Kalendertag getrennt. Vor den einzelnen
+Einträgen stehen erste Dokumentation, letzter dokumentierter Wert und dessen Uhrzeit.
+Ein vorhandener Beginn beim ersten Eintrag ist ausdrücklich ungefähr; Tagesangaben
+bleiben ein Datum, keine erfundene Mitternachtszeit. Weitere Beginnangaben gehören zum
+jeweiligen Eintrag. Ohne Beginn wird ausschließlich die erste Dokumentation genannt.
 
-Jetzt-Kacheln haben ein helles Material und eine klare Hierarchie aus Helper und Grund.
-Der Jetzt-Bereich selbst hat keinen Container. Favoriten, alle Helfer und Einstellungen
-verwenden Typografie und Linien. Schatten bleiben auf überlagerte Menüs, Composer und Rückmeldungen
-beschränkt. Die Historie bleibt eine Liste dokumentierter Ereignisse, keine Reihe
-von Karten.
+Der SVG-Verlauf verwendet nur gespeicherte Intensitäten. Horizontale Abstände entsprechen
+den Erfassungszeiten; die Linie verbindet die dokumentierten Punkte. Ein einzelner Wert
+hat einen Punkt ohne Linie. Es gibt keine Glättung, Prognose oder medizinische Bewertung.
+Die vollständige Liste bleibt als lesbare und zugängliche Alternative erhalten, auch
+bei vielen Punkten. Optionale Details verwenden native Definitionslisten und erhalten
+mehr Raum; Notizen darin sind typografisch hervorgehoben.
 
-## Interaktion
+Notizen bleiben nach Tagen gruppiert. Datum, kleine Uhrzeit und großer, mehrzeiliger
+Text bilden einen Leserythmus ohne Einzelkarten oder Linien zwischen Gedanken. Auf breiten
+Ansichten stehen Zeit und Text nebeneinander; mobil bekommt jeder Gedanke einen eigenen
+Zeitauftakt. Personen erhalten eine ruhige Namensliste und einen großzügigen Seitentitel;
+Referenzen und Geschenkideen sind getrennte Kapitel. Dort folgt das Datum dem Inhalt auch
+in der DOM-Lesereihenfolge. Die genaue Uhrzeit bleibt im semantischen `datetime`, Tooltip
+und zugänglichen Label erhalten, ohne jeden Eintrag mit einem Zeitstempel zu beschweren.
 
-Eine dunkle primäre Handlung; sekundäre Möglichkeiten mit ruhiger Fläche; optionale
-Navigation ohne Rahmen. Touch-Größen werden erhalten, Antworten haben mindestens
-60 px Höhe. Der Footer ist eine schlichte Werkzeugzeile mit oberer Haarlinie,
-48+ px Bedienflächen und drei bestehenden Aktionen. Composer bleiben scrollbar
-und berücksichtigen auch bei Textvergrößerung den Platz des Footers.
+Rabatt zeigt das Ergebnis vor der Eingabemaske. Frühere Berechnungen unterscheiden
+kleine Ausgangsdaten vom hervorgehobenen Ergebnis. Trinken behält den letzten
+dokumentierten Zeitpunkt als Hauptinformation. Die heutigen Uhrzeiten bilden eine kompakte,
+umfließende Reihe; neue Einträge und ihre Reihenfolge bleiben vollständig erhalten.
 
-Auswahl und Hover wechseln ihre Farbe in 140 ms. Neue Fragen und die Bestätigung
-kommen über eine einmalige Bewegung von 2 px in 140 ms an. Keine Transparenzänderung,
-die kurzzeitig Textkontraste reduziert, keine fortlaufende Bewegung. Reduced Motion
-entfernt Animation und Transition vollständig. Erfolgreiches Speichern bestätigt
-sich im bestehenden Inhalt und Live-Status; es wird kein Erfolgs-Toast hinzugefügt.
+## Microdetails / Second pass
 
-## Regression Gate
+Plus/Minus besitzen eine feste, zentrierte Fläche und dieselbe Sans-Baseline, auch neben
+großer Serif. Pfeile behalten ihre Breite bei langen Namen und sitzen optisch 2 px höher.
+Schmerzzeiten bekommen eine eigene Spalte; Details-Aktionen bleiben bei normaler mobiler
+Breite neben dem Wert und dürfen bei vergrößerter Schrift unter ihn fließen.
 
-`npm test` sowie alle vier Browser-Gates aus `tests/README.md` laufen mit dem bestehenden
-Workflow. Der zusätzliche Personal-Object-Gate prüft Kontraste, Touchflächen,
-200 % Text bei 320 CSS px, lesbare Skalen, ungeclippten Tastaturfokus, Composer auf
-kurzem Viewport und Reduced Motion. Sichtprüfung des echten Helpers in Chromium
-bei 390 und 1280 px, ergänzt um Reflow bei 320 px und echte Offline-Nutzung.
+Hover, native Auswahl, 3-px-Fokus, deaktivierte Aktionen und vorhandene Erfolgsrückmeldungen
+bleiben unterscheidbar. Ein Pressed State bewegt Controls um genau 1 px. Composer-Trigger
+melden `aria-expanded` und behalten während der Erfassung eine leise Auswahlfläche.
+Speichervorgänge setzen `aria-busy`, sperren wie bisher Mehrfachaktionen und geben die
+Controls nach Commit oder Fehler wieder frei. Es gibt keine künstliche Wartezeit.
 
-Fachmodell, Workflow, Kontext, Ort/Zeit/Intervall, Storage, Import/Export, Retention
-und Helper Contract bleiben unverändert. Die einzige Helper-DOM-Anpassung ist eine
-Darstellungsklasse an der vorhandenen Bestätigungsüberschrift. Echte Screenreader,
-Installation und weitere Zielbrowser wurden in diesem Pass nicht geprüft.
+Nach dem ersten eigenen Screen-Review wurden mobile Notizpausen und Personenabschnitte
+getrennt feinjustiert, die Namenskomposition bereits vor dem asynchronen Laden gesetzt,
+Hover vom Tastaturfokus getrennt und Bewegung auch während gedrückter Controls für Reduced
+Motion entfernt. Der Reflow-Check fand anschließend einen langen Settings-Titel bei
+320 px und 200 % Text; auch dieser darf jetzt vollständig umbrechen.
+
+Bewusst zurückgenommen: Linien zwischen Notizen und Geschenkideen, ständig sichtbare
+Personen-Uhrzeiten und die getrennten Log-Zeilen fürs Trinken. Die freie Fläche bei wenigen
+Einträgen bleibt frei. Diagramme erhalten keine Raster, Flächenfüllung oder Bewertung.
+
+## Helper tiles / Reduced
+
+Monolithische Kacheln mit feinem Rahmen, 4 px Radius und kurzer Oxblood-Linie ersetzen
+die angeschnittenen Ecken. Name zuerst, Kontextgrund danach. Lange Namen dürfen umbrechen;
+bei 320 px passen zwei normale Kacheln nebeneinander, bei Textvergrößerung eine.
+
+Kein Kartenrahmen um Helper oder Datensätze, keine Box um Tagesübersichten und kein
+Schatten auf Kacheln oder Buttons. Schatten bleiben auf echte Überlagerungen beschränkt:
+Menü, Composer, Toast. Controls haben 3 px Radius. Gemeinsame Übergänge: 180 ms mit
+`cubic-bezier(0.16, 1, 0.3, 1)`; Reduced Motion entfernt Bewegung vollständig.
+
+## Accessibility / Tests
+
+Geprüft in Chromium: Light und Dark, 320 / 390 / 1280 CSS px, 200 % Text bei 320 px,
+Tastatur, sichtbarer Fokus, native Semantik, Touchflächen, Reduced Motion, lange Texte,
+leere Ansichten, einzelne und 120 Schmerzwerte pro Tag sowie 50 Notizen.
+Die Textvergrößerung ergänzt Reflow. Echte Browser-Zoom-Shortcuts ändern im bereitgestellten
+Testbrowser die Skalierung nicht; Gerätezoom, echte Screenreader und weitere Browser
+wurden deshalb nicht geprüft.
+
+Textkontraste über alle eingesetzten Flächen: Light mindestens 4,87:1, Dark mindestens
+5,51:1. Eingaberänder mindestens 3,14:1 beziehungsweise 3,97:1; primäre und gefährliche
+Controls einschließlich Hover mindestens 4,5:1. Fokus bleibt mindestens 3 px stark.
+
+`npm test`, die Berliner Zeitgrenzen und sämtliche elf Browser-Gates aus `tests/README.md`
+prüfen Verhalten, Speicherung, Import/Export, Retention, Navigation, echte Offline-Nutzung
+und den Design-Pass. Der zusätzliche Editorial-Gate prüft Zeitabstände und Datenvollständigkeit
+im Plot, ungefähren Beginn, unveränderte Stores ohne Schreibtransaktionen sowie beide Paletten.
+Screenshots der wichtigen Ansichten werden nach `/tmp/0815-editorial-*.png` geschrieben.
+
+Datenmodelle, Helper Contract, Context Engine, Storage, Retention,
+Import/Export und Navigationslogik sind unverändert. Für die Veröffentlichung auf
+`main` werden App-Version und Service-Worker-Cache gemeinsam auf `0.5.8` erhöht.
+Die Worker-Logik bleibt unverändert; die Prüfung verwendet frische Browserkontexte.

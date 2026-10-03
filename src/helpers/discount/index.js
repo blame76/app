@@ -19,6 +19,11 @@ export default {
     const host = document.createElement('div');
     host.className = 'discount';
     host.innerHTML = `
+      <section class="discount-result" aria-labelledby="discountResult" hidden>
+        <p class="muted">Ergebnis</p>
+        <h2 id="discountResult" tabindex="-1"></h2>
+        <p id="discountSavings"></p>
+      </section>
       <form id="discountForm" class="stack">
         <div class="form-grid two">
           <label>Preis (€)<input name="price" type="text" inputmode="decimal" placeholder="75,00" required autocomplete="off"></label>
@@ -26,11 +31,6 @@ export default {
         </div>
         <button type="submit">Berechnen</button>
       </form>
-      <section class="discount-result" aria-labelledby="discountResult" hidden>
-        <p class="muted">Ergebnis</p>
-        <h2 id="discountResult" tabindex="-1"></h2>
-        <p id="discountSavings"></p>
-      </section>
       <section class="discount-history" aria-labelledby="discountHistoryTitle" hidden>
         <h2 id="discountHistoryTitle">Zuletzt berechnet</h2>
         <ol></ol>
@@ -47,7 +47,12 @@ export default {
       history.hidden = !calculations.length;
       const rows = calculations.map(calculation => {
         const row = document.createElement('li');
-        row.textContent = `${euro.format(calculation.priceCents / 100)} · ${percent.format(calculation.discountBasisPoints / 100)} % → ${euro.format(discountResult(calculation).finalCents / 100)}`;
+        const terms = document.createElement('span');
+        terms.className = 'muted';
+        terms.textContent = `${euro.format(calculation.priceCents / 100)} · ${percent.format(calculation.discountBasisPoints / 100)} % → `;
+        const amount = document.createElement('strong');
+        amount.textContent = euro.format(discountResult(calculation).finalCents / 100);
+        row.append(terms, amount);
         return row;
       });
       history.querySelector('ol').replaceChildren(...rows);
@@ -73,6 +78,7 @@ export default {
         return;
       }
       saving = true;
+      form.setAttribute('aria-busy', 'true');
       button.disabled = true;
       fields.forEach(field => { field.disabled = true; });
       try {
@@ -91,6 +97,7 @@ export default {
           : 'Berechnung konnte nicht gespeichert werden. Deine Eingabe bleibt erhalten. Bitte erneut versuchen.');
       } finally {
         saving = false;
+        form.removeAttribute('aria-busy');
         button.disabled = false;
         fields.forEach(field => { field.disabled = false; });
       }
