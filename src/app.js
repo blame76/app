@@ -4,6 +4,7 @@ import { list, get, put, remove, clearAll, exportAll, importAll, makeId, pruneEn
 import { getPosition, matchingPlaces, timeBucket, timeBucketLabel } from './context.js';
 import { TIME_BUCKETS, validateRule } from './schema.js';
 import { RETENTION_WINDOWS } from './retention.js';
+import { renderNotes, renderPeople, renderPerson } from './read-views.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -17,6 +18,7 @@ let dashboardVersion = 0;
 let composerVersion = 0;
 let installPrompt = null;
 let composerReturnFocus = null;
+let backAction = goHome;
 
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
@@ -106,7 +108,7 @@ async function lastUsed(helperId) {
   return (await get('settings', `usage:${helperId}`))?.lastUsedAt || 0;
 }
 
-function showView(name, title = '') {
+function showView(name, title = '', back = goHome, backLabel = 'Zurück zur Startseite') {
   viewVersion++;
   stopHelper();
   $$('.view').forEach(view => { view.hidden = true; });
@@ -114,6 +116,8 @@ function showView(name, title = '') {
 
   const dashboard = name === 'dashboard';
   $('#backButton').hidden = dashboard;
+  backAction = back;
+  $('#backButton').setAttribute('aria-label', backLabel);
   $('#brandButton').hidden = !dashboard;
   $('#focusTitle').hidden = dashboard;
   $('#focusTitle').textContent = title;
@@ -319,12 +323,51 @@ async function renderSettings() {
   if (version === viewVersion) $('#helperVisibilityList').innerHTML = visibilityHtml;
 }
 
-async function openCoreView(name) {
-  if (name === 'settings') {
+async function openCoreView(name, focusPersonId = null) {
+  if (name === 'notes' || name === 'people') {
+    showView('read', name === 'notes' ? 'Notizen' : 'Personen');
+    const version = viewVersion;
+    const root = $('#readHost');
+    root.replaceChildren();
+    root.setAttribute('aria-busy', 'true');
+    try {
+      // Reading core content must not trigger helper retention writes.
+      const records = await list(name === 'notes' ? 'entries' : 'people', { prune: false });
+      if (version !== viewVersion) return;
+      if (name === 'notes') renderNotes(root, records);
+      else {
+        renderPeople(root, records);
+        if (focusPersonId) [...root.querySelectorAll('[data-person]')].find(button => button.dataset.person === focusPersonId)?.focus();
+      }
+    } catch (error) {
+      if (version === viewVersion) reportError(error, 'Inhalte konnten nicht geladen werden. Bitte erneut versuchen.');
+    } finally {
+      if (version === viewVersion) root.removeAttribute('aria-busy');
+    }
+  } else if (name === 'settings') {
     showView('settings', 'Verknüpfungen & Orte');
     await renderSettings();
   } else if (name === 'data') {
     showView('data', 'Daten');
+  }
+}
+
+async function openPerson(id, name) {
+  showView('read', name, () => openCoreView('people', id), 'Zurück zu Personen');
+  const version = viewVersion;
+  const root = $('#readHost');
+  root.replaceChildren();
+  root.setAttribute('aria-busy', 'true');
+  try {
+    const [person, entries] = await Promise.all([get('people', id), list('entries', { prune: false })]);
+    if (version !== viewVersion) return;
+    if (!person) { await openCoreView('people'); return; }
+    $('#focusTitle').textContent = person.name;
+    renderPerson(root, person, entries);
+  } catch (error) {
+    if (version === viewVersion) reportError(error, 'Inhalte konnten nicht geladen werden. Bitte erneut versuchen.');
+  } finally {
+    if (version === viewVersion) root.removeAttribute('aria-busy');
   }
 }
 
@@ -464,7 +507,7 @@ async function initStorageStatus() {
 
 function bindEvents() {
   $('#brandButton').addEventListener('click', goHome);
-  $('#backButton').addEventListener('click', goHome);
+  $('#backButton').addEventListener('click', guarded(() => backAction()));
   $('#menuButton').addEventListener('click', openMenu);
   $('#helperSettingsButton').addEventListener('click', guarded(() => { if (activeHelper) return openHelperSettings(activeHelper.id); }));
   $('#quickComposerClose').addEventListener('click', closeComposer);
@@ -477,6 +520,8 @@ function bindEvents() {
     if (composerButton) { await openComposer(composerButton.dataset.composer, composerButton); return; }
     const viewButton = event.target.closest('[data-view]');
     if (viewButton) { await openCoreView(viewButton.dataset.view); return; }
+    const personButton = event.target.closest('[data-person]');
+    if (personButton) { await openPerson(personButton.dataset.person, personButton.firstElementChild.textContent); return; }
     const staticButton = event.target.closest('[data-static]');
     if (staticButton) { openStatic(staticButton.dataset.static); return; }
     const removePlaceButton = event.target.closest('[data-remove-place]');
