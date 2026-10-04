@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de" data-direction="a">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>0815 · Signature · Designstudien</title>
+  <link rel="icon" href="../../assets/icons/icon-192.png">
+  <link rel="stylesheet" href="./study.css?pass=2">
+</head>
+<body>
+  <a class="skip-link" href="#main">Zum Inhalt</a>
+  <nav class="review-bar" aria-label="Designstudien">
+    <a href="./comparison.html">Vergleich</a>
+    <div class="directions" aria-label="Richtung"><a data-direction-link="a">A · Editorial</a><a data-direction-link="b">B · Tactile</a><a data-direction-link="c">C · Chromatic</a></div>
+    <div class="screens" aria-label="Ansicht"><a data-screen-link="dashboard">Jetzt</a><a data-screen-link="pain">Schmerz</a><a data-screen-link="notes">Notizen</a><a data-screen-link="detail">Notizdetail</a></div>
+    <p>Statische Studie · keine Speicherung</p>
+  </nav>
+  <header class="app-header">
+    <a id="backButton" class="icon-button quiet" aria-label="Zurück zur Startseite">←</a>
+    <a id="brandButton" class="brand-button" aria-label="Zur Startseite">0815</a>
+    <h1 id="focusTitle" class="focus-title"></h1>
+    <a id="headerAction" class="icon-button quiet" aria-label="Notizen öffnen">⋯</a>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <footer class="action-footer" aria-label="Schnell erfassen">
+    <button type="button" data-demo="Ort"><span aria-hidden="true">◎</span><span>Ort</span></button>
+    <button type="button" data-demo="Notiz"><span aria-hidden="true">＋</span><span>Notiz</span></button>
+    <button type="button" data-demo="Person"><span aria-hidden="true">○</span><span>Person</span></button>
+  </footer>
+  <p id="studyStatus" role="status" hidden></p>
+  <script type="module" src="./study.js?pass=2"></script>
+</body>
+</html>

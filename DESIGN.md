@@ -170,3 +170,19 @@ Datenmodelle, Helper Contract, Context Engine, Storage, Retention,
 Import/Export und Navigationslogik sind unverändert. Für die Veröffentlichung auf
 `main` werden App-Version und Service-Worker-Cache gemeinsam auf `0.5.8` erhöht.
 Die Worker-Logik bleibt unverändert; die Prüfung verwendet frische Browserkontexte.
+
+## Design Modes · isolierte Signature-Studien
+
+Der Auftrag vom 4. Oktober 2026 führt noch keinen dritten produktiven Modus ein.
+Drei Richtungen und beide Screenshot-Passes stehen in
+[`design/signature/README.md`](design/signature/README.md); Auswahl und Integration
+folgen separat. Die vorhandene Light-/Dark-Ausgabe einschließlich Farben, Schrift,
+Abständen und Komponenten bleibt unverändert. Alle bisherigen Zurückhaltungsregeln
+gelten für diese beiden Modi vollständig weiter.
+
+Ausschließlich die spätere Signature darf größere typografische Gesten, gesättigte
+Flächen, kräftigere Linien, einzelne Schatten und stärker individualisierte Helper
+verwenden. Framework-/Bundlerfreiheit, lokale Fonts und Ressourcen, AA-Kontraste,
+320-px-Reflow, Reduced Motion, Tastaturbedienung, Fokus und bestehende Funktionalität
+bleiben auch dort verbindlich. Die Theme-Auswahl erhält nach Auswahl genau
+Light / Dark / Signature und lokale Persistenz über die vorhandenen Settings.

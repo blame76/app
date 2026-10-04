@@ -225,3 +225,24 @@ bewegungsfreie Pressed States bei Reduced Motion. Kontrolliert verzögerte echte
 IndexedDB-Commits prüfen `aria-busy`, gesperrte Mehrfachaktionen und den Übergang zu Erfolg
 für Schmerz, Rabatt, Trinken und Notizen. Die Verzögerung existiert nur in der isolierten
 Testantwort für `db.js`; produktive Datenbank und Speichersequenz bleiben unverändert.
+
+## PWA nach Deployment
+
+`python3 tests/pwa-update-server.py` startet auf localhost:8081 einen vollständig
+wegwerfbaren Release-Server. Er baut drei Snapshots mit derselben Paketversion über
+den tatsächlichen Pages-Packager, liefert sie unter `/app/` mit langlebigem HTTP-Cache
+aus und schaltet sie über `/__release?version=one|two|three` um. Er verwendet weder
+die produktiven Daten noch den vorhandenen `dist/`-Ordner; Fixtures werden beim
+Beenden entfernt.
+
+Danach `pwa-update-browser-check.js` wie die übrigen Browserfunktionen ausführen.
+Der Test prüft echte Modul-Worker, CacheStorage und IndexedDB: erste Installation
+ohne Reload, automatisches Update beim Wiederaufnehmen, unverlorener Notizentwurf,
+Commit vor Aktualisierung, Update bei Rückkehr auf die Startseite, Fremd-Cache-Erhalt
+und aktuelles Offline-Neuladen. Standalone ist simuliert; die Betriebssysteminstallation
+und Zielgeräte sind nicht geprüft.
+
+`pages-build.mjs` ergänzt dazu Hash-Reproduzierbarkeit, neue Releases bei CSS-/Helper-/
+Shell-Änderungen ohne Versionssprung und Ausschluss der Signature-Studien aus dem Build.
+Die isolierten Signature-Aufnahmen und deren Reflow-/Bedienprüfungen stehen in
+[`design/signature/README.md`](../design/signature/README.md).

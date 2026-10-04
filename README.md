@@ -1,6 +1,6 @@
 # 0815 – Alltagshelfer
 
-v0.6.2 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
+v0.6.3 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
 **Notizen** und **Personen-Notizen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
@@ -202,6 +202,13 @@ nicht für Konfiguration. Bereinigung erfolgt bei App-Start, Eintragslesen, Expo
 Import und Regeländerung. Details stehen im Helper-Vertrag. Verkürzen kann Daten
 unwiderruflich löschen; Exportdateien außerhalb der App werden davon nicht verändert.
 
+## Signature-Studien
+
+Drei isolierte Designrichtungen mit zwei Screenshot-Passes und Empfehlung stehen
+in [`design/signature/README.md`](design/signature/README.md). Noch keine produktive
+Signature-Integration oder Theme-Auswahl; die vorhandenen Light-/Dark-Styles bleiben
+unverändert. Die Studien werden nicht mit der PWA ausgeliefert.
+
 ## Releases und Offline
 
 Bei jeder Änderung an Shell, Registry, Helpern oder Assets:
@@ -219,9 +226,16 @@ Voraussetzung für die Registry-Tests in Node.
 Der Worker lädt Release-Assets mit `cache: 'reload'`, verwaltet nur `0815-`-Caches,
 speichert nur erfolgreiche nicht umgeleitete GET-Antworten ohne Query-Parameter
 und verwendet den HTML-Fallback ausschließlich für Navigationen. Ein neuer Worker
-wird direkt aktiviert; bereits offene Seiten übernehmen die neue Oberfläche beim
-nächsten Neuladen. Bei lokalem Entwickeln ohne Versionswechsel gegebenenfalls
-Worker/Cache in den Browser-Devtools löschen. Der Pages-Workflow erhöht keine Versionen.
+wird direkt aktiviert. Die App prüft beim Start, Wiederaufnehmen, Online-Wechsel und
+je sichtbarer Minute auf Updates. Ein Controller-Wechsel lädt die Startseite einmal
+neu. In Helpern, Editoren, offenen Composern oder während eines Speichervorgangs
+bleibt die Eingabe erhalten; das Neuladen folgt nach Rückkehr auf die Startseite.
+Die Erstinstallation erzeugt keinen Reload. Offline bleibt die zuletzt vollständig
+geladene Version nutzbar. Altversionen ohne diesen Listener erhalten ihn beim nächsten
+Neuladen/Neustart. Bei lokalem Entwickeln ohne Versionswechsel gegebenenfalls
+Worker/Cache in den Browser-Devtools löschen. Der Pages-Workflow erhöht keine Paketversionen. `bin/build-pages` ergänzt den
+Worker-Cache-Namen jedoch um einen reproduzierbaren Hash aller Runtime-Dateien,
+sodass geänderte Assets auch ohne manuellen Versionssprung einen neuen Worker erzeugen.
 
 ## Rechtliches
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { copyFileSync, lstatSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { HELPERS } from '../src/helpers/registry.js';
@@ -13,7 +14,7 @@ const files = [...new Set([
   'assets/styles.css', 'assets/notes.css', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
   'src/app.js', 'src/db.js', 'src/schema.js', 'src/context.js', 'src/retention.js',
   'src/read-views.js', 'src/navigation.js',
-  'src/notes.js', 'src/note-views.js', 'src/note-presentation.js',
+  'src/notes.js', 'src/note-views.js', 'src/note-presentation.js', 'src/pwa-update.js',
   'src/helpers/contract.js', 'src/helpers/registry.js',
   ...validateRegistry(HELPERS).flatMap(helper => [
     `src/helpers/${helper.id}/index.js`,
@@ -34,6 +35,14 @@ for (const file of files) {
   }
   if (!lstatSync(join(root, file)).isFile()) throw new Error(`Missing runtime file: ${file}`);
 }
+// The deployed worker changes whenever a runtime file changes, even if the manual
+// version bump was missed. Sorted paths + content make the release reproducible.
+const digest = createHash('sha256');
+for (const file of files) digest.update(file).update('\0').update(readFileSync(join(root, file))).update('\0');
+const release = digest.digest('hex').slice(0, 16);
+const worker = readFileSync(join(root, 'sw.js'), 'utf8');
+const deployedWorker = worker.replace(/const CACHE = '(0815-[^']+)';/, (_, cache) => `const CACHE = '${cache}-${release}';`);
+if (deployedWorker === worker) throw new Error('Missing worker release cache name');
 rmSync(output, { recursive: true, force: true });
 mkdirSync(output);
 for (const file of files) {
@@ -41,5 +50,6 @@ for (const file of files) {
   mkdirSync(dirname(target), { recursive: true });
   copyFileSync(join(root, file), target);
 }
+writeFileSync(join(output, 'sw.js'), deployedWorker);
 writeFileSync(join(output, '.nojekyll'), '');
 console.log(`Pages: ${files.length + 1} runtime files in dist/`);

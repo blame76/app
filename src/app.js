@@ -9,6 +9,7 @@ import { createNavigation } from './navigation.js';
 import { isNote, noteLabel, editNote, changeNoteContext, noteContext, relevantNotes } from './notes.js';
 import { renderNote, renderNoteEdit, renderNoteContext, renderNoteContextPicker } from './note-views.js';
 import { noteTextClass } from './note-presentation.js';
+import { startPwaUpdates } from './pwa-update.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -894,10 +895,18 @@ function bindEvents() {
 
 async function init() {
   bindEvents();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js', { type: 'module', updateViaCache: 'none' }).catch(() => toast('Offline-Nutzung konnte nicht eingerichtet werden.'));
+  let ready = false;
+  const resumeUpdate = startPwaUpdates({
+    canReload: () => ready && !$('#view-dashboard').hidden && $('#quickComposer').hidden && $('#menuPanel').hidden
+      && !document.querySelector('dialog[open], [aria-busy="true"]'),
+    onDeferred: () => toast('Neue Version bereit. Sie wird auf der Startseite geladen. Deine Eingabe bleibt offen.'),
+    onRegistrationError: () => toast('Offline-Nutzung konnte nicht eingerichtet werden.')
+  });
   await pruneEntries();
   await renderDashboard();
   await initStorageStatus();
+  ready = true;
+  resumeUpdate?.();
 }
 
 init().catch(reportError);
