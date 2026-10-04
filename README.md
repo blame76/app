@@ -1,7 +1,7 @@
 # 0815 – Alltagshelfer
 
-v0.6.0 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
-**Notizen** sowie Leseansichten für **Personen**. Die gehärtete technische
+v0.6.1 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
+**Notizen** und **Personen-Notizen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
 Die visuelle Richtung und der aktuelle Editorial-Design-Pass stehen in [`DESIGN.md`](DESIGN.md).
@@ -99,10 +99,13 @@ können Ort und Tageszeit freiwillig verknüpft werden. Die Detailansicht bietet
 Kontextverwaltung und bestätigtes Löschen. Ort **ODER** Tageszeit lassen eine Notiz unter
 „Jetzt“ wieder auftauchen; Öffnen verändert sie nicht. Modell und Tests: [`docs/NOTES.md`](docs/NOTES.md).
 Personen sind alphabetisch
-sortiert; ihre Detailansicht trennt **Referenzen** und **Geschenkideen**, jeweils
+sortiert; ihre Detailansicht trennt **Notizen** und **Geschenkideen**, jeweils
 neueste zuerst. Zurück führt Person → Personen → Startseite und stellt in der Liste
-den Fokus wieder her. Personenansichten bleiben lesend; ihre Erfassungsformulare bleiben
-bestehen. Notizen verwenden den bestehenden Store ohne Migration oder neues Importformat.
+den Fokus wieder her. Beide Arten von Personen-Einträgen lassen sich öffnen, bearbeiten,
+verknüpfen und nach Bestätigung löschen. „Jetzt“ zeigt den Namen bei der Notiz, etwa
+Mamas Frage am verknüpften Ort oder zur gewählten Tageszeit. Erfassung auf einer
+Personenseite wählt diese Person bereits aus. Details: [`docs/PERSON_NOTES.md`](docs/PERSON_NOTES.md).
+Notizen verwenden den bestehenden Store ohne Migration oder neues Importformat.
 
 ## Entwicklung
 

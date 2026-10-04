@@ -39,7 +39,7 @@ function element(tag, text, className) {
 
 function empty(root, text) { root.append(element('p', text, 'muted')); }
 
-function entryList(entries, includeDate = false) {
+function entryList(entries, includeDate = false, places = []) {
   const list = element('ol', undefined, 'read-list');
   for (const entry of entries) {
     const item = element('li');
@@ -47,22 +47,30 @@ function entryList(entries, includeDate = false) {
     time.dateTime = new Date(entry.createdAt).toISOString();
     time.title = `${dateFormat.format(entry.createdAt)} · ${timeFormat.format(entry.createdAt)}`;
     if (includeDate) time.setAttribute('aria-label', time.title);
-    const text = element('p', entry.text, 'read-text');
-    if (includeDate) item.append(text, time);
+    const text = element(includeDate ? 'span' : 'p', entry.text, 'read-text');
+    if (includeDate) {
+      const button = element('button', undefined, 'person-note-button');
+      button.type = 'button';
+      button.dataset.note = entry.id;
+      button.append(text, time);
+      const links = noteLinks(entry, places);
+      if (links.length) button.append(element('span', links.map(link => link.label).join(' · '), 'note-read-context muted'));
+      item.append(button);
+    }
     else item.append(time, text);
     list.append(item);
   }
   return list;
 }
 
-function group(root, id, label, entries) {
+function group(root, id, label, entries, places = []) {
   const section = element('section', undefined, 'read-group');
   const personGroup = id === 'read-references' || id === 'read-gifts';
   if (personGroup) section.classList.add('read-person-group', id);
   const heading = element('h2', label, 'section-title');
   heading.id = id;
   section.setAttribute('aria-labelledby', id);
-  section.append(heading, entryList(entries, personGroup));
+  section.append(heading, entryList(entries, personGroup, places));
   root.append(section);
 }
 
@@ -113,10 +121,10 @@ export function renderPeople(root, people) {
   root.append(list);
 }
 
-export function renderPerson(root, person, entries) {
+export function renderPerson(root, person, entries, places = []) {
   const references = personEntries(entries, person.id, 'reference');
   const gifts = personEntries(entries, person.id, 'gift');
   if (!references.length && !gifts.length) { empty(root, 'Noch keine Einträge.'); return; }
-  if (references.length) group(root, 'read-references', 'Referenzen', references);
-  if (gifts.length) group(root, 'read-gifts', 'Geschenkideen', gifts);
+  if (references.length) group(root, 'read-references', 'Notizen', references, places);
+  if (gifts.length) group(root, 'read-gifts', 'Geschenkideen', gifts, places);
 }

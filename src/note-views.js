@@ -1,4 +1,4 @@
-import { noteContext, noteLinks } from './notes.js';
+import { noteContext, noteLinks, noteLabel } from './notes.js';
 import { TIME_BUCKETS } from './schema.js';
 import { timeBucketLabel } from './context.js';
 
@@ -21,8 +21,9 @@ function timestamp(at) {
   return time;
 }
 
-export function renderNote(root, note, places, actions) {
+export function renderNote(root, note, places, actions, person = null) {
   const article = element('article', undefined, 'note-detail');
+  if (note.type === 'person-note') article.append(element('p', person?.name || 'Person nicht mehr gespeichert', 'note-person-name'));
   article.append(element('p', note.text, 'note-text'));
   const dates = element('div', undefined, 'note-dates muted');
   dates.append(timestamp(note.createdAt));
@@ -44,14 +45,14 @@ export function renderNote(root, note, places, actions) {
   } else context.append(element('p', 'Keine Verknüpfung', 'muted'));
   const controls = element('div', undefined, 'note-actions');
   controls.append(button('Bearbeiten', 'noteEdit', actions.edit), button(links.length ? 'Verknüpfung ändern' : 'Verknüpfung hinzufügen', 'noteContext', actions.context));
-  article.append(dates, context, controls, button('Notiz löschen', 'noteDelete', actions.remove, 'quiet danger-text note-delete'));
+  article.append(dates, context, controls, button(`${noteLabel(note)} löschen`, 'noteDelete', actions.remove, 'quiet danger-text note-delete'));
   root.append(article);
 }
 
 export function renderNoteEdit(root, note, cancel) {
   const form = element('form', undefined, 'stack note-edit');
   form.id = 'noteEditForm';
-  const label = element('label', 'Notiz', 'visually-hidden');
+  const label = element('label', noteLabel(note), 'visually-hidden');
   label.htmlFor = 'noteEditText';
   const text = element('textarea');
   text.id = 'noteEditText';

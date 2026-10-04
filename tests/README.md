@@ -144,7 +144,8 @@ Tastatur/Fokus, Person → Personen → Startseite, keinerlei Schreibtransaktion
 unveränderte Stores auch bei Lesefehlern, Retry und Navigation während ausstehender
 Lesezugriffe. Gespeichertes Markup bleibt Text; lange Namen und mehrzeilige Notizen
 passen bei 320 CSS px und 200 % Text. Bestehende Notiz- und Personen-Erfassung sowie
-Referenzen/Geschenkideen bleiben append-only. Keine externen Requests.
+Neue Referenzen/Geschenkideen werden weiterhin als eigene Einträge angelegt.
+Bestehende Einträge öffnen nun die gemeinsame Notizdetailansicht. Keine externen Requests.
 
 ## Notes Complete
 
@@ -158,6 +159,17 @@ Notizverlust, beiden Kontextarten, Matching und Dashboard-Limit, Modal-Löschen/
 Parent-Navigation/Fokus, Import/Export und langen Texten bei 320 CSS px/200 % Text.
 Der gemeinsame Offline-Gate prüft auch Bearbeiten, Kontext, Wiederfinden und Löschen
 mit dem echten Worker. Details und ausgeführte Gates: [`docs/NOTES.md`](../docs/NOTES.md).
+
+## Personen-Notizen
+
+`person-notes.mjs` prüft den gemeinsamen Lebenszyklus für alte Personen-Notizen,
+erhaltene Person/Art/Erstellungszeit, Kontextänderungen, OR-Matching/Priorität und Import.
+`person-notes-browser-check.js` prüft Mamas Frage unter „Jetzt“, Ort und Tageszeit,
+die wiederverwendeten Detail-/Edit-/Kontextansichten, Person- und Dashboard-Parents,
+Speicherfehler und Retry ohne doppelte Person, Gift-Kompatibilität, Import/Export,
+Light/Dark, 320 px/200 % Text und Reduced Motion. Der Offline-Gate prüft zusätzlich
+Personen-Notizen inklusive Ort und Tageszeit mit dem tatsächlichen Service Worker.
+Details und Testbericht: [`docs/PERSON_NOTES.md`](../docs/PERSON_NOTES.md).
 
 ## Zurück-Navigation
 

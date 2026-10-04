@@ -6,7 +6,7 @@ import { TIME_BUCKETS, validateRule } from './schema.js';
 import { RETENTION_WINDOWS } from './retention.js';
 import { renderNotes, renderPeople, renderPerson } from './read-views.js';
 import { createNavigation } from './navigation.js';
-import { editNote, changeNoteContext, noteContext, relevantNotes } from './notes.js';
+import { isNote, noteLabel, editNote, changeNoteContext, noteContext, relevantNotes } from './notes.js';
 import { renderNote, renderNoteEdit, renderNoteContext, renderNoteContextPicker } from './note-views.js';
 
 const $ = selector => document.querySelector(selector);
@@ -318,9 +318,9 @@ function tile(helper, reason) {
 }
 
 async function dashboardCandidates(visible) {
-  const [places, entries] = await Promise.all([list('places'), list('entries', { prune: false })]);
+  const [places, entries, people] = await Promise.all([list('places'), list('entries', { prune: false }), list('people')]);
   const hasPlaceRules = visible.some(({ rule }) => rule.placeIds.length)
-    || entries.some(entry => entry.type === 'note' && noteContext(entry).placeIds.some(id => places.some(place => place.id === id)));
+    || entries.some(entry => isNote(entry) && noteContext(entry).placeIds.some(id => places.some(place => place.id === id)));
   let activePlaces = [];
   if (hasPlaceRules) {
     try { activePlaces = matchingPlaces(await getPosition(), places); } catch { activePlaces = []; }
@@ -339,12 +339,13 @@ async function dashboardCandidates(visible) {
     else if (usedAt) { reason = 'zuletzt verwendet'; rank = 100 + Math.max(0, 30 - Math.floor((now - usedAt) / 3600000)); }
     if (reason) items.push({ helper, reason, rank, usedAt });
   }
-  items.push(...relevantNotes(entries, activePlaces, bucket));
+  items.push(...relevantNotes(entries, activePlaces, bucket).map(item => ({ ...item, person: people.find(person => person.id === item.note.personId) })));
   return items.sort((a, b) => b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.helper.id).localeCompare(b.note?.id || b.helper.id));
 }
 
-function noteTile(note, reason) {
-  return `<button class="note-tile" type="button" data-note="${escapeHtml(note.id)}"><span class="note-eyebrow">Notiz</span><strong>${escapeHtml(note.text)}</strong><span class="note-tile-context">${escapeHtml(reason)}</span></button>`;
+function noteTile(note, reason, person) {
+  const label = noteLabel(note);
+  return `<button class="note-tile" type="button" data-note="${escapeHtml(note.id)}"><span class="note-tile-heading"><span class="note-eyebrow">${label}</span>${note.type === 'person-note' ? `<span class="note-person-name">${escapeHtml(person?.name || 'Person nicht mehr gespeichert')}</span>` : ''}</span><strong>${escapeHtml(note.text)}</strong><span class="note-tile-context">${escapeHtml(reason)}</span></button>`;
 }
 
 async function renderDashboard() {
@@ -354,7 +355,7 @@ async function renderDashboard() {
   const candidates = await dashboardCandidates(visible);
   if (version !== dashboardVersion) return;
 
-  $('#nowRows').innerHTML = candidates.slice(0, 9).map(({ helper, note, reason }) => note ? noteTile(note, reason) : tile(helper, reason)).join('');
+  $('#nowRows').innerHTML = candidates.slice(0, 9).map(({ helper, note, reason, person }) => note ? noteTile(note, reason, person) : tile(helper, reason)).join('');
   $('#favoriteTiles').innerHTML = favorites.length ? favorites.map(helper => tile(helper, '')).join('') : '';
 
   const categories = [...new Set(visible.map(({ helper }) => helper.category))].sort((a, b) => a.localeCompare(b, 'de'));
@@ -403,6 +404,7 @@ async function openCoreView(name, options = {}) {
     const root = $('#readHost');
     root.classList.remove('read-person');
     root.classList.toggle('read-notes', name === 'notes');
+    delete root.dataset.personId;
     root.replaceChildren();
     root.setAttribute('aria-busy', 'true');
     try {
@@ -431,7 +433,7 @@ async function openCoreView(name, options = {}) {
 
 async function requireNote(id) {
   const note = await get('entries', id);
-  if (note?.type !== 'note') throw new Error('Notiz nicht mehr vorhanden.');
+  if (!isNote(note)) throw new Error('Notiz nicht mehr vorhanden.');
   return note;
 }
 
@@ -445,9 +447,16 @@ async function openNoteScreen(id, title, open, options, render) {
   try {
     const [note, places] = await Promise.all([get('entries', id), list('places')]);
     if (!current()) return;
-    if (note?.type !== 'note') { toast('Notiz nicht mehr vorhanden.'); await goBack(); return; }
-    render(root, note, places, current);
-    $('#focusTitle').focus({ preventScroll: true });
+    if (!isNote(note)) { toast('Notiz nicht mehr vorhanden.'); await goBack(); return; }
+    const person = note.type === 'person-note' && note.personId ? await get('people', note.personId) : null;
+    if (!current()) return;
+    const resolvedTitle = title.replace('Notiz', noteLabel(note));
+    if (resolvedTitle !== title) {
+      navigation.enter({ title: resolvedTitle, open }, { replace: true });
+      $('#focusTitle').textContent = resolvedTitle;
+    }
+    render(root, note, places, current, person);
+    if ($('#quickComposer').hidden) $('#focusTitle').focus({ preventScroll: true });
   } catch (error) {
     if (current()) reportError(error, 'Notiz konnte nicht geladen werden. Bitte erneut versuchen.');
   } finally {
@@ -460,21 +469,25 @@ function refreshNow() {
 }
 
 async function refreshNoteList() {
-  if ($('#view-read').hidden || !$('#readHost').classList.contains('read-notes')) return;
+  if ($('#view-read').hidden) return;
+  const root = $('#readHost');
+  const personId = root.dataset.personId;
+  if (!root.classList.contains('read-notes') && !personId) return;
   const version = viewVersion;
-  const [entries, places] = await Promise.all([list('entries', { prune: false }), list('places')]);
+  const [entries, places, person] = await Promise.all([list('entries', { prune: false }), list('places'), personId ? get('people', personId) : Promise.resolve(null)]);
   if (version !== viewVersion) return;
-  $('#readHost').replaceChildren();
-  renderNotes($('#readHost'), entries, places);
+  root.replaceChildren();
+  if (person) renderPerson(root, person, entries, places);
+  else if (!personId) renderNotes(root, entries, places);
 }
 
 async function openNote(id, options = {}) {
-  await openNoteScreen(id, 'Notiz', () => openNote(id, { replace: true }), options, (root, note, places) => {
+  await openNoteScreen(id, 'Notiz', () => openNote(id, { replace: true }), options, (root, note, places, current, person) => {
     renderNote(root, note, places, {
       edit: guarded(() => openNoteEdit(id)),
       context: guarded(() => openNoteContext(id)),
-      remove: () => confirmNoteDelete(id)
-    });
+      remove: () => confirmNoteDelete(id, noteLabel(note))
+    }, person);
   });
 }
 
@@ -488,10 +501,10 @@ async function openNoteEdit(id, options = {}) {
       if (!current()) return;
       const next = editNote(original, text);
       if (next.text !== original.text) await put('entries', next);
-      if (current()) { toast('Notiz gespeichert.'); await goBack(); refreshNow(); }
+      if (current()) { toast(`${noteLabel(next)} gespeichert.`); await goBack(); refreshNow(); }
     });
     // The screen loader focuses the title; a microtask puts editing directly in the field.
-    queueMicrotask(() => { if (current()) $('#noteEditText').focus(); });
+    queueMicrotask(() => { if (current() && $('#quickComposer').hidden) $('#noteEditText').focus(); });
   });
 }
 
@@ -500,6 +513,7 @@ async function saveNoteContext(id, changes, current) {
   if (!current()) return;
   await put('entries', changeNoteContext(original, changes));
   refreshNow();
+  refreshNoteList().catch(error => reportError(error, 'Verknüpfung gespeichert. Die Ansicht konnte nicht aktualisiert werden.'));
 }
 
 function contextActions(root, note, current, actions, capture = false) {
@@ -547,13 +561,15 @@ async function openNoteContext(id, kind = null, options = {}) {
   });
 }
 
-function confirmNoteDelete(id) {
+function confirmNoteDelete(id, label = 'Notiz') {
   const dialog = $('#noteDeleteDialog');
   const version = viewVersion;
   const returnFocus = document.activeElement;
   const form = $('#noteDeleteForm');
   const cancel = $('#noteDeleteCancel');
   const confirm = $('#noteDeleteConfirm');
+  $('#noteDeleteTitle').textContent = `${label} löschen?`;
+  $('#noteDeleteDescription').textContent = `Diese ${label} wird dauerhaft von diesem Gerät gelöscht.`;
   $('#noteDeleteError').textContent = '';
   cancel.disabled = confirm.disabled = false;
   form.removeAttribute('aria-busy');
@@ -567,7 +583,7 @@ function confirmNoteDelete(id) {
     try {
       await remove('entries', id);
     } catch {
-      $('#noteDeleteError').textContent = 'Notiz konnte nicht gelöscht werden. Bitte erneut versuchen.';
+      $('#noteDeleteError').textContent = `${label} konnte nicht gelöscht werden. Bitte erneut versuchen.`;
       return;
     } finally {
       form.removeAttribute('aria-busy');
@@ -632,14 +648,15 @@ async function openPerson(id, name, options = {}) {
   const root = $('#readHost');
   root.classList.add('read-person');
   root.classList.remove('read-notes');
+  root.dataset.personId = id;
   root.replaceChildren();
   root.setAttribute('aria-busy', 'true');
   try {
-    const [person, entries] = await Promise.all([get('people', id), list('entries', { prune: false })]);
+    const [person, entries, places] = await Promise.all([get('people', id), list('entries', { prune: false }), list('places')]);
     if (version !== viewVersion) return;
     if (!person) { await goBack(); return; }
     $('#focusTitle').textContent = person.name;
-    renderPerson(root, person, entries);
+    renderPerson(root, person, entries, places);
   } catch (error) {
     if (version === viewVersion) reportError(error, 'Inhalte konnten nicht geladen werden. Bitte erneut versuchen.');
   } finally {
@@ -748,6 +765,9 @@ async function openComposer(type, trigger = null) {
       <button type="submit">Hinzufügen</button>
     </form>`;
     const select = $('#personForm select[name="personId"]');
+    let savedPerson = null;
+    const currentPersonId = !$('#view-read').hidden && $('#readHost').dataset.personId;
+    if (people.some(person => person.id === currentPersonId)) select.value = currentPersonId;
     const updateNewField = () => { $('#newPersonField').hidden = select.value !== 'new'; };
     select.addEventListener('change', updateNewField); updateNewField();
     bindSubmit($('#personForm'), async form => {
@@ -757,12 +777,20 @@ async function openComposer(type, trigger = null) {
       if (personId === 'new') {
         const name = form.get('newName').trim();
         if (!name) { toast('Bitte einen Namen angeben.'); return; }
-        personId = makeId('person');
-        await put('people', { id: personId, name, createdAt: Date.now() });
+        if (savedPerson?.name === name) personId = savedPerson.id;
+        else {
+          const person = { id: makeId('person'), name, createdAt: Date.now() };
+          await put('people', person);
+          savedPerson = person;
+          personId = person.id;
+        }
       }
-      await put('entries', { id: makeId('person-note'), type: 'person-note', personId, kind: form.get('kind'), text, createdAt: Date.now() });
-      if (current()) closeComposer();
-      toast(form.get('kind') === 'gift' ? 'Geschenkidee gespeichert.' : 'Notiz zur Person gespeichert.');
+      const note = { id: makeId('person-note'), type: 'person-note', personId, kind: form.get('kind'), text, createdAt: Date.now() };
+      await put('entries', note);
+      if (current()) { clearToast(); noteFollowup(note, current); }
+      else toast(note.kind === 'gift' ? 'Geschenkidee gespeichert.' : 'Notiz zur Person gespeichert.');
+      refreshNow();
+      refreshNoteList().catch(error => reportError(error, 'Notiz gespeichert. Die Ansicht konnte nicht aktualisiert werden.'));
     });
     select.focus();
   }

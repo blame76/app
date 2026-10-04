@@ -1,6 +1,14 @@
 import { timeBucketLabel } from './context.js';
 import { validateRecord } from './schema.js';
 
+export function isNote(entry) {
+  return entry?.type === 'note' || entry?.type === 'person-note';
+}
+
+export function noteLabel(entry) {
+  return entry.type === 'person-note' && entry.kind === 'gift' ? 'Geschenkidee' : 'Notiz';
+}
+
 export function noteContext(note) {
   return { placeIds: note.context?.placeIds || [], timeBuckets: note.context?.timeBuckets || [] };
 }
@@ -28,7 +36,7 @@ export function noteLinks(note, places) {
 // Explicit context only. Place OR time; a place match takes priority, then newest first.
 // Matching uses the shell's existing active places, never a second location request.
 export function relevantNotes(entries, activePlaces, bucket) {
-  return entries.filter(entry => entry.type === 'note').flatMap(note => {
+  return entries.filter(isNote).flatMap(note => {
     const context = noteContext(note);
     const place = activePlaces.find(place => context.placeIds.includes(place.id));
     if (place) return [{ note, reason: place.name, rank: 400 }];

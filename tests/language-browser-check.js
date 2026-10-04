@@ -128,7 +128,8 @@ async (page) => {
     check(await app.locator('#personForm textarea').inputValue() === 'Eine Notiz', 'Missing person name preserves the entered note');
     await app.locator('input[name="newName"]').fill('Ada');
     await app.locator('#personForm button').click();
-    await feedback('Notiz zur Person gespeichert.');
+    await app.waitForSelector('#quickNoteContextDone');
+    check(await app.locator('#quickComposerTitle').textContent() === 'Gespeichert', 'Person capture reports success before optional context');
     const note = (await entries()).find(entry => entry.type === 'person-note');
     check(note.kind === 'reference' && note.text === 'Eine Notiz', 'User label Notiz preserves the stored reference kind');
     await app.locator('[data-composer="person"]').click();
@@ -138,7 +139,9 @@ async (page) => {
     await app.locator('input[name="kind"][value="gift"]').check();
     await app.locator('#personForm textarea').fill('Ein Buch');
     await app.locator('#personForm button').click();
-    await feedback('Geschenkidee gespeichert.');
+    await app.waitForSelector('#quickNoteContextDone');
+    check(await app.locator('#quickComposerTitle').textContent() === 'Gespeichert', 'Gift capture offers the same optional context');
+    await app.locator('#quickNoteContextDone').click();
     check((await entries()).some(entry => entry.kind === 'gift' && entry.personId === note.personId && entry.text === 'Ein Buch'), 'Gift confirmation corresponds to its stored kind and person');
 
     await app.locator('#menuButton').click();

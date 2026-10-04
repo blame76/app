@@ -1,5 +1,8 @@
 # Notes Complete · v0.6.0
 
+Ab `v0.6.1` wird dieser Lebenszyklus auch für Personen-Notizen verwendet:
+[`Personen-Notizen`](PERSON_NOTES.md). Die folgenden Prüfergebnisse dokumentieren den ursprünglichen Notes-Pass.
+
 ## Bestehende Basis und Modell
 
 Notizen bleiben Shell-Inhalte im IndexedDB-Store `entries`, keine Helper. Der vorhandene

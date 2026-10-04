@@ -5,6 +5,11 @@ Bearbeitung und Kontextverwaltung sowie eigene Note-Kacheln unter „Jetzt“.
 Tagesüberschriften bleiben kleine Kapitel; Text und Freiraum tragen die Liste.
 Der visuelle zweite Pass, Kompatibilität und Prüfungen stehen in [`docs/NOTES.md`](docs/NOTES.md).
 
+`0.6.1` übernimmt den Notiz-Lebenszyklus für Personen. Name und Frage stehen bereits
+unter „Jetzt“; die Personenseite hat nun ein Kapitel „Notizen“ mit Serifentexten und
+direkt öffnungsfähigen Einträgen. Datum und Kontext bleiben sekundär. Editor,
+Kontextverwaltung und Löschdialog verwenden die vorhandenen Notes-Ansichten.
+
 ## Visual language
 
 Ein persönliches Notizbuch ist die Richtung: warme, ruhige Flächen, große Serifentitel,

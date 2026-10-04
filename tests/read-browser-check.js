@@ -95,7 +95,7 @@ async (page) => {
     await ready();
     check(await app.locator('#focusTitle').textContent() === 'Anna', 'Keyboard opens the selected person');
     check(await app.locator('#main').evaluate(element => element === document.activeElement), 'Person detail focuses the main view');
-    check((await app.locator('#readHost h2').allTextContents()).join('|') === 'Referenzen|Geschenkideen', 'Reference and gift semantics remain separate');
+    check((await app.locator('#readHost h2').allTextContents()).join('|') === 'Notizen|Geschenkideen', 'Reference and gift semantics remain separate');
     check((await app.locator('#read-references + ol .read-text').allTextContents()).join('|') === 'Lieblingsparfum|Schuhgröße 39', 'Only this person’s references appear newest first');
     check((await app.locator('#read-gifts + ol .read-text').allTextContents()).join('|') === 'Ein Konzert|Buch XY', 'Only this person’s gifts appear newest first');
     check(await app.locator('#backButton').getAttribute('aria-label') === 'Zurück zu Personen', 'Back has the correct accessible destination');
@@ -176,6 +176,7 @@ async (page) => {
       else await app.locator('input[name="newName"]').fill(name);
       await app.locator(`input[name="kind"][value="${kind}"]`).check();
       await app.locator('#personForm textarea').fill(text); await app.locator('#personForm button').click();
+      await app.locator('#quickNoteContextDone').click();
       await app.waitForSelector('#quickComposer', { state: 'hidden' });
     }
     await capture('Neue Person', null, 'reference', 'Erste Referenz');

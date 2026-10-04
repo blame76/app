@@ -54,7 +54,7 @@ export function validateRecord(store, item) {
     for (const key of ['helperId', 'type', 'personId', 'text', 'kind']) {
       requireValue(item[key] === undefined || typeof item[key] === 'string', `Ungültiges Eintragsfeld ${key}.`);
     }
-    if (item.type === 'note') {
+    if (item.type === 'note' || item.type === 'person-note') {
       requireValue(item.updatedAt === undefined || timestamp(item.updatedAt), 'Ungültiger Bearbeitungszeitpunkt.');
       if (item.context !== undefined) {
         requireValue(object(item.context), 'Ungültige Notizverknüpfung.');

@@ -111,6 +111,7 @@ async (page) => {
     await app.locator('input[name="newName"]').fill('Offline-Person');
     await app.locator('#personForm textarea').fill('Schuhgröße 40');
     await app.locator('#personForm button').click();
+    await app.locator('#quickNoteContextDone').click();
     await app.waitForSelector('#quickComposer', { state: 'hidden' });
     await app.locator('#menuButton').click();
     await app.locator('[data-view="people"]').click();
@@ -120,6 +121,45 @@ async (page) => {
     await app.locator('#backButton').click();
     await app.waitForSelector('[data-person]');
     check(await app.locator('#focusTitle').textContent() === 'Personen', 'Person Back restores its list offline');
+    // Controlled existing geolocation mechanism, with local data and the real worker.
+    const locationStub = () => Object.defineProperty(navigator, 'geolocation', { configurable: true, value: {
+      getCurrentPosition(success) { success({ coords: { latitude: 50, longitude: 8, accuracy: 10 } }); }
+    } });
+    await app.addInitScript(locationStub);
+    await app.evaluate(locationStub);
+    await app.evaluate(async () => {
+      await (await import('/src/db.js')).put('places', { id: 'offline-home', name: 'Bei Offline-Person', lat: 50, lon: 8, radius: 250, createdAt: 1 });
+    });
+    await app.locator('[data-person]').click();
+    await app.locator('#readHost [data-note]').click();
+    await app.locator('#noteEdit').click();
+    await app.locator('#noteEditText').fill('Welche Schuhgröße brauchst du?');
+    await app.locator('#noteEditForm button[type="submit"]').click();
+    await app.waitForSelector('#noteEdit');
+    await app.locator('#noteContext').click();
+    await app.locator('#noteChoosePlace').click();
+    await app.locator('#noteContextForm input[value="offline-home"]').check();
+    await app.locator('#noteContextForm button[type="submit"]').click();
+    await app.waitForSelector('#noteContextDone');
+    await app.locator('#noteChooseTime').click();
+    await app.locator(`#noteContextForm input[value="${bucket}"]`).check();
+    await app.locator('#noteContextForm button[type="submit"]').click();
+    await app.waitForSelector('#noteContextDone');
+    await app.locator('#noteContextDone').click();
+    await app.locator('#backButton').click();
+    await app.waitForSelector('#readHost [data-note]');
+    await app.locator('#backButton').click();
+    await app.waitForSelector('[data-person]');
+    await app.locator('#backButton').click();
+    await app.reload();
+    await app.locator('#nowRows [data-note]').click();
+    await app.waitForSelector('#noteEdit');
+    check(await app.locator('.note-text').textContent() === 'Welche Schuhgröße brauchst du?' && await app.locator('.note-detail .note-person-name').textContent() === 'Offline-Person' && await app.locator('.note-links li').count() === 2, 'Person-note editing, both contexts and Now survive a real offline reload');
+    await app.locator('#noteDelete').click();
+    await app.locator('#noteDeleteConfirm').click();
+    await app.waitForSelector('#view-dashboard');
+    await app.waitForFunction(() => !document.querySelector('#nowRows [data-note]'));
+    check(await app.evaluate(async () => !(await (await import('/src/db.js')).list('entries', { prune: false })).some(entry => entry.type === 'person-note') && (await (await import('/src/db.js')).list('people')).length === 1), 'Person-note deletion works offline and keeps the person');
     check(requests.every(url => url.startsWith('http://127.0.0.1:8080/')), 'Offline helper flows request no external resources');
     check(errors.length === 0, `No offline browser errors: ${errors.join(', ')}`);
     return results;

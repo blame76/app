@@ -152,9 +152,9 @@ async (page) => {
       await home(); await menu('people'); await fits('long person names with 200% text');
       await app.locator('[data-person="long"]').click(); await ready(); await fits('long person title and references with 200% text');
       await home(); await menu('people'); await app.locator('[data-person="anna"]').click(); await ready();
-      check(await app.locator('#readHost h2').allTextContents().then(labels => labels.join('|') === 'Referenzen|Geschenkideen'), `${mode}: references and gifts retain native headings`);
+      check(await app.locator('#readHost h2').allTextContents().then(labels => labels.join('|') === 'Notizen|Geschenkideen'), `${mode}: references and gifts retain native headings`);
       check(await app.locator('.read-person-group time').evaluateAll(elements => elements.every(element => element.getAttribute('datetime') && element.title.includes('19:59') && !element.textContent.includes('19:59'))), `${mode}: person dates stay quiet while exact times remain available`);
-      check(await app.locator('.read-person-group li').evaluateAll(elements => elements.every(element => element.firstElementChild.classList.contains('read-text'))), `${mode}: person content precedes its metadata in the reading order`);
+      check(await app.locator('.read-person-group li').evaluateAll(elements => elements.every(element => element.querySelector('.person-note-button').firstElementChild.classList.contains('read-text'))), `${mode}: person content precedes its metadata in the reading order`);
       await fits('person sections with 200% text');
       await home(); await menu('settings'); await fits('settings with 200% text');
       await home(); await menu('data'); await fits('data actions with 200% text');

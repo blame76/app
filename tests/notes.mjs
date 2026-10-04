@@ -55,7 +55,7 @@ test('Now uses explicit place OR time, prioritizes places, then creation date an
     note('both-place', 15, { placeIds: ['office'], timeBuckets: ['night'] }),
     note('both-time', 300, { placeIds: ['missing'], timeBuckets: ['midday'] }),
     note('neither', 500, { placeIds: ['missing'], timeBuckets: ['night'] }),
-    { ...legacy, id: 'person', type: 'person-note', context: { timeBuckets: ['midday'] } }
+    { ...legacy, id: 'helper', type: 'drink', helperId: 'drink', context: { timeBuckets: ['midday'] } }
   ];
   assert.deepEqual(relevantNotes(values, active, 'midday').map(item => item.note.id), ['place-new', 'both-place', 'place-old', 'time-new', 'both-time']);
   assert.equal(relevantNotes(values, active, 'midday')[0].reason, 'Büro');
