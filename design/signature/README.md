@@ -1,8 +1,9 @@
 # 0815 · Signature · drei Richtungen
 
 Stand: **zweiter Design-Pass**, 4. Oktober 2026. Feature-Branch:
-`feature/signature-design-directions`. Noch keine produktive Theme-Auswahl
-und keine produktive Signature-CSS.
+`feature/signature-design-directions`. Die Auswahl fiel anschließend auf **C**.
+Die Integration ab **0.6.4** ist in [`docs/SIGNATURE.md`](../../docs/SIGNATURE.md)
+dokumentiert; dieser Bericht hält die ursprünglichen Studien fest.
 
 [Vergleich öffnen](./comparison.html) · [Studien öffnen](./index.html) ·
 [Kritik nach Pass 1](./CRITIQUE.md)
@@ -27,10 +28,10 @@ funktionieren auf Dashboard, Liste und Detail; Pain bleibt ein eigener, verstän
 Erfassungsschritt. B wäre die Wahl, wenn digitale Greifbarkeit Vorrang hat; A,
 wenn offene Editorial-Komposition Vorrang hat.
 
-**Hier endet der Designauftrag. Die Auswahl des Nutzers steht aus.**
-Erst danach werden die drei expliziten Optionen Light / Dark / Signature und lokale
-Persistenz über vorhandene Settings integriert. Keine Option System oder Auto.
-Light und Dark behalten dabei die bisherige visuelle Ausgabe.
+Nach dem Vergleich wurde zunächst wie beauftragt gestoppt. Der Nutzer wählte
+anschließend **C**, das jetzt als Signature mit den drei expliziten Optionen
+Light / Dark / Signature integriert ist. Persistenz nutzt die vorhandenen Settings.
+Light und Dark behalten ihre bisherige visuelle Ausgabe.
 
 ## Zwei tatsächlich gesichtete Passes
 

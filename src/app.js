@@ -10,6 +10,7 @@ import { isNote, noteLabel, editNote, changeNoteContext, noteContext, relevantNo
 import { renderNote, renderNoteEdit, renderNoteContext, renderNoteContextPicker } from './note-views.js';
 import { noteTextClass } from './note-presentation.js';
 import { startPwaUpdates } from './pwa-update.js';
+import { initializeTheme, saveTheme } from './theme.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -382,6 +383,7 @@ async function renderAllHelpers(visibleSnapshot = null) {
 }
 
 async function renderSettings() {
+  syncThemeChoice();
   const version = viewVersion;
   const rules = await list('helperRules');
   if (version !== viewVersion) return;
@@ -817,6 +819,20 @@ async function initStorageStatus() {
 }
 
 function bindEvents() {
+  $('#themeChoice').addEventListener('change', async event => {
+    const value = event.target.value;
+    const choices = $('#themeChoice');
+    choices.disabled = true;
+    choices.setAttribute('aria-busy', 'true');
+    $('#themeStatus').textContent = '';
+    try { await saveTheme(value); }
+    catch { $('#themeStatus').textContent = 'Design konnte nicht gespeichert werden. Bitte erneut versuchen.'; }
+    finally {
+      syncThemeChoice();
+      choices.disabled = false;
+      choices.removeAttribute('aria-busy');
+    }
+  });
   $('#brandButton').addEventListener('click', guarded(goHome));
   $('#backButton').addEventListener('click', guarded(goBack));
   $('#menuButton').addEventListener('click', openMenu);
@@ -874,6 +890,8 @@ function bindEvents() {
     try {
       await importAll(JSON.parse(await file.text()));
       imported = true;
+      await initializeTheme();
+      syncThemeChoice();
       toast('Daten importiert.');
       await renderDashboard();
     } catch (error) {
@@ -884,7 +902,10 @@ function bindEvents() {
   });
   $('#resetButton').addEventListener('click', guarded(async () => {
     if (!confirm('Alle lokalen Daten dieser App wirklich löschen?')) return;
-    await clearAll(); toast('Lokale Daten gelöscht.'); await goHome();
+    await clearAll();
+    await initializeTheme();
+    syncThemeChoice();
+    toast('Lokale Daten gelöscht.'); await goHome();
   }));
 
   window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event; $('#installButton').hidden = false; });
@@ -894,7 +915,10 @@ function bindEvents() {
 }
 
 async function init() {
+  const themeError = await initializeTheme();
   bindEvents();
+  syncThemeChoice();
+  if (themeError) reportError(themeError, 'Design konnte nicht lokal gespeichert werden. Bitte erneut versuchen.');
   let ready = false;
   const resumeUpdate = startPwaUpdates({
     canReload: () => ready && !$('#view-dashboard').hidden && $('#quickComposer').hidden && $('#menuPanel').hidden
@@ -910,3 +934,7 @@ async function init() {
 }
 
 init().catch(reportError);
+
+function syncThemeChoice() {
+  for (const input of $$('#themeChoice input')) input.checked = input.value === document.documentElement.dataset.theme;
+}

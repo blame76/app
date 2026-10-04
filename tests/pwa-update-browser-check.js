@@ -28,6 +28,11 @@ async (page) => {
     await app.waitForSelector('#allHelperList [data-helper]', { state: 'attached' });
     check(navigations === 1, 'First installation claims the page without a reload');
     check(await app.locator('#installButton').isHidden(), 'Standalone window hides installation action');
+    await app.locator('#menuButton').click();
+    await app.locator('[data-view="settings"]').click();
+    await app.locator('input[name="theme"][value="signature"]').check();
+    await app.waitForFunction(() => document.documentElement.dataset.theme === 'signature' && !document.querySelector('#themeChoice').disabled);
+    await app.locator('#backButton').click();
     await app.evaluate(async () => {
       const db = await import('/app/src/db.js');
       await db.put('entries', { id: 'update-note', type: 'note', text: 'Bleibt lokal.', createdAt: Date.now() });
@@ -38,6 +43,7 @@ async (page) => {
     await app.waitForFunction(() => document.documentElement.dataset.release === 'two');
     await app.waitForSelector('#allHelperList [data-helper]', { state: 'attached' });
     check(navigations === 2, 'Foreground update automatically reloads the dashboard once');
+    check(await app.getAttribute('html', 'data-theme') === 'signature', 'Deployment preserves the locally selected Signature mode');
     check((await record()).text === 'Bleibt lokal.', 'Update preserves IndexedDB content');
     await app.locator('#menuButton').click();
     await app.locator('[data-view="notes"]').click();
@@ -67,6 +73,7 @@ async (page) => {
     await app.reload();
     await app.waitForSelector('#allHelperList [data-helper]', { state: 'attached' });
     check(await app.getAttribute('html', 'data-release') === 'three' && (await record()).text === 'Entwurf während des Deployments.', 'Latest shell and local content survive a real offline reload');
+    check(await app.getAttribute('html', 'data-theme') === 'signature' && await app.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()) === '#2447c7', 'Signature settings, module and stylesheet survive the offline reload');
     await app.evaluate(() => window.dispatchEvent(new Event('focus')));
     check(navigations === 4, 'Offline update checks do not reload or break the shell');
     check(errors.length === 0, `No unhandled browser errors: ${errors.join(', ')}`);

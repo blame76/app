@@ -1,6 +1,6 @@
 # 0815 – Alltagshelfer
 
-v0.6.3 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
+v0.6.4 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
 **Notizen** und **Personen-Notizen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
@@ -202,12 +202,21 @@ nicht für Konfiguration. Bereinigung erfolgt bei App-Start, Eintragslesen, Expo
 Import und Regeländerung. Details stehen im Helper-Vertrag. Verkürzen kann Daten
 unwiderruflich löschen; Exportdateien außerhalb der App werden davon nicht verändert.
 
-## Signature-Studien
+## Design: Light / Dark / Signature
 
-Drei isolierte Designrichtungen mit zwei Screenshot-Passes und Empfehlung stehen
-in [`design/signature/README.md`](design/signature/README.md). Noch keine produktive
-Signature-Integration oder Theme-Auswahl; die vorhandenen Light-/Dark-Styles bleiben
-unverändert. Die Studien werden nicht mit der PWA ausgeliefert.
+Unter **Verknüpfungen & Orte → Design** lassen sich genau drei Modi auswählen:
+**Light**, **Dark** und **Signature**. Die Wahl bleibt im vorhandenen lokalen
+Settings-Store erhalten. Beim ersten Start ohne gespeicherte Wahl wird die bisherige
+Systemdarstellung einmal übernommen; danach gibt es keinen automatischen Moduswechsel.
+Light und Dark behalten Farben, Typografie, Abstände und Komponenten.
+
+Signature integriert die ausgewählte Richtung **C · Chromatic Signature**:
+Kobalt für Notizen und Kapitel, kursiver Hauptinhalt, individuelle Helper-Farbkanten
+und eine große Bühne für die gewählte Schmerzstärke. Fachlogik und Datenmodelle bleiben
+unverändert. Umsetzung, Screenshots und Prüfung: [`docs/SIGNATURE.md`](docs/SIGNATURE.md).
+Die ursprünglichen drei Richtungen mit Kritik und zwei Design-Passes stehen weiterhin
+in [`design/signature/README.md`](design/signature/README.md); diese Studien werden
+nicht mit der PWA ausgeliefert.
 
 ## Releases und Offline
 

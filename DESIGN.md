@@ -49,8 +49,11 @@ die Nähe zusammengehöriger Information und Pausen zwischen Tagen tragen die Ko
 
 ## Light / Dark
 
-Die Farbwelten folgen ausschließlich `prefers-color-scheme`. `color-scheme` stimmt auch
-native Formulare auf den Modus ab; passende Theme-Metas färben den Browserrahmen.
+Light und Dark sind explizite Modi (`data-theme="light"` / `data-theme="dark"`).
+Die ursprünglichen Farben und Komponenten bleiben erhalten. Beim ersten Start ohne
+gespeicherte Wahl wird die bisherige Systemdarstellung einmal übernommen und lokal
+gespeichert; spätere Systemänderungen wechseln den Modus nicht. `color-scheme` stimmt
+native Formulare auf den ausgewählten Modus ab; Theme-Metas folgen derselben Wahl.
 Das Manifest nutzt die Light-Grundfarbe als statischen Startwert.
 
 | Rolle | Light | Dark |
@@ -171,18 +174,25 @@ Import/Export und Navigationslogik sind unverändert. Für die Veröffentlichung
 `main` werden App-Version und Service-Worker-Cache gemeinsam auf `0.5.8` erhöht.
 Die Worker-Logik bleibt unverändert; die Prüfung verwendet frische Browserkontexte.
 
-## Design Modes · isolierte Signature-Studien
+## Design Modes · Signature C
 
-Der Auftrag vom 4. Oktober 2026 führt noch keinen dritten produktiven Modus ein.
-Drei Richtungen und beide Screenshot-Passes stehen in
-[`design/signature/README.md`](design/signature/README.md); Auswahl und Integration
-folgen separat. Die vorhandene Light-/Dark-Ausgabe einschließlich Farben, Schrift,
-Abständen und Komponenten bleibt unverändert. Alle bisherigen Zurückhaltungsregeln
-gelten für diese beiden Modi vollständig weiter.
+Die Auswahl fiel auf **C · Chromatic Signature**. Ab `0.6.4` existieren genau
+Light / Dark / Signature unter den normalen Einstellungen, mit lokaler Persistenz
+im vorhandenen Settings-Store. Kein System-/Auto-Modus.
 
-Ausschließlich die spätere Signature darf größere typografische Gesten, gesättigte
-Flächen, kräftigere Linien, einzelne Schatten und stärker individualisierte Helper
-verwenden. Framework-/Bundlerfreiheit, lokale Fonts und Ressourcen, AA-Kontraste,
+Light und Dark bewahren alle oben beschriebenen Zurückhaltungsregeln vollständig.
+Pixelvergleiche der realen Dashboard-, Pain-, Notes- und Detailansichten bei 390 und
+1280 px zeigten für beide Modi jeweils identische Ausgabe, auch bei entgegengesetzter
+Systemeinstellung. Neue Gestaltung ist ausschließlich auf
+`html[data-theme="signature"]` in `assets/signature.css` begrenzt.
+
+Signature darf gesättigte Flächen, größere typografische Gesten, kräftige Linien und
+stärker individualisierte Helper verwenden. Kobalt und kursiver Hauptinhalt tragen
+die Identität; genau ein hervorgehobener Dashboard-Gedanke besitzt die Hauptbühne.
+Weitere kontextuelle Notizen bleiben in der bestehenden Reihenfolge ruhiger. Schmerz
+erhält Terrakotta, Trinken Dunkelgrün und Rabatt Aubergine innerhalb derselben Familie.
+
+Auch dort bleiben Framework-/Bundlerfreiheit, lokale Fonts und Ressourcen, AA-Kontraste,
 320-px-Reflow, Reduced Motion, Tastaturbedienung, Fokus und bestehende Funktionalität
-bleiben auch dort verbindlich. Die Theme-Auswahl erhält nach Auswahl genau
-Light / Dark / Signature und lokale Persistenz über die vorhandenen Settings.
+verbindlich. Umsetzung und Prüfbericht: [`docs/SIGNATURE.md`](docs/SIGNATURE.md).
+Studien und Kritik: [`design/signature/README.md`](design/signature/README.md).

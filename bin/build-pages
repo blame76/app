@@ -11,10 +11,10 @@ const output = join(root, 'dist');
 // Explicit shell whitelist; helper files come only from their declared runtime assets.
 const files = [...new Set([
   'index.html', 'manifest.webmanifest', 'sw.js',
-  'assets/styles.css', 'assets/notes.css', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
+  'assets/styles.css', 'assets/notes.css', 'assets/signature.css', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
   'src/app.js', 'src/db.js', 'src/schema.js', 'src/context.js', 'src/retention.js',
   'src/read-views.js', 'src/navigation.js',
-  'src/notes.js', 'src/note-views.js', 'src/note-presentation.js', 'src/pwa-update.js',
+  'src/notes.js', 'src/note-views.js', 'src/note-presentation.js', 'src/pwa-update.js', 'src/theme.js',
   'src/helpers/contract.js', 'src/helpers/registry.js',
   ...validateRegistry(HELPERS).flatMap(helper => [
     `src/helpers/${helper.id}/index.js`,

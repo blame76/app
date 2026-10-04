@@ -89,7 +89,7 @@ test('Every changed deployed asset updates the worker cache without a manual ver
     mkdirSync(join(fixture, 'design/signature'), { recursive: true });
     writeFileSync(join(fixture, 'design/signature/mockup.html'), 'Design only');
     assert.equal(build(), original, 'Design studies do not affect the production release');
-    for (const file of ['assets/styles.css', 'src/helpers/pain/index.js', 'src/pwa-update.js', 'index.html']) {
+    for (const file of ['assets/styles.css', 'assets/signature.css', 'src/theme.js', 'src/helpers/pain/index.js', 'src/pwa-update.js', 'index.html']) {
       const source = readFileSync(join(fixture, file), 'utf8');
       writeFileSync(join(fixture, file), source + '\n/* changed runtime asset */\n');
       assert.notEqual(build(), original, file);
@@ -97,6 +97,8 @@ test('Every changed deployed asset updates the worker cache without a manual ver
       assert.equal(build(), original, 'Restoring content restores the release');
     }
     assert.ok(existsSync(join(fixture, 'dist/src/pwa-update.js')));
+    assert.ok(existsSync(join(fixture, 'dist/src/theme.js')));
+    assert.ok(existsSync(join(fixture, 'dist/assets/signature.css')));
     assert.ok(!existsSync(join(fixture, 'dist/design')));
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });

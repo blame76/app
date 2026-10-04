@@ -31,8 +31,7 @@
   font-size: 16px;
   line-height: 1.5;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
+:root[data-theme="dark"] {
     color-scheme: dark;
     --surface-page: #211f1e;
     --surface-paper: #292625;
@@ -49,7 +48,6 @@
     --color-danger-hover: #cd9a9d;
     --shadow-overlay: 0 8px 32px rgba(0, 0, 0, .24);
   }
-}
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { background: var(--surface-page); color: var(--text-primary); }
@@ -251,3 +249,7 @@ main { max-width: var(--content-width); margin: 0 auto; padding: 0 var(--gutter)
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
   button:active, .button-like:active, .pain-choice:active { transform: none !important; }
 }
+
+/* Only the added settings controls; existing palettes and components are preserved. */
+#themeStatus:empty { display: none; }
+.pain-signature-value { display: none; }
