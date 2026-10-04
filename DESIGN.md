@@ -1,5 +1,12 @@
 # 0815 – Editorial Glow Up
 
+`0.6.2` verfeinert ausschließlich die Darstellung der Notizen und Personen-Notizen.
+`assets/notes.css` enthält deren Komposition; `src/note-presentation.js` liefert nur
+Typografieklassen anhand der Textlänge. Funktionaler Stand bleibt `0.6.1`.
+Kurze Gedanken, längerer Fließtext, Uhrzeit und Kontext erhalten eigene Maßstäbe.
+Der vollständige erste und zweite Sichtungs-Pass steht in
+[`docs/NOTES_EDITORIAL.md`](docs/NOTES_EDITORIAL.md).
+
 Der ergänzende Notes-Complete-Pass (`0.6.0`) gestaltet die dauerhafte Notizdetailansicht,
 Bearbeitung und Kontextverwaltung sowie eigene Note-Kacheln unter „Jetzt“.
 Tagesüberschriften bleiben kleine Kapitel; Text und Freiraum tragen die Liste.

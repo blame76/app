@@ -28,7 +28,7 @@ async (page) => {
     });
     check(state.caches.includes(`0815-v${state.version}`) && !state.caches.includes('0815-v0.4.1') && state.caches.includes('foreign-cache'), 'Worker activates the current release and preserves foreign caches');
     check(state.expected.every(path => state.paths.includes(path)), 'Worker precaches every registered helper module and declared asset');
-    check(['/src/notes.js', '/src/note-views.js'].every(path => state.paths.includes(path)), 'Worker precaches both new shell note modules');
+    check(['/src/notes.js', '/src/note-views.js', '/src/note-presentation.js', '/assets/notes.css'].every(path => state.paths.includes(path)), 'Worker precaches the note views and their separate presentation assets');
     await context.setOffline(true);
     await app.reload();
     await open('discount', '#discountForm');

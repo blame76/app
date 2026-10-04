@@ -1,10 +1,12 @@
 # 0815 – Alltagshelfer
 
-v0.6.1 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
+v0.6.2 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
 **Notizen** und **Personen-Notizen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
 Die visuelle Richtung und der aktuelle Editorial-Design-Pass stehen in [`DESIGN.md`](DESIGN.md).
+Der reine Notes-Gestaltungspass ist in [`docs/NOTES_EDITORIAL.md`](docs/NOTES_EDITORIAL.md)
+dokumentiert; Darstellung und Notiz-Lebenszyklus liegen in getrennten Dateien.
 Der Language- und UI-Pass ab v0.5.3 ist in [`LANGUAGE_REVIEW.md`](LANGUAGE_REVIEW.md) dokumentiert.
 Neue Helper: [`docs/HELPER_AUTHORING.md`](docs/HELPER_AUTHORING.md).
 

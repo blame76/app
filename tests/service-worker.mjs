@@ -38,6 +38,8 @@ test('Install includes registered helper module and its additional assets', asyn
   const urls = w.precached.map(request => request.url);
   assert.ok(urls.includes('https://example.test/app/src/helpers/example/index.js'));
   assert.ok(urls.includes('https://example.test/app/src/helpers/example/extra.js'));
+  assert.ok(urls.includes('https://example.test/app/assets/notes.css'));
+  assert.ok(urls.includes('https://example.test/app/src/note-presentation.js'));
   assert.ok(w.precached.every(request => request.cache === 'reload'));
 });
 test('Successful responses are cached; error responses are not', async () => {

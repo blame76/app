@@ -171,6 +171,23 @@ Light/Dark, 320 px/200 % Text und Reduced Motion. Der Offline-Gate prüft zusät
 Personen-Notizen inklusive Ort und Tageszeit mit dem tatsächlichen Service Worker.
 Details und Testbericht: [`docs/PERSON_NOTES.md`](../docs/PERSON_NOTES.md).
 
+## Notes Editorial Craft
+
+`notes-craft-browser-check.js` prüft den rein visuellen Pass in isolierten Light-/Dark-
+Kontexten: leere Liste, einzelner Gedanke, zehn Einträge in einem Tag, kurze und lange
+Texte, Absatzumbrüche, Tagesabstände, Zeitspalte, Kontext-Marginalien, Personen und
+Geschenkideen. Screenshots aller Notes-Ansichten liegen unter
+`/tmp/0815-notes-craft-*.png` und dienen dem ausdrücklich getrennten zweiten Sichtungs-Pass.
+
+Es prüft außerdem offene Flächen auch bei Hover, Tastaturfokus, Textaktionen,
+Editor-Fokuslinie und progressive Inhaltsgröße, vollständige Zeitmetadaten sowie
+Reflow bei 320/560/561/768/1280 CSS px mit 200 % Text. Alle betrachteten Stores bleiben
+nach Lesen, Edit-Abbruch und Kontextinspektion identisch. Der bestehende Offline-Gate
+prüft die separat gepackten Darstellungsdateien mit dem echten Service Worker.
+Die 106 Checks schließen Pressed/Reduced Motion, erzwungene Farben und native
+Größenänderung als Fallback für das mitwachsende Schreibfeld ein.
+Es gibt keine zusätzliche Testabhängigkeit. Bericht: [`docs/NOTES_EDITORIAL.md`](../docs/NOTES_EDITORIAL.md).
+
 ## Zurück-Navigation
 
 `navigation-browser-check.js` prüft die echte Shell, alle drei Helper und IndexedDB:

@@ -1,6 +1,7 @@
 import { noteContext, noteLinks, noteLabel } from './notes.js';
 import { TIME_BUCKETS } from './schema.js';
 import { timeBucketLabel } from './context.js';
+import { noteTextClass } from './note-presentation.js';
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -15,21 +16,23 @@ function button(text, id, action, className = 'quiet') {
   node.addEventListener('click', action);
   return node;
 }
-function timestamp(at) {
-  const time = element('time', new Intl.DateTimeFormat('de', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(at));
+function timestamp(at, compact = false) {
+  const full = new Intl.DateTimeFormat('de', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(at);
+  const time = element('time', compact ? new Intl.DateTimeFormat('de', { hour: '2-digit', minute: '2-digit' }).format(at) : full);
   time.dateTime = new Date(at).toISOString();
+  if (compact) { time.title = full; time.setAttribute('aria-label', full); }
   return time;
 }
 
 export function renderNote(root, note, places, actions, person = null) {
   const article = element('article', undefined, 'note-detail');
   if (note.type === 'person-note') article.append(element('p', person?.name || 'Person nicht mehr gespeichert', 'note-person-name'));
-  article.append(element('p', note.text, 'note-text'));
+  article.append(element('p', note.text, `note-text ${noteTextClass(note.text)}`));
   const dates = element('div', undefined, 'note-dates muted');
   dates.append(timestamp(note.createdAt));
   if (note.updatedAt !== undefined) {
-    const edited = element('p', 'Bearbeitet ');
-    edited.append(timestamp(note.updatedAt));
+    const edited = element('p', 'Bearbeitet ', 'note-edited');
+    edited.append(timestamp(note.updatedAt, true));
     dates.append(edited);
   }
   const context = element('section', undefined, 'note-context-summary');
@@ -54,13 +57,13 @@ export function renderNoteEdit(root, note, cancel) {
   form.id = 'noteEditForm';
   const label = element('label', noteLabel(note), 'visually-hidden');
   label.htmlFor = 'noteEditText';
-  const text = element('textarea');
+  const text = element('textarea', undefined, noteTextClass(note.text || ''));
   text.id = 'noteEditText';
   text.name = 'text';
   text.rows = 7;
   text.required = true;
   text.value = note.text || '';
-  const save = element('button', 'Speichern');
+  const save = element('button', 'Speichern', 'note-save quiet');
   save.type = 'submit';
   form.append(label, text, save, button('Abbrechen', 'noteEditCancel', cancel));
   root.append(form);

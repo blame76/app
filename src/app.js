@@ -8,6 +8,7 @@ import { renderNotes, renderPeople, renderPerson } from './read-views.js';
 import { createNavigation } from './navigation.js';
 import { isNote, noteLabel, editNote, changeNoteContext, noteContext, relevantNotes } from './notes.js';
 import { renderNote, renderNoteEdit, renderNoteContext, renderNoteContextPicker } from './note-views.js';
+import { noteTextClass } from './note-presentation.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -345,7 +346,7 @@ async function dashboardCandidates(visible) {
 
 function noteTile(note, reason, person) {
   const label = noteLabel(note);
-  return `<button class="note-tile" type="button" data-note="${escapeHtml(note.id)}"><span class="note-tile-heading"><span class="note-eyebrow">${label}</span>${note.type === 'person-note' ? `<span class="note-person-name">${escapeHtml(person?.name || 'Person nicht mehr gespeichert')}</span>` : ''}</span><strong>${escapeHtml(note.text)}</strong><span class="note-tile-context">${escapeHtml(reason)}</span></button>`;
+  return `<button class="note-tile" type="button" data-note="${escapeHtml(note.id)}"><span class="note-tile-heading"><span class="note-eyebrow">${label}</span>${note.type === 'person-note' ? `<span class="note-person-name">${escapeHtml(person?.name || 'Person nicht mehr gespeichert')}</span>` : ''}</span><strong class="${noteTextClass(note.text)}">${escapeHtml(note.text)}</strong><span class="note-tile-context">${escapeHtml(reason)}</span></button>`;
 }
 
 async function renderDashboard() {

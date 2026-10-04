@@ -1,5 +1,6 @@
 // Shell read views: existing records only, no storage or capture logic.
 import { noteLinks } from './notes.js';
+import { noteTextClass } from './note-presentation.js';
 const dateFormat = new Intl.DateTimeFormat('de', { day: 'numeric', month: 'long', year: 'numeric' });
 const timeFormat = new Intl.DateTimeFormat('de', { hour: '2-digit', minute: '2-digit' });
 const newestFirst = (a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id);
@@ -47,7 +48,7 @@ function entryList(entries, includeDate = false, places = []) {
     time.dateTime = new Date(entry.createdAt).toISOString();
     time.title = `${dateFormat.format(entry.createdAt)} · ${timeFormat.format(entry.createdAt)}`;
     if (includeDate) time.setAttribute('aria-label', time.title);
-    const text = element(includeDate ? 'span' : 'p', entry.text, 'read-text');
+    const text = element(includeDate ? 'span' : 'p', entry.text, `read-text ${noteTextClass(entry.text)}`);
     if (includeDate) {
       const button = element('button', undefined, 'person-note-button');
       button.type = 'button';
@@ -92,7 +93,7 @@ export function renderNotes(root, entries, places = []) {
       time.dateTime = new Date(note.createdAt).toISOString();
       time.title = `${dateFormat.format(note.createdAt)} · ${timeFormat.format(note.createdAt)}`;
       const content = element('span', undefined, 'note-read-content');
-      content.append(element('span', note.text, 'read-text'));
+      content.append(element('span', note.text, `read-text ${noteTextClass(note.text)}`));
       const links = noteLinks(note, places);
       if (links.length) content.append(element('span', links.map(link => link.label).join(' · '), 'note-read-context muted'));
       button.append(time, content);
