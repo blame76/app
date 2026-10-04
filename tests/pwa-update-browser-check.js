@@ -73,7 +73,7 @@ async (page) => {
     await app.reload();
     await app.waitForSelector('#allHelperList [data-helper]', { state: 'attached' });
     check(await app.getAttribute('html', 'data-release') === 'three' && (await record()).text === 'Entwurf während des Deployments.', 'Latest shell and local content survive a real offline reload');
-    check(await app.getAttribute('html', 'data-theme') === 'signature' && await app.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()) === '#2447c7', 'Signature settings, module and stylesheet survive the offline reload');
+    check(await app.getAttribute('html', 'data-theme') === 'signature' && await app.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()) === '#66515e', 'Signature v2 settings, module and stylesheet survive the offline reload');
     await app.evaluate(() => window.dispatchEvent(new Event('focus')));
     check(navigations === 4, 'Offline update checks do not reload or break the shell');
     check(errors.length === 0, `No unhandled browser errors: ${errors.join(', ')}`);

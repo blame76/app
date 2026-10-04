@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>0815 · Signature v2 · Vergleich</title>
+  <style>
+    :root { color-scheme: light; font: 16px/1.6 system-ui,sans-serif; background: #f1ede5; color: #342e2a; }
+    body { max-width: 1440px; margin: 0 auto; padding: clamp(1.25rem,4vw,3rem); }
+    h1,h2 { font-family: Georgia,serif; font-weight: 400; line-height: 1.2; }
+    h1 { font-size: clamp(2rem,4vw,3rem); margin: .5rem 0 1rem; }
+    p { max-width: 70ch; } a { color: #66515e; text-underline-offset: .2em; }
+    .controls { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin: 2rem 0; }
+    label { display: grid; gap: .375rem; font-size: .875rem; }
+    select { min-height: 44px; font: inherit; padding: .5rem; background: #f8f5ee; color: inherit; border: 1px solid #8d8174; border-radius: 4px; }
+    .variants { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 2rem; }
+    article { min-width: 0; } h2 { font-size: 1.5rem; }
+    article p { font-size: .9375rem; min-height: 5rem; }
+    figure { margin: 1.5rem 0; } img { display: block; width: 100%; max-width: 390px; height: auto; box-shadow: 0 1px 4px rgb(52 46 42 / .12); }
+    figure[data-wide] img { max-width: none; }
+    figcaption { font-size: .875rem; margin-top: .75rem; color: #6a6058; }
+    :focus-visible { outline: 3px solid #342e2a; outline-offset: 4px; }
+    @media(max-width:680px) { .variants { grid-template-columns: 1fr; } article p { min-height: 0; } }
+  </style>
+</head>
+<body>
+  <p>0815 / Signature v2 / Zwei gesichtete Passes</p>
+  <h1>Richer, not louder.</h1>
+  <p>Dieselbe App, dieselbe ruhige Grundhaltung. A gewinnt über Lesekomposition,
+    B über eine fein abgestufte Objektfläche. <strong>Ausgewählt und integriert: A · Editorial Material.</strong>
+    Die vorherige Richtung C ist verworfen.</p>
+  <p><a href="../../">Anwendung öffnen</a> · <a href="./README.md">Entscheidung und Prüfbericht</a> · <a href="./CRITIQUE.md">Selbstkritik nach Pass 1</a></p>
+  <div class="controls">
+    <label>Ansicht<select id="screen"><option value="dashboard">Jetzt</option><option value="notes">Notes</option><option value="detail">Notizdetail</option><option value="pain">Pain</option></select></label>
+    <label>Breite<select id="width"><option value="390">390 px</option><option value="1280">1280 px</option></select></label>
+    <label>Pass<select id="pass"><option value="2">Zweiter Pass</option><option value="1">Erster Pass</option></select></label>
+  </div>
+  <div class="variants">
+    <article data-direction="a"><h2>A · Editorial Material</h2><p>Offene Lesefläche, Tageskapitel und kleine Zeitmarginalie. Die zurückhaltende Tiefe bleibt bei den Werkzeugen; Gedanken brauchen keine Hülle.</p><a class="open" href="./?direction=a">Studie öffnen ↗</a><figure><a class="shot" href="./screenshots/pass-2/a-390-dashboard.png"><img src="./screenshots/pass-2/a-390-dashboard.png" alt="A · Jetzt bei 390 px, zweiter Pass"></a><figcaption></figcaption></figure></article>
+    <article data-direction="b"><h2>B · Personal Object</h2><p>Etwas dunklere Werkzeugflächen, kleine Rundungen und leisere Lesestaffelung. Nach dem zweiten Pass weniger Kartenwirkung, aber weiterhin mehr sichtbare Gestaltung.</p><a class="open" href="./?direction=b">Studie öffnen ↗</a><figure><a class="shot" href="./screenshots/pass-2/b-390-dashboard.png"><img src="./screenshots/pass-2/b-390-dashboard.png" alt="B · Jetzt bei 390 px, zweiter Pass"></a><figcaption></figcaption></figure></article>
+  </div>
+  <script>
+    function update() {
+      const screen = document.querySelector('#screen').value;
+      const width = document.querySelector('#width').value;
+      const pass = document.querySelector('#pass').value;
+      const label = document.querySelector('#screen').selectedOptions[0].textContent;
+      for (const article of document.querySelectorAll('[data-direction]')) {
+        const direction = article.dataset.direction;
+        const src = `./screenshots/pass-${pass}/${direction}-${width}-${screen}.png`;
+        article.querySelector('.open').href = `./?direction=${direction}&screen=${screen}`;
+        article.querySelector('.shot').href = src;
+        const img = article.querySelector('img'); img.src = src;
+        img.alt = `${direction.toUpperCase()} · ${label} bei ${width} px, Pass ${pass}`;
+        article.querySelector('figcaption').textContent = `${label} · ${width} px · Pass ${pass}. Bild anklicken für volle Auflösung.`;
+        article.querySelector('figure').toggleAttribute('data-wide', width === '1280');
+      }
+    }
+    for (const control of document.querySelectorAll('select')) control.addEventListener('change', update);
+    update();
+  </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # 0815 – Alltagshelfer
 
-v0.6.4 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
+v0.6.5 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
 **Notizen** und **Personen-Notizen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
@@ -210,13 +210,15 @@ Settings-Store erhalten. Beim ersten Start ohne gespeicherte Wahl wird die bishe
 Systemdarstellung einmal übernommen; danach gibt es keinen automatischen Moduswechsel.
 Light und Dark behalten Farben, Typografie, Abstände und Komponenten.
 
-Signature integriert die ausgewählte Richtung **C · Chromatic Signature**:
-Kobalt für Notizen und Kapitel, kursiver Hauptinhalt, individuelle Helper-Farbkanten
-und eine große Bühne für die gewählte Schmerzstärke. Fachlogik und Datenmodelle bleiben
-unverändert. Umsetzung, Screenshots und Prüfung: [`docs/SIGNATURE.md`](docs/SIGNATURE.md).
-Die ursprünglichen drei Richtungen mit Kritik und zwei Design-Passes stehen weiterhin
-in [`design/signature/README.md`](design/signature/README.md); diese Studien werden
-nicht mit der PWA ausgeliefert.
+Signature v2 integriert **A · Editorial Material**: warme neutrale Flächen,
+feine Tiefenunterschiede bei Werkzeugen und eine offene, sorgfältige Notes-Komposition.
+Ein gedämpfter Aubergine-Akzent kennzeichnet Auswahl und Zustände. Fachlogik, Datenmodelle
+und Bedienung bleiben unverändert. Umsetzung und Prüfung:
+[`docs/SIGNATURE_V2.md`](docs/SIGNATURE_V2.md).
+Die zwei neuen Varianten mit Screenshots und Kritik stehen in
+[`design/signature-v2/README.md`](design/signature-v2/README.md).
+Der frühere C-Entwurf ist verworfen und bleibt ausschließlich als historisches Archiv
+unter `design/signature/` erhalten. Studien werden nicht mit der PWA ausgeliefert.
 
 ## Releases und Offline
 

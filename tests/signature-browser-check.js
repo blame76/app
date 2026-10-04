@@ -45,9 +45,9 @@ async (page) => {
     if (![390,1280].includes(width)) return;
     await app.mouse.move(0,0);
     await app.evaluate(() => { document.querySelector('#toast').hidden = true; });
-    const framing = await app.addStyleTag({content:'body{display:flex;flex-direction:column;min-height:100vh}.app-header{width:100%}main{width:100%;flex:1;padding-bottom:3rem!important}.skip-link:not(:focus){visibility:hidden}.action-footer{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;margin-top:auto}'});
+    const framing = await app.addStyleTag({content:'body{display:flex;flex-direction:column;min-height:100vh}.app-header{width:100%}main{width:100%;flex:1;padding-bottom:3rem!important}.skip-link:not(:focus){visibility:hidden}.action-footer{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;margin:auto auto 0}'});
     await app.waitForTimeout(220);
-    await app.screenshot({ path: `/home/benjamin-lam/Projekte/blame76/app/design/signature/integrated/c-${width}-${label}.png`, fullPage: true, animations: 'allow' });
+    await app.screenshot({ path: `/home/benjamin-lam/Projekte/blame76/app/design/signature-v2/integrated/a-${width}-${label}.png`, fullPage: true, animations: 'allow' });
     await framing.evaluate(el=>el.remove());
   }
   try {
@@ -66,7 +66,7 @@ async (page) => {
     await app.evaluate(async () => (await import('/src/db.js')).put('settings', {id:'sentinel',value:{keep:true}}));
     const before = await unchangedData();
     await app.evaluate(()=>{ window.themePut=IDBObjectStore.prototype.put; IDBObjectStore.prototype.put=function(){throw new DOMException('Quota','QuotaExceededError');}; });
-    await app.locator('input[name="theme"][value="signature"]').check();
+    await app.locator('input[name="theme"][value="signature"]').click();
     await app.waitForFunction(()=>document.querySelector('#themeStatus').textContent.includes('nicht gespeichert')&&!document.querySelector('#themeChoice').disabled);
     await app.evaluate(()=>{IDBObjectStore.prototype.put=window.themePut;});
     check(await storedTheme() === 'dark' && await app.getAttribute('html','data-theme') === 'dark' && await app.locator('input[name="theme"][value="dark"]').isChecked(), 'Failed save keeps the persisted mode and restores the radio selection');
@@ -75,7 +75,7 @@ async (page) => {
     await app.reload(); await ready();
     check(await app.getAttribute('html','data-theme') === 'signature', 'Signature survives a restart');
     check(await app.evaluate(()=>window.visibleThemes.length>0&&window.visibleThemes.every(value=>value==='signature')), 'Stored Signature is restored before the app becomes visible');
-    check(await app.evaluate(()=>[...document.querySelectorAll('meta[name="theme-color"]')].every(m=>m.content==='#2447c7'&&!m.hasAttribute('media'))), 'Browser frame follows the explicit Signature color');
+    check(await app.evaluate(()=>[...document.querySelectorAll('meta[name="theme-color"]')].every(m=>m.content==='#f1ede5'&&!m.hasAttribute('media'))), 'Browser frame follows the neutral Signature surface');
     await app.evaluate(async()=>{
       const db=await import('/src/db.js');const {HELPERS}=await import('/src/helpers/registry.js');const {helperDefaults}=await import('/src/helpers/contract.js');
       for(const helper of HELPERS){await db.put('helperRules',{...helperDefaults(helper),visible:true,favorite:true,timeBuckets:['evening']});await db.put('settings',{id:`usage:${helper.id}`,lastUsedAt:Date.now()-120000});}
@@ -86,10 +86,12 @@ async (page) => {
     for (const width of [390,1280,320,768]) {
       await app.setViewportSize({width,height:width===390?844:960}); await home();
       await inspect(`${width}/dashboard`); await shot('dashboard');
+      check(await app.locator('.home-accordion > summary').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize)<parseFloat(getComputedStyle(document.querySelector('#nowRows .note-tile strong')).fontSize)), `${width}: navigation heading stays quieter than the thought`);
+      check(await app.locator('.app-header').evaluate(el=>['rgba(0, 0, 0, 0)','rgb(241, 237, 229)'].includes(getComputedStyle(el).backgroundColor)), `${width}: no dominant header color area`);
       await open('pain','#painAreaForm');await app.locator('input[name="bodyArea"][value="Rücken"]').check();await app.locator('#painAreaForm button[type="submit"]').click();
       await app.locator('input[name="intensity"][value="4"]').check();
       check(await app.locator('.pain-value-number').textContent()==='4', `${width}: selected Pain value is shown`);
-      check(await app.locator('.pain-number span').evaluateAll(els=>els.every(e=>e.getBoundingClientRect().width>=44&&e.getBoundingClientRect().height>=44)), `${width}: Pain number targets have full width and height`);
+      check(await app.locator('.pain-number input').evaluateAll(els=>els.every(e=>e.getBoundingClientRect().width>=44&&e.getBoundingClientRect().height>=44)), `${width}: native Pain inputs fill 44px touch targets`);
       await inspect(`${width}/pain`);await shot('pain');
       await notes();await inspect(`${width}/notes`);await shot('notes');
       await app.locator('#readHost [data-note="one"]').click();await app.waitForSelector('#noteEdit');await inspect(`${width}/detail`);await shot('detail');

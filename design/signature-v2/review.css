@@ -1,0 +1,10 @@
+.review-bar { display: flex; gap: .5rem 1.25rem; flex-wrap: wrap; padding: 1rem; background: #ebe6dc; font: .875rem/1.5 system-ui, sans-serif; }
+.review-bar a { color: #51444c; padding: .25rem 0; }
+.review-bar [aria-current] { font-weight: 600; }
+html[data-capture] .review-bar { display: none; }
+/* Full-page photography only: place navigation after content, keep real UI fixed. */
+html[data-capture] body { display: flex; flex-direction: column; min-height: 100vh; }
+html[data-capture] .app-header, html[data-capture] main { width: 100%; }
+html[data-capture] main { flex: 1; padding-bottom: 3rem; }
+html[data-capture] .action-footer { position: relative; left: auto; bottom: auto; transform: none; margin: auto auto 1rem; }
+html[data-capture] .skip-link:not(:focus) { visibility: hidden; }

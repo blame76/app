@@ -1,5 +1,9 @@
 # Design Modes · Signature C
 
+**Historisches Archiv: Diese Richtung ist verworfen.** Ab 0.6.5 gilt
+[`Signature v2 · Editorial Material`](./SIGNATURE_V2.md). Der folgende Bericht
+dokumentiert ausschließlich den damaligen Stand und seine Prüfungen.
+
 **0.6.4 · 4. Oktober 2026** · `feature/signature-design-directions`.
 Der Nutzer hat nach zwei statischen Design-Passes **C · Chromatic Signature** gewählt.
 Die Richtung ist jetzt in die vorhandene Anwendung integriert.

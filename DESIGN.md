@@ -1,5 +1,10 @@
 # 0815 – Editorial Glow Up
 
+Aktuell: **Signature v2 · 0.6.5**, ausgewählt **A · Editorial Material**.
+Die folgenden Grundregeln beschreiben Light/Dark; die ausschließlich zusätzliche
+Signature-Gestaltung und deren Grenzen stehen am Ende und in
+[`docs/SIGNATURE_V2.md`](docs/SIGNATURE_V2.md).
+
 `0.6.2` verfeinert ausschließlich die Darstellung der Notizen und Personen-Notizen.
 `assets/notes.css` enthält deren Komposition; `src/note-presentation.js` liefert nur
 Typografieklassen anhand der Textlänge. Funktionaler Stand bleibt `0.6.1`.
@@ -174,9 +179,11 @@ Import/Export und Navigationslogik sind unverändert. Für die Veröffentlichung
 `main` werden App-Version und Service-Worker-Cache gemeinsam auf `0.5.8` erhöht.
 Die Worker-Logik bleibt unverändert; die Prüfung verwendet frische Browserkontexte.
 
-## Design Modes · Signature C
+## Design Modes · Signature v2
 
-Die Auswahl fiel auf **C · Chromatic Signature**. Ab `0.6.4` existieren genau
+Der frühere **C · Chromatic Signature**-Entwurf ist verworfen. Nach zwei neuen
+statischen Varianten und deren zweitem Pass fiel die Auswahl auf **A · Editorial Material**.
+Ab `0.6.4` existieren weiterhin genau
 Light / Dark / Signature unter den normalen Einstellungen, mit lokaler Persistenz
 im vorhandenen Settings-Store. Kein System-/Auto-Modus.
 
@@ -186,13 +193,19 @@ Pixelvergleiche der realen Dashboard-, Pain-, Notes- und Detailansichten bei 390
 Systemeinstellung. Neue Gestaltung ist ausschließlich auf
 `html[data-theme="signature"]` in `assets/signature.css` begrenzt.
 
-Signature darf gesättigte Flächen, größere typografische Gesten, kräftige Linien und
-stärker individualisierte Helper verwenden. Kobalt und kursiver Hauptinhalt tragen
-die Identität; genau ein hervorgehobener Dashboard-Gedanke besitzt die Hauptbühne.
-Weitere kontextuelle Notizen bleiben in der bestehenden Reihenfolge ruhiger. Schmerz
-erhält Terrakotta, Trinken Dunkelgrün und Rabatt Aubergine innerhalb derselben Familie.
+Signature bedeutet **Richer, not louder**. Es beginnt bei der ruhigen Light-Grundhaltung:
+warme Neutraltöne, Inhalts-Serif, genaue Lesebreiten und subtil abgestufte Werkzeugflächen.
+Ein gedämpfter Aubergine-Akzent markiert Auswahl und Zustände; alle Helper bleiben eine
+Familie. Jetzt ist eine Navigationsebene, kein Showpiece. Notes und Detail bleiben
+offene Inhalte, mit Tageskapiteln und ruhigen Marginalien. Schmerz erhält eine klare
+Frage und einen stärker lesbaren Wert, ohne farbige Bühne oder Rot als Schmerzsignal.
+
+Verbindlich ausgeschlossen: riesige Headlines zur Differenzierung, dominante
+Akzentflächen, harte Linienarchitektur, Helper-Farbbalken, dekorative Ecken, Texturen,
+Glas/Fake-3D und eigene Mini-Brands. Sorgfalt in Baselines, Abständen, Fokus, Auswahl,
+Pressed State und kurzen Übergängen trägt den Modus. Native Semantik bleibt erhalten.
 
 Auch dort bleiben Framework-/Bundlerfreiheit, lokale Fonts und Ressourcen, AA-Kontraste,
 320-px-Reflow, Reduced Motion, Tastaturbedienung, Fokus und bestehende Funktionalität
-verbindlich. Umsetzung und Prüfbericht: [`docs/SIGNATURE.md`](docs/SIGNATURE.md).
-Studien und Kritik: [`design/signature/README.md`](design/signature/README.md).
+verbindlich. Umsetzung und Prüfbericht: [`docs/SIGNATURE_V2.md`](docs/SIGNATURE_V2.md).
+Studien und Kritik: [`design/signature-v2/README.md`](design/signature-v2/README.md).

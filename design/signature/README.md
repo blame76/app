@@ -1,5 +1,9 @@
 # 0815 · Signature · drei Richtungen
 
+**Historisches Archiv: C ist verworfen.** Die neuen Studien und die ausgewählte
+Richtung A stehen unter [`design/signature-v2/`](../signature-v2/README.md).
+Alle Aussagen zur Auswahl und Integration unten beziehen sich auf den damaligen Stand.
+
 Stand: **zweiter Design-Pass**, 4. Oktober 2026. Feature-Branch:
 `feature/signature-design-directions`. Die Auswahl fiel anschließend auf **C**.
 Die Integration ab **0.6.4** ist in [`docs/SIGNATURE.md`](../../docs/SIGNATURE.md)

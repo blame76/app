@@ -1,232 +1,103 @@
-/* C · Chromatic Signature. Every visual rule belongs exclusively to this mode. */
+/* Signature v2 · A Editorial Material. Selected after two static review passes.
+   Presentation only, scoped to Signature; Light/Dark retain their original styles. */
 html[data-theme="signature"] {
-  color-scheme: light;
-  --surface-page: #f4f3ec;
-  --surface-paper: #fffef8;
-  --surface-input: #fffef8;
-  --surface-soft: #e1e7fc;
-  --text-primary: #18233f;
-  --text-muted: #565c70;
-  --border-subtle: #b2b8c5;
-  --border-control: #778094;
-  --accent: #2447c7;
-  --accent-soft: #e1e7fc;
-  --accent-hover: #1b349c;
-  --signature-on-color: #fffaf3;
-  --signature-pain: #843e32;
-  --signature-drink: #245848;
-  --signature-discount: #594875;
-  --color-danger: #843e32;
-  --color-danger-hover: #653027;
-  --radius-control: 0;
-  --radius-surface: 0;
-  --content-width: 1128px;
-  --gutter: 2rem;
+  --surface-page: #f1ede5;
+  --surface-paper: #f8f5ee;
+  --surface-input: #f5f1e9;
+  --surface-soft: #e9e3d9;
+  --text-primary: #342e2a;
+  --text-muted: #6a6058;
+  --border-subtle: #d4ccbf;
+  --border-control: #8d8174;
+  --accent: #66515e;
+  --accent-soft: #e8dfe3;
+  --accent-hover: #503f49;
+  --shadow-overlay: 0 2px 6px rgb(52 46 42 / .06), 0 12px 32px rgb(52 46 42 / .08);
+  --motion-duration: 140ms;
+  --radius-control: 6px;
+  --radius-surface: 6px;
+  --content-width: 880px;
 }
-html[data-theme="signature"] .app-header {
-  min-height: 88px; margin-top: 1.5rem; padding: 1rem 2rem;
-  background: var(--accent); color: var(--signature-on-color);
-}
-html[data-theme="signature"] .brand-button {
-  color: var(--signature-on-color); font-family: var(--interface-font);
-  font-size: 1.375rem; font-weight: 800; letter-spacing: -.07em;
-}
-html[data-theme="signature"] .focus-title { font-family: var(--interface-font); font-size: 1rem; font-weight: 500; line-height: 1.5; letter-spacing: 0; }
-html[data-theme="signature"] .app-header > .icon-button,
-html[data-theme="signature"] #menuButton { color: var(--signature-on-color); }
-html[data-theme="signature"] .app-header button:focus-visible { outline-color: var(--signature-on-color); }
-html[data-theme="signature"] .menu-panel button:focus-visible { outline-color: var(--text-primary); }
-html[data-theme="signature"] main { padding-top: 1.5rem; }
-html[data-theme="signature"] .focus-view { padding-top: 0; }
-html[data-theme="signature"] .focus-host { max-width: 1064px; }
-html[data-theme="signature"] #helperHost .pain,
-html[data-theme="signature"] #helperHost .drink,
-html[data-theme="signature"] #helperHost .discount { max-width: 896px; }
-html[data-theme="signature"] .home-accordion { border-bottom: 1px solid var(--accent); }
-html[data-theme="signature"] .home-accordion > summary { min-height: 56px; padding: 1rem 0; color: var(--accent); font-size: 1.25rem; font-weight: 400; }
-html[data-theme="signature"] .home-accordion:first-of-type { margin-bottom: 0; border: 0; }
-html[data-theme="signature"] .home-accordion:first-of-type > summary {
-  padding: .25rem 0 2.25rem; font-family: var(--interface-font);
-  font-size: clamp(3rem, 11vw, 8rem); font-weight: 700; line-height: 1; letter-spacing: -.075em;
-}
-html[data-theme="signature"] .home-accordion:first-of-type > summary::after { display: none; }
-html[data-theme="signature"] .home-panel { padding-bottom: 2rem; }
-html[data-theme="signature"] .dashboard-rows,
-html[data-theme="signature"] .tile-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-html[data-theme="signature"] [data-helper] { --helper-accent: var(--accent); }
-html[data-theme="signature"] [data-helper="pain"] { --helper-accent: var(--signature-pain); }
-html[data-theme="signature"] [data-helper="drink"] { --helper-accent: var(--signature-drink); }
-html[data-theme="signature"] [data-helper="discount"] { --helper-accent: var(--signature-discount); }
+html[data-theme="signature"] .app-header { min-height: 96px; }
+html[data-theme="signature"] .brand-button { font-size: 1.75rem; letter-spacing: -.035em; }
+html[data-theme="signature"] .focus-title { font-size: clamp(1.5rem, 3vw, 1.75rem); letter-spacing: -.025em; }
+html[data-theme="signature"] .home-accordion:first-of-type > summary { font-size: 1.75rem; min-height: 60px; padding: .75rem 0; }
+html[data-theme="signature"] .home-accordion > summary { font-weight: 400; font-size: 1rem; min-height: 64px; }
+html[data-theme="signature"] .home-panel { padding-bottom: 1.75rem; }
+html[data-theme="signature"] .note-tile { padding: 1.25rem 0 2rem; gap: .75rem; }
+html[data-theme="signature"] .note-tile::before { display: none; }
+html[data-theme="signature"] .note-tile strong { margin: 0; font-family: var(--display-font); }
+html[data-theme="signature"] .note-tile strong.note-brief { font-size: clamp(1.875rem, 3.6vw, 2.25rem); line-height: 1.32; max-width: 25ch; font-weight: 400; letter-spacing: -.02em; }
+html[data-theme="signature"] .note-tile strong.note-prose { font-size: 1.375rem; line-height: 1.6; }
+html[data-theme="signature"] .note-eyebrow { text-transform: none; letter-spacing: .025em; }
 html[data-theme="signature"] .helper-tile,
 html[data-theme="signature"] #nowRows .helper-tile {
-  display: flex; flex-direction: column; align-items: start; gap: .75rem; min-height: 176px;
-  padding: 1.25rem; border: 0; border-left: 6px solid var(--helper-accent);
-  background: var(--surface-paper); box-shadow: none;
+  background: #f5f1e9; border: 1px solid transparent; border-radius: 6px; min-height: 146px;
+  box-shadow: 0 1px 2px rgb(52 46 42 / .065), 0 4px 12px rgb(52 46 42 / .02);
+  padding: 1.25rem; gap: 1.5rem;
 }
-html[data-theme="signature"] .helper-tile strong { padding-top: 0; font-size: 2rem; color: var(--helper-accent); line-height: 1.15; letter-spacing: -.03em; }
+html[data-theme="signature"] .helper-tile::after { display: none; }
+html[data-theme="signature"] .helper-tile strong { padding-top: 0; font-size: 1.5rem; letter-spacing: -.02em; }
 html[data-theme="signature"] .helper-tile span { font-size: .875rem; }
-html[data-theme="signature"] .helper-tile::after {
-  left: auto; right: 1.25rem; top: auto; bottom: 1.5rem; width: 10px; height: 10px;
-  background: transparent; border-top: 2px solid var(--helper-accent); border-right: 2px solid var(--helper-accent);
-}
-html[data-theme="signature"] .helper-list-item strong { color: var(--helper-accent); }
-html[data-theme="signature"] .note-tile {
-  display: grid; gap: 1rem; padding: 2rem 2.5rem 2.5rem; margin-bottom: 1rem;
-  background: var(--accent); color: var(--signature-on-color); border: 0;
-}
-html[data-theme="signature"] .note-tile::before { display: none; }
-html[data-theme="signature"] .note-tile strong,
-html[data-theme="signature"] .note-tile strong.note-brief {
-  max-width: 17ch; font-size: clamp(2.5rem, 6vw, 5rem); font-style: italic;
-  line-height: 1.05; font-weight: 400; letter-spacing: -.04em;
-}
-html[data-theme="signature"] .note-tile strong.note-prose { max-width: 36ch; font-size: clamp(1.5rem, 3vw, 2.25rem); line-height: 1.4; }
-html[data-theme="signature"] .note-tile .note-eyebrow,
-html[data-theme="signature"] .note-tile .note-person-name,
-html[data-theme="signature"] .note-tile-context { color: var(--signature-on-color); text-transform: none; letter-spacing: 0; }
-/* Day chapters, time margin, content: the existing Notes DOM, with a reading hierarchy. */
-html[data-theme="signature"] .notes-day,
-html[data-theme="signature"] .read-person-group { margin-bottom: 3.5rem; }
-html[data-theme="signature"] .notes-day + .notes-day,
-html[data-theme="signature"] .read-person-group + .read-person-group { margin-top: 0; }
+html[data-theme="signature"] .focus-view { padding-top: 2rem; }
 html[data-theme="signature"] .notes-day > .section-title,
 html[data-theme="signature"] .read-person-group > .section-title {
-  margin: 0 0 1.5rem; padding: 1rem 1.5rem;
-  background: var(--accent); color: var(--signature-on-color);
-  font-size: 1.25rem; font-weight: 600; line-height: 1.5; letter-spacing: -.025em; text-transform: none;
+  margin: 0 0 1.5rem 4.5rem; font-family: var(--display-font); font-size: 1.25rem;
+  font-weight: 400; line-height: 1.3; letter-spacing: -.015em; text-transform: none; color: var(--text-primary);
 }
-html[data-theme="signature"] .notes-day .read-list,
-html[data-theme="signature"] .read-person-group .read-list { gap: 0; }
-html[data-theme="signature"] .notes-day .read-list li + li,
-html[data-theme="signature"] .read-person-group .read-list li + li { margin-top: 2rem; }
-html[data-theme="signature"] .note-read-button { grid-template-columns: 4.5rem minmax(0, 1fr); gap: 1.5rem; padding: 1rem 0; align-items: start; }
-html[data-theme="signature"] .note-read-button > time { padding-top: .4rem; }
-html[data-theme="signature"] .note-copy { font-size: clamp(1.5rem, 3vw, 2.25rem); line-height: 1.35; max-width: 40ch; }
-html[data-theme="signature"] .note-copy.note-brief { font-size: clamp(2rem, 4.8vw, 3.5rem); line-height: 1.15; max-width: 25ch; }
-html[data-theme="signature"] .note-copy.note-prose { font-size: clamp(1.25rem, 2vw, 1.5rem); line-height: 1.55; max-width: 45ch; }
-html[data-theme="signature"] .notes-day:first-child li:first-child .note-brief { font-size: clamp(2.5rem, 6vw, 4.5rem); max-width: 17ch; font-style: italic; }
-html[data-theme="signature"] .note-read-context { color: var(--accent); }
-html[data-theme="signature"] .note-detail { max-width: 896px; margin: 0; }
-html[data-theme="signature"] .note-detail > .note-text {
-  margin: 0 0 2rem; padding: 2.5rem; max-width: none;
-  background: var(--accent); color: var(--signature-on-color); font-style: italic;
-}
-html[data-theme="signature"] .note-detail > .note-text.note-brief { font-size: clamp(3rem, 7vw, 6rem); line-height: 1.03; letter-spacing: -.05em; }
-html[data-theme="signature"] .note-detail > .note-text.note-prose { font-size: clamp(1.375rem, 2.6vw, 1.75rem); line-height: 1.6; }
+html[data-theme="signature"] .notes-day + .notes-day { margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-subtle); }
+html[data-theme="signature"] .note-read-button { grid-template-columns: 3rem minmax(0, 1fr); gap: 1.5rem; align-items: baseline; }
+html[data-theme="signature"] .note-copy.note-brief { font-size: clamp(1.625rem, 3vw, 1.875rem); max-width: 28ch; line-height: 1.4; }
+html[data-theme="signature"] .note-copy.note-prose { font-size: 1.25rem; line-height: 1.7; max-width: 45ch; }
+html[data-theme="signature"] .note-read-context { letter-spacing: .01em; }
+html[data-theme="signature"] .note-detail { margin-top: 0; }
+html[data-theme="signature"] .note-detail .note-text.note-brief { font-size: clamp(2rem, 4vw, 2.375rem); line-height: 1.35; max-width: 23ch; letter-spacing: -.025em; }
+html[data-theme="signature"] .note-detail .note-text { margin-bottom: 2rem; }
 html[data-theme="signature"] .note-dates { margin-left: 0; }
-html[data-theme="signature"] .note-context-summary { border-left: 4px solid var(--accent); padding-left: 1.5rem; margin: 3rem 0 0; gap: .75rem; color: var(--text-primary); }
-html[data-theme="signature"] .note-context-summary .note-eyebrow { color: var(--accent); font-weight: 500; }
-html[data-theme="signature"] .note-actions { display: flex; flex-wrap: wrap; gap: .5rem 2rem; margin-top: 3rem; }
-html[data-theme="signature"] .note-edit { max-width: 50rem; margin: 0; }
-html[data-theme="signature"] .note-edit textarea { max-width: none; padding: 1.25rem; border: 1px solid var(--border-control); background: var(--surface-paper); min-height: 14rem; }
-html[data-theme="signature"] .note-edit textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; box-shadow: none; }
-html[data-theme="signature"] .app-header:has(+ main #view-read:not([hidden]) .read-person) { max-width: var(--content-width); padding-bottom: 1rem; }
-html[data-theme="signature"] .app-header:has(+ main #view-read:not([hidden]) .read-person) .focus-title { font-family: var(--display-font); font-size: clamp(2.75rem, 7vw, 4.25rem); line-height: 1.08; }
-/* Each helper owns an accent, keeping the surrounding cobalt shell. */
-html[data-theme="signature"] .pain { --accent: var(--signature-pain); --accent-hover: #653027; --accent-soft: #f2e2db; }
-html[data-theme="signature"] .drink { --accent: var(--signature-drink); --accent-hover: #193f33; --accent-soft: #dfece5; }
-html[data-theme="signature"] .discount { --accent: var(--signature-discount); --accent-hover: #403256; --accent-soft: #ece5f4; }
-html[data-theme="signature"] .pain-selected-area { margin-bottom: 2rem; }
-html[data-theme="signature"] .pain-selected-area strong { color: var(--accent); }
+html[data-theme="signature"] .note-context-summary { margin: 2rem 0 0; padding-top: 1rem; border-top: 1px solid var(--border-subtle); }
+html[data-theme="signature"] .note-context-summary .note-eyebrow { letter-spacing: .01em; }
+html[data-theme="signature"] .note-actions { margin-top: 3rem; }
 html[data-theme="signature"] #painAreaForm legend,
-html[data-theme="signature"] #painEntryForm legend { font-family: var(--interface-font); font-size: clamp(2.5rem, 5.4vw, 4rem); line-height: 1.05; font-weight: 600; letter-spacing: -.065em; max-width: 17ch; }
-html[data-theme="signature"] .pain-question-hint { font-size: .875rem; margin: 1rem 0 0; }
-html[data-theme="signature"] .pain-signature-value { display: flex; align-items: baseline; gap: 1.25rem; padding: 1rem 2rem; margin: 1rem 0 1.5rem; background: var(--accent); color: var(--signature-on-color); }
-html[data-theme="signature"] .pain-value-number { font-family: var(--interface-font); font-size: clamp(7rem, 20vw, 11rem); line-height: 1; font-weight: 500; letter-spacing: -.07em; }
-html[data-theme="signature"] .pain-signature-value > span { font-size: .875rem; }
-html[data-theme="signature"] .pain-intensities { grid-template-columns: repeat(10, minmax(0, 1fr)); gap: .5rem; }
-html[data-theme="signature"] .pain-number { position: relative; display: grid; place-items: center; padding: 0; min-height: 52px; border: 0; }
-html[data-theme="signature"] .pain-number input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; opacity: 0; cursor: pointer; }
-html[data-theme="signature"] .pain-number span { display: grid; place-items: center; width: 100%; min-height: 52px; padding: .25rem .125rem; border: 1px solid var(--border-control); font-family: var(--interface-font); font-size: 1.25rem; font-weight: 500; }
-html[data-theme="signature"] .pain-number:has(input:checked) span { background: var(--accent); color: var(--signature-on-color); border-color: var(--accent); }
+html[data-theme="signature"] #painEntryForm legend { font-size: clamp(2rem, 4.5vw, 2.75rem); line-height: 1.2; letter-spacing: -.025em; max-width: 23ch; }
+html[data-theme="signature"] .pain-question-hint { font-size: .875rem; margin-bottom: 1rem; }
+html[data-theme="signature"] .pain-signature-value { display: flex; align-items: baseline; gap: .75rem; margin: 0 0 1.5rem; color: var(--text-primary); }
+html[data-theme="signature"] .pain-value-number { font-family: var(--display-font); font-size: 3.5rem; line-height: 1.1; font-variant-numeric: lining-nums tabular-nums; }
+html[data-theme="signature"] .pain-signature-value > span { font-size: .875rem; color: var(--text-muted); }
+html[data-theme="signature"] .pain-number { position: relative; padding: .5rem 0; min-height: 54px; border: 0; border-radius: 6px; }
+html[data-theme="signature"] .pain-number input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; margin: 0; opacity: 0; }
+html[data-theme="signature"] .pain-number span { font-size: 1.5rem; }
+html[data-theme="signature"] .pain-number:has(input:checked) { background: var(--accent-soft); color: var(--accent); }
 html[data-theme="signature"] .pain-choice:focus-within { outline: 3px solid var(--text-primary); outline-offset: 4px; }
-html[data-theme="signature"] .pain-areas .pain-choice { padding: .75rem; border: 1px solid var(--border-control); }
-html[data-theme="signature"] .pain-hint { font-size: .875rem; }
-html[data-theme="signature"] #painEntryForm,
-html[data-theme="signature"] #painAreaForm { gap: 1.25rem; }
-html[data-theme="signature"] .pain-content button:not(.quiet):not(.secondary),
-html[data-theme="signature"] #drinkRecord,
-html[data-theme="signature"] #discountForm button[type="submit"] { background: var(--accent); border-color: var(--accent); color: var(--signature-on-color); }
-html[data-theme="signature"] .pain-last-value strong,
-html[data-theme="signature"] .pain-latest-value { color: var(--accent); font-size: clamp(3rem, 9vw, 5rem); }
-html[data-theme="signature"] .discount-result h2 { color: var(--accent); font-size: clamp(3.5rem, 9vw, 6rem); }
-html[data-theme="signature"] #drinkLast { color: var(--accent); font-size: clamp(3rem, 7vw, 5rem); }
-html[data-theme="signature"] .discount-history h2,
-html[data-theme="signature"] .drink-history h2,
-html[data-theme="signature"] .pain-day h3 { font-family: var(--interface-font); font-size: 1.25rem; font-weight: 600; color: var(--accent); }
-html[data-theme="signature"] .settings-block { border-bottom-color: var(--accent); }
-html[data-theme="signature"] .settings-block summary { font-family: var(--interface-font); font-size: 1.25rem; font-weight: 600; color: var(--accent); }
-html[data-theme="signature"] .quick-composer { border-top: 4px solid var(--accent); }
-html[data-theme="signature"] .action-footer {
-  left: 0; right: 0; bottom: 0; transform: none; width: 100%; display: flex; justify-content: center;
-  padding: .5rem 1rem max(.5rem, env(safe-area-inset-bottom)); gap: 0; border-top: 4px solid var(--accent);
-}
-html[data-theme="signature"] .action-footer button { display: flex; align-items: center; justify-content: center; width: min(33.33%, 160px); gap: .625rem; min-height: 48px; padding: .5rem; }
+html[data-theme="signature"] .pain-areas .pain-choice { border-color: var(--border-subtle); }
+html[data-theme="signature"] input:not([type="radio"]):not([type="checkbox"]):not([type="file"]),
+html[data-theme="signature"] select,
+html[data-theme="signature"] textarea { background: transparent; border: 0; border-bottom: 1px solid var(--border-control); border-radius: 0; padding-left: .25rem; padding-right: .25rem; }
+html[data-theme="signature"] .note-edit textarea:focus-visible { outline: 3px solid var(--text-primary); outline-offset: 4px; box-shadow: none; }
+html[data-theme="signature"] .action-footer { background: var(--surface-page); }
+html[data-theme="signature"] .action-footer button span:first-child { font-size: 1rem; }
 @media (hover: hover) {
-  html[data-theme="signature"] .brand-button:hover:not(:disabled),
-  html[data-theme="signature"] .app-header > .icon-button:hover:not(:disabled),
-  html[data-theme="signature"] #menuButton:hover:not(:disabled) { background: #1b349c; color: var(--signature-on-color); }
   html[data-theme="signature"] .helper-tile:hover:not(:disabled),
-  html[data-theme="signature"] #nowRows .helper-tile:hover:not(:disabled) { background: var(--surface-soft); border-left-color: var(--helper-accent); transform: translateY(-2px); }
-  html[data-theme="signature"] .note-tile:hover:not(:disabled) { background: var(--accent-hover); color: var(--signature-on-color); }
-  html[data-theme="signature"] .note-read-button:hover:not(:disabled),
-  html[data-theme="signature"] .person-note-button:hover:not(:disabled) { color: var(--text-primary); }
-  html[data-theme="signature"] .note-read-button:hover .read-text,
-  html[data-theme="signature"] .person-note-button:hover .read-text { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
-  html[data-theme="signature"] .pain-content button:not(.quiet):not(.secondary):hover:not(:disabled),
-  html[data-theme="signature"] #drinkRecord:hover:not(:disabled),
-  html[data-theme="signature"] #discountForm button[type="submit"]:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+  html[data-theme="signature"] #nowRows .helper-tile:hover:not(:disabled) { background: #f8f5ee; border-color: transparent; box-shadow: 0 2px 4px rgb(52 46 42 / .09), 0 6px 16px rgb(52 46 42 / .04); }
+  html[data-theme="signature"] .helper-tile:active:not(:disabled) { box-shadow: 0 1px 1px rgb(52 46 42 / .05); }
+  html[data-theme="signature"] .pain-number:hover { background: var(--surface-soft); }
+  html[data-theme="signature"] .pain-number:has(input:checked):hover { background: var(--accent-soft); }
 }
-@media (max-width: 600px) {
-  html[data-theme="signature"] { --gutter: 20px; }
-  html[data-theme="signature"] .app-header { margin-top: 0; padding: .75rem 16px; min-height: 72px; gap: .5rem; }
-  html[data-theme="signature"] main { padding-top: 1.25rem; }
-  html[data-theme="signature"] .home-accordion:first-of-type > summary { font-size: clamp(3rem, 23vw, 8rem); }
-  html[data-theme="signature"] .dashboard-rows,
-  html[data-theme="signature"] .tile-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); }
+@media (max-width: 560px) {
+  html[data-theme="signature"] .app-header { min-height: 80px; }
   html[data-theme="signature"] .helper-tile,
-  html[data-theme="signature"] #nowRows .helper-tile { min-height: 146px; padding: 1.25rem; }
-  html[data-theme="signature"] .helper-tile strong { font-size: 1.75rem; }
-  html[data-theme="signature"] .note-tile { padding: 20px; }
-  html[data-theme="signature"] .note-tile strong,
-  html[data-theme="signature"] .note-tile strong.note-brief { font-size: 2.5rem; }
-  html[data-theme="signature"] .note-tile strong.note-prose { font-size: 1.5rem; }
+  html[data-theme="signature"] #nowRows .helper-tile { padding: 1rem; min-height: 140px; }
+  html[data-theme="signature"] .focus-view { padding-top: 1.5rem; }
+  html[data-theme="signature"] .notes-day > .section-title { margin-left: 0; }
   html[data-theme="signature"] .note-read-button { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
-  html[data-theme="signature"] .notes-day .read-list li + li,
-  html[data-theme="signature"] .read-person-group .read-list li + li { margin-top: 1.5rem; }
-  html[data-theme="signature"] .note-detail > .note-text { padding: 20px; }
-  html[data-theme="signature"] .note-context-summary { margin-top: 2rem; }
-  html[data-theme="signature"] .note-actions { display: grid; gap: 0; justify-items: start; margin-top: 2rem; }
-  html[data-theme="signature"] .pain-selected-area { margin-bottom: 1.5rem; }
-  html[data-theme="signature"] .pain-intensities { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
-  html[data-theme="signature"] .pain-number, html[data-theme="signature"] .pain-number span { min-height: 48px; }
-  html[data-theme="signature"] .pain-number span { font-size: clamp(1rem, 5vw, 1.25rem); }
-  html[data-theme="signature"] .pain-signature-value { padding: 16px; }
-  html[data-theme="signature"] .action-footer button { flex-wrap: wrap; padding-left: 4px; padding-right: 4px; gap: 4px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html[data-theme="signature"] *, html[data-theme="signature"] *::before,
-  html[data-theme="signature"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-  html[data-theme="signature"] .helper-tile { transform: none !important; }
+  html[data-theme="signature"] *::after { transition: none !important; animation: none !important; }
+  html[data-theme="signature"] button:active,
+  html[data-theme="signature"] .pain-choice:active { transform: none !important; }
 }
 @media (forced-colors: active) {
-  html[data-theme="signature"] .pain-number span { border-color: ButtonText; }
-  html[data-theme="signature"] .pain-number:has(input:checked) span { border: 3px solid Highlight; }
-  html[data-theme="signature"] .pain-signature-value,
-  html[data-theme="signature"] .note-detail > .note-text,
-  html[data-theme="signature"] .note-tile { border: 1px solid CanvasText; }
-}
-/* One primary thought; further contextual notes retain the existing order. */
-html[data-theme="signature"] #nowRows .note-tile ~ .note-tile {
-  padding: 1.25rem 1.5rem; margin-bottom: 0; border-left: 4px solid var(--accent);
-  background: transparent; color: var(--text-primary);
-}
-html[data-theme="signature"] #nowRows .note-tile ~ .note-tile strong,
-html[data-theme="signature"] #nowRows .note-tile ~ .note-tile strong.note-brief { max-width: 34ch; font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.35; font-style: normal; }
-html[data-theme="signature"] #nowRows .note-tile ~ .note-tile .note-eyebrow,
-html[data-theme="signature"] #nowRows .note-tile ~ .note-tile .note-tile-context { color: var(--accent); }
-html[data-theme="signature"] #nowRows .note-tile ~ .note-tile .note-person-name { color: var(--text-primary); }
-html[data-theme="signature"] .pain-number { grid-template-columns: minmax(0, 1fr); justify-items: stretch; }
-@media (hover: hover) {
-  html[data-theme="signature"] #nowRows .note-tile ~ .note-tile:hover:not(:disabled) { background: var(--surface-soft); color: var(--text-primary); }
+  html[data-theme="signature"] .helper-tile { border-color: ButtonText; }
+  html[data-theme="signature"] .pain-number:has(input:checked) { outline: 2px solid Highlight; outline-offset: -2px; }
+  html[data-theme="signature"] .pain-number input { opacity: 1; position: static; width: 20px; height: 20px; }
 }
