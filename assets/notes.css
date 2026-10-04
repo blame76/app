@@ -1,0 +1,126 @@
+/* Notes: presentation only. Two signatures — a hanging time margin and a short
+   rule on the note brought forward under Now. Both palettes use the shell ink. */
+
+/* Chapter marks sit on the text's line start, with a longer pause before a day. */
+.notes-day + .notes-day, .read-person-group + .read-person-group { margin-top: clamp(4rem, 8vw, 5.5rem); }
+.notes-day > .section-title, .read-person-group > .section-title, .note-eyebrow {
+  font-family: var(--interface-font); font-size: .875rem; font-weight: 400;
+  letter-spacing: .12em; line-height: 1.5; text-transform: uppercase; color: var(--text-muted);
+}
+.notes-day > .section-title { margin: 0 0 1.25rem 4.5rem; }
+.read-person-group > .section-title { margin-bottom: 1.25rem; }
+.notes-day .read-list, .read-person-group .read-list { gap: 0; }
+.notes-day .read-list li, .read-person-group .read-list li { display: block; }
+.notes-day .read-list li + li, .read-person-group .read-list li + li { margin-top: 2.25rem; }
+.notes-day li:has(.note-brief) + li:has(.note-brief),
+.read-person-group li:has(.note-brief) + li:has(.note-brief) { margin-top: 1.375rem; }
+.notes-day li:has(.note-prose) + li, .notes-day li + li:has(.note-prose),
+.read-person-group li:has(.note-prose) + li, .read-person-group li + li:has(.note-prose) { margin-top: 3rem; }
+
+.note-read-button, .person-note-button {
+  display: grid; width: 100%; text-align: left; padding: .5rem 0;
+  border: 0; border-radius: 0; box-shadow: none; background: transparent;
+  color: var(--text-primary); font-weight: 400;
+}
+.note-read-button { grid-template-columns: 3rem minmax(0, 1fr); gap: 1.5rem; align-items: baseline; }
+.note-read-content { min-width: 0; display: grid; gap: .875rem; }
+.person-note-button { justify-items: start; gap: .75rem; }
+.person-note-button > time { margin-top: .125rem; }
+.person-note-button .note-read-context { margin-top: -.375rem; }
+.note-read-button > time, .person-note-button > time { font-size: .875rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
+
+/* The scale follows the content, never a card. Paragraph breaks stay verbatim. */
+.note-copy {
+  margin: 0; max-width: 44ch; font-family: var(--display-font); font-size: 1.375rem;
+  font-weight: 400; line-height: 1.6; letter-spacing: -.01em;
+  white-space: pre-wrap; overflow-wrap: anywhere; hyphens: auto; text-wrap: pretty;
+}
+.note-copy.note-brief { max-width: 28ch; font-size: clamp(1.5rem, 3vw, 1.75rem); line-height: 1.4; letter-spacing: -.02em; text-wrap: balance; }
+.note-copy.note-prose { max-width: 50ch; font-size: 1.25rem; line-height: 1.7; letter-spacing: 0; }
+.note-read-context, .note-tile-context { font-family: var(--interface-font); font-size: .875rem; font-weight: 400; line-height: 1.55; letter-spacing: .025em; color: var(--text-muted); overflow-wrap: anywhere; }
+
+/* A note brought forward: open text, a short rule, no helper surface. */
+.note-tile {
+  position: relative; grid-column: 1 / -1; display: grid; justify-items: start;
+  gap: 1rem; padding: 2rem 0 1.75rem; border: 0; border-radius: 0; box-shadow: none;
+  background: transparent; color: var(--text-primary); text-align: left;
+}
+.note-tile::before { content: ''; position: absolute; inset: .5rem auto auto 0; width: 2rem; height: 1px; background: var(--border-control); }
+.note-tile strong { max-width: 40ch; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-size: clamp(1.5rem, 4vw, 1.875rem); line-height: 1.5; }
+.note-tile strong.note-brief { max-width: 28ch; font-size: clamp(1.75rem, 4vw, 2.125rem); line-height: 1.35; }
+.note-tile strong.note-prose { font-size: 1.375rem; line-height: 1.65; }
+.note-tile-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: .375rem 1.25rem; }
+.note-person-name { margin: 0 0 1.25rem; font-size: 1rem; line-height: 1.5; color: var(--text-muted); overflow-wrap: anywhere; }
+.note-tile .note-person-name { margin: 0; color: var(--text-primary); }
+.note-eyebrow { margin: 0; }
+
+/* A single page: content, date, marginalia, then a deliberate reading pause. */
+.note-detail, .note-edit { max-width: 36rem; margin: .75rem auto 0; }
+.note-text, .note-edit textarea { max-width: 34ch; font-size: clamp(1.625rem, 4vw, 1.875rem); line-height: 1.55; }
+.note-text.note-brief, .note-edit textarea.note-brief { max-width: 24ch; font-size: clamp(2rem, 5vw, 2.5rem); line-height: 1.35; }
+.note-text.note-prose, .note-edit textarea.note-prose { max-width: 50ch; font-size: 1.375rem; line-height: 1.7; }
+.note-text { margin-bottom: 2rem; }
+.note-dates { display: grid; gap: .25rem; margin-left: 1.25rem; font-size: .875rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.note-dates p { margin: 0; }
+.note-edited { font-size: .875rem; }
+.note-context-summary { display: grid; gap: .375rem; margin: 1.5rem 0 0 1.25rem; font-size: .875rem; line-height: 1.6; color: var(--text-muted); }
+.note-context-summary .note-eyebrow { font-size: .875rem; letter-spacing: .055em; text-transform: none; }
+.note-context-summary p { margin: 0; }
+.note-links, .note-context-links { list-style: none; padding: 0; margin: 0; }
+.note-links { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; letter-spacing: .025em; overflow-wrap: anywhere; }
+.note-links li { min-width: 0; }
+.note-actions { display: grid; justify-items: start; gap: .125rem; margin-top: clamp(3.5rem, 8vw, 5rem); }
+.note-actions button, button.note-delete, .note-edit button { text-align: left; padding: .75rem 0; border: 0; border-radius: 0; background: transparent; }
+.note-actions #noteEdit, .note-edit .note-save { color: var(--text-primary); }
+button.note-delete { margin-top: 1.5rem; font-size: .875rem; color: var(--text-muted) !important; }
+
+/* Writing uses the reading measure. A single baseline bounds the open field. */
+.note-edit { gap: .25rem; justify-items: start; }
+.note-edit textarea { width: 100%; min-height: 18rem; field-sizing: content; margin-bottom: 2rem; padding: 0 0 1.5rem; border: 0; border-bottom: 1px solid var(--border-control); border-radius: 0; background: transparent; }
+.note-edit textarea:focus-visible { background: transparent; border-color: var(--text-primary); outline: 2px solid transparent; box-shadow: 0 2px 0 var(--text-primary); }
+
+/* Context editing remains native controls, with quiet labels and open rows. */
+.note-context { display: grid; gap: var(--space-lg); max-width: 30rem; }
+.note-context-question { margin: 0; font-family: var(--display-font); font-size: 1.75rem; font-weight: 400; letter-spacing: -.025em; line-height: 1.25; }
+.note-context-error { margin: 1rem 0 0; font-size: .875rem; overflow-wrap: anywhere; }
+.note-context-choices { display: flex; flex-wrap: wrap; gap: .75rem; }
+.note-context-choices button { flex: 1 1 8rem; }
+.note-context-links { display: grid; gap: .25rem; }
+.note-context-links li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+.note-context-links span { min-width: 0; flex: 1 1 8rem; font-size: .875rem; letter-spacing: .025em; color: var(--text-muted); overflow-wrap: anywhere; }
+.note-context-links button { font-size: .875rem; }
+.note-context-links li + li { padding-top: .5rem; }
+.note-context-picker { max-width: 30rem; }
+.note-context-picker fieldset { display: grid; gap: .5rem; }
+.note-context-option { display: flex; align-items: center; gap: .75rem; min-height: 56px; padding: .75rem .5rem; font-weight: 400; border-bottom: 1px solid var(--border-subtle); }
+.note-context-option input { width: 20px; min-height: 20px; height: 20px; margin: 0; }
+.note-context-option span { min-width: 0; overflow-wrap: anywhere; }
+.note-context-option:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
+.note-delete-dialog { width: min(30rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-surface); padding: clamp(1.25rem, 5vw, 2rem); background: var(--surface-paper); color: var(--text-primary); box-shadow: var(--shadow-overlay); }
+.note-delete-dialog::backdrop { background: rgb(0 0 0 / .4); }
+.note-delete-dialog .section-title { font-size: 1.75rem; margin-bottom: 0; }
+.note-delete-dialog p { margin: 0; }
+#noteDeleteError:empty { display: none; }
+.note-dialog-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.note-dialog-actions button { flex: 1 1 7rem; }
+
+@media (hover: hover) {
+  .note-read-button:hover:not(:disabled), .person-note-button:hover:not(:disabled), .note-tile:hover:not(:disabled),
+  .note-actions button.quiet:hover:not(:disabled), button.note-delete.quiet:hover:not(:disabled), .note-edit button.quiet:hover:not(:disabled) { color: var(--accent); background: transparent; border-color: var(--border-subtle); }
+  .note-actions button:hover:not(:disabled), .note-edit button:hover:not(:disabled) { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .3em; }
+  button.note-delete:hover:not(:disabled) { color: var(--color-danger) !important; text-decoration: underline; text-underline-offset: .3em; }
+  .note-edit textarea:hover:not(:disabled):not(:focus-visible) { border-color: var(--text-muted); }
+}
+@media (max-width: 560px) {
+  .notes-day > .section-title { margin-left: 0; margin-bottom: 1.5rem; }
+  .note-read-button { grid-template-columns: minmax(0, 1fr); gap: .625rem; }
+  .note-read-content { gap: .875rem; }
+  .notes-day .read-list li + li, .read-person-group .read-list li + li { margin-top: 2rem; }
+  .notes-day li:has(.note-brief) + li:has(.note-brief), .read-person-group li:has(.note-brief) + li:has(.note-brief) { margin-top: 1.25rem; }
+  .notes-day li:has(.note-prose) + li, .notes-day li + li:has(.note-prose),
+  .read-person-group li:has(.note-prose) + li, .read-person-group li + li:has(.note-prose) { margin-top: 2.75rem; }
+  .note-detail, .note-edit { margin-top: .5rem; }
+}
+@media (forced-colors: active) {
+  .note-edit textarea:focus-visible { outline: 3px solid CanvasText; outline-offset: 4px; box-shadow: none; }
+}

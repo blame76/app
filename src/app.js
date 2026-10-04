@@ -6,6 +6,9 @@ import { TIME_BUCKETS, validateRule } from './schema.js';
 import { RETENTION_WINDOWS } from './retention.js';
 import { renderNotes, renderPeople, renderPerson } from './read-views.js';
 import { createNavigation } from './navigation.js';
+import { isNote, noteLabel, editNote, changeNoteContext, noteContext, relevantNotes } from './notes.js';
+import { renderNote, renderNoteEdit, renderNoteContext, renderNoteContextPicker } from './note-views.js';
+import { noteTextClass } from './note-presentation.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -32,6 +35,22 @@ function toast(message) {
   el.hidden = false;
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => { el.hidden = true; }, 2600);
+}
+
+function clearToast() {
+  clearTimeout(toast.timer);
+  $('#toast').hidden = true;
+}
+
+function contextError(root, message) {
+  let status = root.querySelector('.note-context-error');
+  if (!status) {
+    status = document.createElement('p');
+    status.className = 'muted note-context-error';
+    status.setAttribute('role', 'status');
+    (root.querySelector('form') || root).append(status);
+  }
+  status.textContent = message;
 }
 
 function helperById(id) { return helpers.find(helper => helper.id === id); }
@@ -116,7 +135,7 @@ async function lastUsed(helperId) {
 function returnFocusTarget() {
   const element = document.activeElement;
   if (element?.id) return `#${CSS.escape(element.id)}`;
-  for (const attribute of ['data-helper', 'data-person']) {
+  for (const attribute of ['data-helper', 'data-person', 'data-note']) {
     if (element?.hasAttribute(attribute)) {
       const host = element.closest('[id]');
       return `${host ? `#${CSS.escape(host.id)} ` : ''}[${attribute}="${CSS.escape(element.getAttribute(attribute))}"]`;
@@ -137,6 +156,7 @@ function updateBackLabel() {
 }
 
 function showView(name, title, open, options = {}) {
+  $('#noteDeleteDialog').close();
   navigation.enter({ title: title || 'Startseite', open }, { ...options, returnFocus: returnFocusTarget() });
   viewVersion++;
   stopHelper();
@@ -299,9 +319,9 @@ function tile(helper, reason) {
 }
 
 async function dashboardCandidates(visible) {
-  if (!visible.length) return [];
-  const places = await list('places');
-  const hasPlaceRules = visible.some(({ rule }) => rule.placeIds.length);
+  const [places, entries, people] = await Promise.all([list('places'), list('entries', { prune: false }), list('people')]);
+  const hasPlaceRules = visible.some(({ rule }) => rule.placeIds.length)
+    || entries.some(entry => isNote(entry) && noteContext(entry).placeIds.some(id => places.some(place => place.id === id)));
   let activePlaces = [];
   if (hasPlaceRules) {
     try { activePlaces = matchingPlaces(await getPosition(), places); } catch { activePlaces = []; }
@@ -320,7 +340,13 @@ async function dashboardCandidates(visible) {
     else if (usedAt) { reason = 'zuletzt verwendet'; rank = 100 + Math.max(0, 30 - Math.floor((now - usedAt) / 3600000)); }
     if (reason) items.push({ helper, reason, rank, usedAt });
   }
-  return items.sort((a, b) => b.rank - a.rank || b.usedAt - a.usedAt);
+  items.push(...relevantNotes(entries, activePlaces, bucket).map(item => ({ ...item, person: people.find(person => person.id === item.note.personId) })));
+  return items.sort((a, b) => b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.helper.id).localeCompare(b.note?.id || b.helper.id));
+}
+
+function noteTile(note, reason, person) {
+  const label = noteLabel(note);
+  return `<button class="note-tile" type="button" data-note="${escapeHtml(note.id)}"><span class="note-tile-heading"><span class="note-eyebrow">${label}</span>${note.type === 'person-note' ? `<span class="note-person-name">${escapeHtml(person?.name || 'Person nicht mehr gespeichert')}</span>` : ''}</span><strong class="${noteTextClass(note.text)}">${escapeHtml(note.text)}</strong><span class="note-tile-context">${escapeHtml(reason)}</span></button>`;
 }
 
 async function renderDashboard() {
@@ -330,7 +356,7 @@ async function renderDashboard() {
   const candidates = await dashboardCandidates(visible);
   if (version !== dashboardVersion) return;
 
-  $('#nowRows').innerHTML = candidates.length ? candidates.slice(0, 9).map(({ helper, reason }) => tile(helper, reason)).join('') : '';
+  $('#nowRows').innerHTML = candidates.slice(0, 9).map(({ helper, note, reason, person }) => note ? noteTile(note, reason, person) : tile(helper, reason)).join('');
   $('#favoriteTiles').innerHTML = favorites.length ? favorites.map(helper => tile(helper, '')).join('') : '';
 
   const categories = [...new Set(visible.map(({ helper }) => helper.category))].sort((a, b) => a.localeCompare(b, 'de'));
@@ -378,13 +404,18 @@ async function openCoreView(name, options = {}) {
     const version = viewVersion;
     const root = $('#readHost');
     root.classList.remove('read-person');
+    root.classList.toggle('read-notes', name === 'notes');
+    delete root.dataset.personId;
     root.replaceChildren();
     root.setAttribute('aria-busy', 'true');
     try {
       // Reading core content must not trigger helper retention writes.
-      const records = await list(name === 'notes' ? 'entries' : 'people', { prune: false });
+      const [records, places] = await Promise.all([
+        list(name === 'notes' ? 'entries' : 'people', { prune: false }),
+        name === 'notes' ? list('places') : Promise.resolve([])
+      ]);
       if (version !== viewVersion) return;
-      if (name === 'notes') renderNotes(root, records);
+      if (name === 'notes') renderNotes(root, records, places);
       else {
         renderPeople(root, records);
       }
@@ -401,19 +432,232 @@ async function openCoreView(name, options = {}) {
   }
 }
 
+async function requireNote(id) {
+  const note = await get('entries', id);
+  if (!isNote(note)) throw new Error('Notiz nicht mehr vorhanden.');
+  return note;
+}
+
+async function openNoteScreen(id, title, open, options, render) {
+  showView('note', title, open, options);
+  const version = viewVersion;
+  const root = $('#noteHost');
+  root.replaceChildren();
+  root.setAttribute('aria-busy', 'true');
+  const current = () => version === viewVersion;
+  try {
+    const [note, places] = await Promise.all([get('entries', id), list('places')]);
+    if (!current()) return;
+    if (!isNote(note)) { toast('Notiz nicht mehr vorhanden.'); await goBack(); return; }
+    const person = note.type === 'person-note' && note.personId ? await get('people', note.personId) : null;
+    if (!current()) return;
+    const resolvedTitle = title.replace('Notiz', noteLabel(note));
+    if (resolvedTitle !== title) {
+      navigation.enter({ title: resolvedTitle, open }, { replace: true });
+      $('#focusTitle').textContent = resolvedTitle;
+    }
+    render(root, note, places, current, person);
+    if ($('#quickComposer').hidden) $('#focusTitle').focus({ preventScroll: true });
+  } catch (error) {
+    if (current()) reportError(error, 'Notiz konnte nicht geladen werden. Bitte erneut versuchen.');
+  } finally {
+    if (current()) root.removeAttribute('aria-busy');
+  }
+}
+
+function refreshNow() {
+  renderDashboard().catch(error => reportError(error, 'Die Ansicht konnte nicht aktualisiert werden. Bitte neu laden.'));
+}
+
+async function refreshNoteList() {
+  if ($('#view-read').hidden) return;
+  const root = $('#readHost');
+  const personId = root.dataset.personId;
+  if (!root.classList.contains('read-notes') && !personId) return;
+  const version = viewVersion;
+  const [entries, places, person] = await Promise.all([list('entries', { prune: false }), list('places'), personId ? get('people', personId) : Promise.resolve(null)]);
+  if (version !== viewVersion) return;
+  root.replaceChildren();
+  if (person) renderPerson(root, person, entries, places);
+  else if (!personId) renderNotes(root, entries, places);
+}
+
+async function openNote(id, options = {}) {
+  await openNoteScreen(id, 'Notiz', () => openNote(id, { replace: true }), options, (root, note, places, current, person) => {
+    renderNote(root, note, places, {
+      edit: guarded(() => openNoteEdit(id)),
+      context: guarded(() => openNoteContext(id)),
+      remove: () => confirmNoteDelete(id, noteLabel(note))
+    }, person);
+  });
+}
+
+async function openNoteEdit(id, options = {}) {
+  await openNoteScreen(id, 'Notiz bearbeiten', () => openNoteEdit(id, { replace: true }), options, (root, note, places, current) => {
+    const form = renderNoteEdit(root, note, guarded(goBack));
+    bindSubmit(form, async data => {
+      const text = data.get('text');
+      if (!text.trim()) { toast('Bitte einen Notiztext eingeben.'); $('#noteEditText')?.focus(); return; }
+      const original = await requireNote(id);
+      if (!current()) return;
+      const next = editNote(original, text);
+      if (next.text !== original.text) await put('entries', next);
+      if (current()) { toast(`${noteLabel(next)} gespeichert.`); await goBack(); refreshNow(); }
+    });
+    // The screen loader focuses the title; a microtask puts editing directly in the field.
+    queueMicrotask(() => { if (current() && $('#quickComposer').hidden) $('#noteEditText').focus(); });
+  });
+}
+
+async function saveNoteContext(id, changes, current) {
+  const original = await requireNote(id);
+  if (!current()) return;
+  await put('entries', changeNoteContext(original, changes));
+  refreshNow();
+  refreshNoteList().catch(error => reportError(error, 'Verknüpfung gespeichert. Die Ansicht konnte nicht aktualisiert werden.'));
+}
+
+function contextActions(root, note, current, actions, capture = false) {
+  renderNoteContext(root, note, actions.places, {
+    choose: guarded(actions.choose),
+    done: guarded(actions.done),
+    remove: async link => {
+      if (root.getAttribute('aria-busy') === 'true') return;
+      root.setAttribute('aria-busy', 'true');
+      const buttons = [...root.querySelectorAll('button')];
+      buttons.forEach(button => { button.disabled = true; });
+      try {
+        const original = await requireNote(note.id);
+        await saveNoteContext(note.id, { [link.kind]: noteContext(original)[link.kind].filter(id => id !== link.id) }, current);
+        if (current()) {
+          if (capture) clearToast(); else toast('Verknüpfung entfernt.');
+          await actions.refresh();
+        }
+      } catch {
+        if (current()) contextError(root, capture ? 'Notiz gespeichert. Verknüpfung konnte nicht gespeichert werden.' : 'Verknüpfung konnte nicht gespeichert werden. Bitte erneut versuchen.');
+      } finally {
+        if (current()) root.removeAttribute('aria-busy');
+        buttons.forEach(button => { button.disabled = false; });
+      }
+    }
+  }, { capture });
+}
+
+async function openNoteContext(id, kind = null, options = {}) {
+  const title = kind ? (kind === 'placeIds' ? 'Ort' : 'Tageszeit') : 'Wann wieder zeigen?';
+  await openNoteScreen(id, title, () => openNoteContext(id, kind, { replace: true }), options, (root, note, places, current) => {
+    if (!kind) {
+      contextActions(root, note, current, {
+        places, choose: kind => openNoteContext(id, kind), done: goBack,
+        refresh: () => openNoteContext(id, null, { replace: true })
+      });
+    } else {
+      const form = renderNoteContextPicker(root, note, places, kind, guarded(goBack));
+      bindSubmit(form, async data => {
+        try { await saveNoteContext(id, { [kind]: data.getAll('context') }, current); }
+        catch { if (current()) contextError(root, 'Verknüpfung konnte nicht gespeichert werden. Bitte erneut versuchen.'); return; }
+        if (current()) { toast('Verknüpfung gespeichert.'); await goBack(); }
+      });
+    }
+  });
+}
+
+function confirmNoteDelete(id, label = 'Notiz') {
+  const dialog = $('#noteDeleteDialog');
+  const version = viewVersion;
+  const returnFocus = document.activeElement;
+  const form = $('#noteDeleteForm');
+  const cancel = $('#noteDeleteCancel');
+  const confirm = $('#noteDeleteConfirm');
+  $('#noteDeleteTitle').textContent = `${label} löschen?`;
+  $('#noteDeleteDescription').textContent = `Diese ${label} wird dauerhaft von diesem Gerät gelöscht.`;
+  $('#noteDeleteError').textContent = '';
+  cancel.disabled = confirm.disabled = false;
+  form.removeAttribute('aria-busy');
+  cancel.onclick = () => dialog.close();
+  dialog.onclose = () => { if (version === viewVersion && returnFocus?.isConnected) returnFocus.focus(); };
+  form.onsubmit = async event => {
+    event.preventDefault();
+    if (form.getAttribute('aria-busy') === 'true') return;
+    form.setAttribute('aria-busy', 'true');
+    cancel.disabled = confirm.disabled = true;
+    try {
+      await remove('entries', id);
+    } catch {
+      $('#noteDeleteError').textContent = `${label} konnte nicht gelöscht werden. Bitte erneut versuchen.`;
+      return;
+    } finally {
+      form.removeAttribute('aria-busy');
+      cancel.disabled = confirm.disabled = false;
+    }
+    dialog.close();
+    if (version === viewVersion) {
+      guarded(async () => { await goBack(); if ($('#view-dashboard').hidden) refreshNow(); })();
+    }
+  };
+  dialog.showModal();
+  cancel.focus();
+}
+
+function noteFollowup(note, composerCurrent) {
+  const body = $('#quickComposerBody');
+  let step = 0;
+  async function show(kind = null, focus = null) {
+    const version = ++step;
+    const current = () => composerCurrent() && version === step;
+    body.replaceChildren();
+    $('#quickComposerTitle').textContent = 'Gespeichert';
+    // Saving is already complete: Done remains available even if context reads fail.
+    const actions = {
+      places: [], choose: kind => show(kind), done: closeComposer,
+      refresh: () => show(null, '#quickNoteChoosePlace')
+    };
+    if (!kind) {
+      contextActions(body, note, current, actions, true);
+      body.querySelector('#noteFollowupTitle').focus();
+    }
+    body.setAttribute('aria-busy', 'true');
+    try {
+      const [saved, places] = await Promise.all([requireNote(note.id), list('places')]);
+      if (!current()) return;
+      note = saved;
+      body.replaceChildren();
+      if (!kind) contextActions(body, note, current, { ...actions, places }, true);
+      else {
+        const form = renderNoteContextPicker(body, note, places, kind, guarded(() => show(null, kind === 'placeIds' ? '#quickNoteChoosePlace' : '#quickNoteChooseTime')), { capture: true });
+        bindSubmit(form, async data => {
+          try { await saveNoteContext(note.id, { [kind]: data.getAll('context') }, current); }
+          catch { if (current()) contextError(body, 'Notiz gespeichert. Verknüpfung konnte nicht gespeichert werden.'); return; }
+          if (current()) { clearToast(); await show(null, kind === 'placeIds' ? '#quickNoteChoosePlace' : '#quickNoteChooseTime'); }
+        });
+      }
+      (focus && body.querySelector(focus) || body.querySelector(kind ? 'input, #quickNoteContextCancel' : '#noteFollowupTitle')).focus();
+    } catch {
+      if (current()) {
+        if (kind) contextActions(body, note, current, actions, true);
+        contextError(body, 'Notiz gespeichert. Verknüpfungen konnten nicht geladen werden.');
+        body.querySelector('#quickNoteContextDone').focus();
+      }
+    } finally { if (current()) body.removeAttribute('aria-busy'); }
+  }
+  show().catch(reportError);
+}
+
 async function openPerson(id, name, options = {}) {
   showView('read', name, () => openPerson(id, name, { replace: true }), options);
   const version = viewVersion;
   const root = $('#readHost');
   root.classList.add('read-person');
+  root.classList.remove('read-notes');
+  root.dataset.personId = id;
   root.replaceChildren();
   root.setAttribute('aria-busy', 'true');
   try {
-    const [person, entries] = await Promise.all([get('people', id), list('entries', { prune: false })]);
+    const [person, entries, places] = await Promise.all([get('people', id), list('entries', { prune: false }), list('places')]);
     if (version !== viewVersion) return;
     if (!person) { await goBack(); return; }
     $('#focusTitle').textContent = person.name;
-    renderPerson(root, person, entries);
+    renderPerson(root, person, entries, places);
   } catch (error) {
     if (version === viewVersion) reportError(error, 'Inhalte konnten nicht geladen werden. Bitte erneut versuchen.');
   } finally {
@@ -449,6 +693,7 @@ function closeComposer() {
   $('#quickComposer').hidden = true;
   $$('[aria-controls="quickComposer"]').forEach(button => button.setAttribute('aria-expanded', 'false'));
   $('#quickComposerBody').replaceChildren();
+  $('#quickComposerBody').removeAttribute('aria-busy');
   if (composerReturnFocus) composerReturnFocus.focus();
   composerReturnFocus = null;
 }
@@ -470,9 +715,12 @@ async function openComposer(type, trigger = null) {
     bindSubmit($('#noteForm'), async form => {
       const text = form.get('text').trim();
       if (!text) return;
-      await put('entries', { id: makeId('note'), type: 'note', text, createdAt: Date.now() });
-      if (current()) closeComposer();
-      toast('Notiz gespeichert.');
+      const note = { id: makeId('note'), type: 'note', text, createdAt: Date.now() };
+      await put('entries', note);
+      if (current()) { clearToast(); noteFollowup(note, current); }
+      else toast('Notiz gespeichert.');
+      refreshNow();
+      refreshNoteList().catch(error => reportError(error, 'Notiz gespeichert. Die Ansicht konnte nicht aktualisiert werden.'));
     });
     $('#noteText').focus();
   }
@@ -518,6 +766,9 @@ async function openComposer(type, trigger = null) {
       <button type="submit">Hinzufügen</button>
     </form>`;
     const select = $('#personForm select[name="personId"]');
+    let savedPerson = null;
+    const currentPersonId = !$('#view-read').hidden && $('#readHost').dataset.personId;
+    if (people.some(person => person.id === currentPersonId)) select.value = currentPersonId;
     const updateNewField = () => { $('#newPersonField').hidden = select.value !== 'new'; };
     select.addEventListener('change', updateNewField); updateNewField();
     bindSubmit($('#personForm'), async form => {
@@ -527,12 +778,20 @@ async function openComposer(type, trigger = null) {
       if (personId === 'new') {
         const name = form.get('newName').trim();
         if (!name) { toast('Bitte einen Namen angeben.'); return; }
-        personId = makeId('person');
-        await put('people', { id: personId, name, createdAt: Date.now() });
+        if (savedPerson?.name === name) personId = savedPerson.id;
+        else {
+          const person = { id: makeId('person'), name, createdAt: Date.now() };
+          await put('people', person);
+          savedPerson = person;
+          personId = person.id;
+        }
       }
-      await put('entries', { id: makeId('person-note'), type: 'person-note', personId, kind: form.get('kind'), text, createdAt: Date.now() });
-      if (current()) closeComposer();
-      toast(form.get('kind') === 'gift' ? 'Geschenkidee gespeichert.' : 'Notiz zur Person gespeichert.');
+      const note = { id: makeId('person-note'), type: 'person-note', personId, kind: form.get('kind'), text, createdAt: Date.now() };
+      await put('entries', note);
+      if (current()) { clearToast(); noteFollowup(note, current); }
+      else toast(note.kind === 'gift' ? 'Geschenkidee gespeichert.' : 'Notiz zur Person gespeichert.');
+      refreshNow();
+      refreshNoteList().catch(error => reportError(error, 'Notiz gespeichert. Die Ansicht konnte nicht aktualisiert werden.'));
     });
     select.focus();
   }
@@ -567,6 +826,8 @@ function bindEvents() {
   document.addEventListener('click', guarded(async event => {
     const helperButton = event.target.closest('[data-helper]');
     if (helperButton) { await openHelper(helperButton.dataset.helper); return; }
+    const noteButton = event.target.closest('[data-note]');
+    if (noteButton) { await openNote(noteButton.dataset.note); return; }
     const composerButton = event.target.closest('[data-composer]');
     if (composerButton) { await openComposer(composerButton.dataset.composer, composerButton); return; }
     const viewButton = event.target.closest('[data-view]');
