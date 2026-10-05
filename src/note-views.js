@@ -2,6 +2,7 @@ import { noteContext, noteLinks, noteLabel } from './notes.js';
 import { TIME_BUCKETS } from './schema.js';
 import { timeBucketLabel } from './context.js';
 import { noteTextClass } from './note-presentation.js';
+import { formatDistance, getLocationDebugInfo } from './debug.js';
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -24,10 +25,10 @@ function timestamp(at, compact = false) {
   return time;
 }
 
-export function renderNote(root, note, places, actions, person = null) {
+export function renderNote(root, note, places, actions, person = null, { debugMode = false, position = null } = {}) {
   const article = element('article', undefined, 'note-detail');
   if (note.type === 'person-note') article.append(element('p', person?.name || 'Person nicht mehr gespeichert', 'note-person-name'));
-  article.append(element('p', note.text, `note-text ${noteTextClass(note.text)}`));
+  article.append(element('p', note.text, `note-text ${noteTextClass(note.text)`));
   const dates = element('div', undefined, 'note-dates muted');
   dates.append(timestamp(note.createdAt));
   if (note.updatedAt !== undefined) {
@@ -35,6 +36,23 @@ export function renderNote(root, note, places, actions, person = null) {
     edited.append(timestamp(note.updatedAt, true));
     dates.append(edited);
   }
+  
+  // Add debug distance info if debug mode is enabled
+  if (debugMode && position) {
+    const context = noteContext(note);
+    const debugInfo = getLocationDebugInfo(position, places, context);
+    
+    if (context.placeIds && context.placeIds.length > 0) {
+      const debugLine = element('p', undefined, 'note-debug-distance muted');
+      const distance = formatDistance(debugInfo.distance);
+      const statusText = debugInfo.status ? ` · ${debugInfo.status}` : '';
+      debugLine.textContent = `🔍 Aktueller Abstand zum Ort: ${distance}${statusText}`;
+      dates.append(debugLine);
+    }
+  }
+  
+  article.append(dates);
+  
   const context = element('section', undefined, 'note-context-summary');
   const heading = element('h2', 'Wieder zeigen', 'note-eyebrow');
   heading.id = 'noteContextTitle';
@@ -48,7 +66,7 @@ export function renderNote(root, note, places, actions, person = null) {
   } else context.append(element('p', 'Keine Verknüpfung', 'muted'));
   const controls = element('div', undefined, 'note-actions');
   controls.append(button('Bearbeiten', 'noteEdit', actions.edit), button(links.length ? 'Verknüpfung ändern' : 'Verknüpfung hinzufügen', 'noteContext', actions.context));
-  article.append(dates, context, controls, button(`${noteLabel(note)} löschen`, 'noteDelete', actions.remove, 'quiet danger-text note-delete'));
+  article.append(context, controls, button(`${noteLabel(note)} löschen`, 'noteDelete', actions.remove, 'quiet danger-text note-delete'));
   root.append(article);
 }
 
