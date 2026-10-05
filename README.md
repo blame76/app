@@ -8,7 +8,9 @@ Die visuelle Richtung und der aktuelle Editorial-Design-Pass stehen in [`DESIGN.
 Der reine Notes-Gestaltungspass ist in [`docs/NOTES_EDITORIAL.md`](docs/NOTES_EDITORIAL.md)
 dokumentiert; Darstellung und Notiz-Lebenszyklus liegen in getrennten Dateien.
 Der Language- und UI-Pass ab v0.5.3 ist in [`LANGUAGE_REVIEW.md`](LANGUAGE_REVIEW.md) dokumentiert.
-Neue Helper: [`docs/HELPER_AUTHORING.md`](docs/HELPER_AUTHORING.md).
+**Mitentwickeln:** [`AGENTS.md`](AGENTS.md) →
+[`Helper Authoring Guide`](docs/HELPER_AUTHORING.md) → eine passende Implementierung.
+Setup, Helper-Ideen und ein kurzer Agentenauftrag: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Prinzip
 
@@ -196,10 +198,11 @@ IndexedDB-Transaktion über alle Stores. Ein fehlgeschlagener Import wird vollst
 zurückgerollt. Ein erfolgreich gespeicherter Eintrag zählt erst nach Commit als gespeichert.
 Browser-Persistenz bleibt eine Anfrage, keine garantierte Datensicherung.
 
-Helper mit deklarierter Aufbewahrung (aktuell Schmerz) bieten 7, 30, 365 Tage oder
-unbegrenzt an. Default für Schmerz ist unbegrenzt. Die Dauer gilt für fachliche Einträge,
-nicht für Konfiguration. Bereinigung erfolgt bei App-Start, Eintragslesen, Export,
-Import und Regeländerung. Details stehen im Helper-Vertrag. Verkürzen kann Daten
+Helper mit deklarierter Aufbewahrung (aktuell Schmerz und Trinken) bieten 7, 30, 365 Tage oder
+unbegrenzt an. Beide verwenden unbegrenzt als Default. Die Dauer gilt für fachliche Einträge,
+nicht für Konfiguration. Bereinigung erfolgt bei App-Start, direkten DB-Eintragslesezugriffen
+mit Pruning, Export, Import und Regeländerung. Reine Helper-/Dashboard-Navigation liest
+ohne Pruning. Details stehen im Helper-Guide. Verkürzen kann Daten
 unwiderruflich löschen; Exportdateien außerhalb der App werden davon nicht verändert.
 
 ## Design: Light / Dark / Signature

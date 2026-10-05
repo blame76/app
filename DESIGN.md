@@ -168,16 +168,16 @@ Textkontraste über alle eingesetzten Flächen: Light mindestens 4,87:1, Dark mi
 5,51:1. Eingaberänder mindestens 3,14:1 beziehungsweise 3,97:1; primäre und gefährliche
 Controls einschließlich Hover mindestens 4,5:1. Fokus bleibt mindestens 3 px stark.
 
-`npm test`, die Berliner Zeitgrenzen und sämtliche elf Browser-Gates aus `tests/README.md`
+`npm test`, die Berliner Zeitgrenzen und die Browser-Gates aus `tests/README.md`
 prüfen Verhalten, Speicherung, Import/Export, Retention, Navigation, echte Offline-Nutzung
 und den Design-Pass. Der zusätzliche Editorial-Gate prüft Zeitabstände und Datenvollständigkeit
 im Plot, ungefähren Beginn, unveränderte Stores ohne Schreibtransaktionen sowie beide Paletten.
 Screenshots der wichtigen Ansichten werden nach `/tmp/0815-editorial-*.png` geschrieben.
 
 Datenmodelle, Helper Contract, Context Engine, Storage, Retention,
-Import/Export und Navigationslogik sind unverändert. Für die Veröffentlichung auf
-`main` werden App-Version und Service-Worker-Cache gemeinsam auf `0.5.8` erhöht.
-Die Worker-Logik bleibt unverändert; die Prüfung verwendet frische Browserkontexte.
+Import/Export und Navigationslogik blieben in diesem Gestaltungspass unverändert.
+Die damalige Release-Version war `0.5.8`; aktuelle Version und Cache stehen in
+`package.json` und `sw.js`. Die Prüfung verwendete frische Browserkontexte.
 
 ## Design Modes · Signature / Mono Editorial
 

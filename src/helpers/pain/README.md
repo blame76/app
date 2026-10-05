@@ -82,7 +82,9 @@ bei ausgeblendetem Helper; Favorit und Konfiguration bleiben erhalten.
 
 ## Grenzen
 
-Keine Body Map, Charts, PEG, Wochenberichte, Arztberichte, Medikamentenverwaltung,
+Der bestehende SVG-Verlauf verbindet ausschließlich dokumentierte Werte; die
+vollständige Eintragsliste bleibt als zugängliche Alternative erhalten.
+Keine Body Map, zusätzlichen Auswertungs-Charts, PEG, Wochenberichte, Arztberichte, Medikamentenverwaltung,
 Diagnose, Therapieempfehlung, Notfalllogik oder abgeleitete medizinische Aussagen.
 Die aktuelle Iteration dient persönlichem Dogfooding. Echte Screenreader und weitere
 Zielbrowser sind vor Veröffentlichung zu prüfen. Kein neuer medizinischer Hinweistext

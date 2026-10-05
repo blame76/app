@@ -1,17 +1,36 @@
 # Prüfungen
 
+Node.js 22 und npm wie in CI verwenden; `npm install` ist nicht nötig.
+Alle Kommandos vom Repo-Root ausführen. Die fokussierte Auswahl für neue Helper
+steht im [Helper-Guide](../docs/HELPER_AUTHORING.md#prüfen-und-fertigstellen).
+
 `npm test` führt ohne Dependencies die Node-Tests für Registry, Defaults,
 Import-/Datensatzvalidierung, ungültige Intervalle, Shell/Manifest und
 Service-Worker-Cacheverhalten aus. Die Worker-Tests führen den tatsächlichen Worker-Code
 mit einer kleinen Cache-/Event-Umgebung aus; es gibt keine Tests, die null Helper erzwingen.
+Auch Fachmodelle und isolierte Pages-Builds sind enthalten (`tests/*.mjs`).
+Die `.js`-Browserdateien werden von `npm test` nicht ausgeführt.
 
 ## Browser
 
-`browser-check.js` ist eine Playwright-Funktion für einen bereitgestellten Browser,
-kein npm-Paket und keine Projektabhängigkeit. Sie kann mit dem Browsertool über
-`browser_run_code_unsafe` und den absoluten Dateipfad ausgeführt werden. Voraussetzung:
+`browser-check.js` ist eine Playwright-Funktion für einen extern bereitgestellten Browser,
+kein npm-Paket und keine Projektabhängigkeit. Falls das Browsertool
+`browser_run_code_unsafe` verfügbar ist, die Datei über ihren absoluten Pfad ausführen.
+Bei Tools mit Code-Eingabe den gesamten Dateiinhalt als `async (page) => { … }`
+übergeben. Das Tool muss eine echte Playwright-Page mit Zugriff auf
+`page.context().browser()` sowie localhost bereitstellen. Voraussetzung:
 `python3 -m http.server 8080`. Die Funktion erzeugt einen isolierten Browserkontext,
 ersetzt nur die Registry-Antwort durch Testfixtures und verändert keine Repository-Helper.
+
+`node tests/browser-check.js` wertet nur einen Funktionsausdruck aus und führt
+**keinen Test** aus. Das Repo enthält derzeit keinen eigenständigen Browser-CLI-Runner;
+das Browsertool gehört zur ausführenden Umgebung. Ohne solches Tool: manuell in
+einem separaten Browserprofil mit Testdaten prüfen – Öffnen ohne Schreibwirkung,
+Kernaktion/Fehler/Mehrfachklick, Reload, Zurück/Einstellungen, Tastatur/Fokus,
+320 CSS px/200 % Text, drei Themes und Reduced Motion. Anschließend mit aktivem
+echtem Worker offline öffnen, speichern und neu laden. Keine echten Nutzerdaten
+für Import-/Löschtests verwenden. Manuelle Prüfungen und nicht ausgeführte
+automatisierte Gates getrennt berichten; dies ersetzt keinen bestandenen Gate.
 
 Geprüft werden:
 
@@ -129,8 +148,9 @@ Metadatenfehler ohne Doppeleintrag, Mehrfachklick, Retention, Ausblenden,
 werden ausgeschlossen. `TZ=Europe/Berlin node --test tests/drink.mjs` prüft die
 Tagesgrenzen auch mit Berliner Sommerzeit in Node.
 
-Alle elf Browserdateien sind über das vorhandene Browsertool zusätzlich zu
-`npm test` auszuführen. CSS-Textvergrößerung ist ein strenger Layout-Test, kein Ersatz
+Die relevanten Browserdateien sind über das externe Browsertool zusätzlich zu
+`npm test` auszuführen; die Abschnitte unten beschreiben weitere Core-/Release-Gates.
+CSS-Textvergrößerung ist ein strenger Layout-Test, kein Ersatz
 für einen manuellen Zoom- und Screenreader-Test auf den Zielgeräten.
 
 ## Notizen und Personen READ

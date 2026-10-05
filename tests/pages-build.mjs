@@ -33,7 +33,7 @@ test('Pages build is reproducible, complete under /app/ and excludes development
     assert.ok(existsSync(join(output, '.nojekyll')));
     assert.ok(!first.some(([path]) => /README|\.md$|\.env|local-export|package\.json|^bin\//.test(path)));
     for (const helper of HELPERS) {
-      for (const path of [`./src/helpers/${helper.id}/index.js`, ...helper.offlineAssets]) {
+      for (const path of [`./src/helpers/${helper.id}/index.js`, ...(helper.offlineAssets || [])]) {
         assert.ok(existsSync(join(output, path)), path);
       }
     }
