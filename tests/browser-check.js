@@ -43,6 +43,17 @@ async (page) => {
     check(await app.locator('#view-dashboard').isVisible() === false, 'Focus view hides entire dashboard');
     await app.evaluate(() => window.fixtureAPI.recordUse());
     check(await app.evaluate(async initialUse => (await (await import('/src/db.js')).get('settings', 'usage:example')).lastUsedAt > initialUse, initialUse), 'Explicit recordUse persists actual use');
+    check(await app.evaluate(async () => {
+      const db = await import('/src/db.js');
+      await db.put('entries', { id: 'foreign-entry', type: 'note', text: 'Keep', createdAt: 1 });
+      try { await window.fixtureAPI.deleteEntry('foreign-entry'); return false; }
+      catch { return !!(await db.get('entries', 'foreign-entry')); }
+    }), 'Helper deletion rejects foreign entries and preserves their data');
+    await app.evaluate(async () => {
+      await window.fixtureAPI.saveEntry({ id: 'example-state', createdAt: 1 });
+      await window.fixtureAPI.deleteEntry('example-state');
+    });
+    check(await app.evaluate(async () => !(await (await import('/src/db.js')).get('entries', 'example-state'))), 'Helper deletion resolves after its own entry is removed');
     await app.locator('#helperSettingsButton').click();
     await app.waitForSelector('#helperSettingsForm');
     check(await app.evaluate(() => window.fixtureSignal.aborted && window.cleanupCount === 1), 'Opening settings aborts and cleans up helper');

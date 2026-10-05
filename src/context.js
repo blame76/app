@@ -38,7 +38,7 @@ export function getPosition(options = {}) {
         accuracy: position.coords.accuracy
       }),
       error => reject(new Error(error.message || 'Standort konnte nicht gelesen werden.')),
-      { enableHighAccuracy: false, timeout: 7000, maximumAge: options.maximumAge ?? 300000 }
+      { enableHighAccuracy: true, timeout: 7000, maximumAge: options.maximumAge ?? 0 }
     );
   });
 }
@@ -47,6 +47,18 @@ export function matchingPlaces(position, places) {
   if (!position) return [];
   return places
     .map(place => ({ ...place, distance: distanceMeters(position, place) }))
-    .filter(place => place.distance <= place.radius + Math.min(position.accuracy || 0, 250))
+    .filter(place => place.distance <= place.radius)
     .sort((a, b) => a.distance - b.distance);
+}
+
+// Only the visible dashboard owns this observer. No position is persisted here.
+export function watchPosition(onPosition) {
+  if (!globalThis.isSecureContext || !navigator.geolocation?.watchPosition) return () => {};
+  let active = true;
+  const id = navigator.geolocation.watchPosition(
+    ({ coords }) => { if (active) onPosition({ lat: coords.latitude, lon: coords.longitude, accuracy: coords.accuracy }); },
+    () => { if (active) onPosition(null); },
+    { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
+  );
+  return () => { active = false; navigator.geolocation.clearWatch(id); };
 }

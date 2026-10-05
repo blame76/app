@@ -62,7 +62,7 @@ async (page) => {
     check(await app.locator('#nowRows [data-helper="interval"] span').textContent() === 'Intervall · 60 Min.', 'Interval reason stays factual while the existing tolerance makes it due');
     check(await app.locator('#nowRows [data-helper="time"] span').textContent() === await app.evaluate(async () => { const ctx = await import('/src/context.js'); return ctx.timeBucketLabel(ctx.timeBucket()); }), 'Time reason still names the current time bucket');
     check(await app.locator('#nowRows [data-helper="used"] span').textContent() === 'zuletzt verwendet', 'Usage reason describes recorded use');
-    check(await app.evaluate(() => window.geoCalls === 1 && window.geoOptions.maximumAge === 300000), 'Context naming adds no location query or option change');
+    check(await app.evaluate(() => window.geoCalls === 1 && window.geoOptions.maximumAge === 0), 'Context uses one fresh location query to avoid stale place matches');
     check(await app.locator('#nowRows [data-helper="place"]').evaluate(element => {
       const box = element.getBoundingClientRect();
       return box.width < 160 && box.height / box.width < 1.6 && box.height >= 48;
@@ -96,7 +96,7 @@ async (page) => {
     await enlargedText.evaluate(element => element.remove());
 
     await app.locator('[data-composer="place"]').click();
-    await app.waitForFunction(() => document.querySelector('#placeStatus').textContent === 'Standort bereit.');
+    await app.waitForFunction(() => document.querySelector('#placeStatus').textContent.startsWith('Standort bereit. Gemeldete Genauigkeit:'));
     check(await app.evaluate(() => window.geoOptions.maximumAge === 0), 'Place composer keeps its fresh location query');
     await app.locator('#placeForm input').fill('Neuer Ort');
     await app.locator('#placeForm button').click();

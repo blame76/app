@@ -302,3 +302,17 @@ das dekorative, für Screenreader ausgeblendete Script im Notes-Kapitel. Der ech
 PWA-Gate lädt beide Schriftfamilien offline und prüft deren Fonts/OFL-Dateien im
 aktuellen Cache. Der Pages-Gate prüft CSS-Font-URLs unter `/app/` und Release-Hashes
 nach Änderungen beider Binärdateien. Die vorigen A/B-Studien bleiben historische Tests.
+
+## Parken und Orte
+
+`parking.mjs` und `places.mjs` prüfen den einzelnen Parkzustand, Validierung vor
+Import, Speicherung vor Nutzungsmetadaten, alte und kategorisierte Orte, Gruppierung
+sowie Radiusgrenzen ohne Genauigkeitsaufschlag und das Beenden des Observers.
+
+`parking-places-browser-check.js` prüft echte IndexedDB in Light, Dark und Signature:
+bewusste Ortung, Speichern/Ersetzen/Notizänderung/Löschen, Fehler/Retry, späte Antworten,
+Gruppierung, alte Radien, Auswahl und Bearbeitung, Ein-/Ausblenden ohne Navigation,
+Ortungsfehler, Vordergrundlebenszyklus, Fokus, 320 px/200 % Text und externe Requests.
+`helpers-offline-check.js` ergänzt Speichern, Reload, Anzeigen und Löschen des
+Parkplatzes mit echtem Worker und kontrollierter Geräteposition. Reale Geräteortung
+und Betriebssystem-Standortdienste werden dadurch nicht geprüft.

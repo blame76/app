@@ -254,3 +254,7 @@ main { max-width: var(--content-width); margin: 0 auto; padding: 0 var(--gutter)
 /* Only the added settings controls; existing palettes and components are preserved. */
 #themeStatus:empty { display: none; }
 .pain-signature-value { display: none; }
+
+.place-settings { padding-block: 1rem; border-bottom: 1px solid var(--surface-soft); }
+.place-settings > strong { overflow-wrap: anywhere; }
+.place-settings .actions { display: flex; flex-wrap: wrap; gap: .5rem; }

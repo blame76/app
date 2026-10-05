@@ -160,6 +160,18 @@ async (page) => {
     await app.waitForSelector('#view-dashboard');
     await app.waitForFunction(() => !document.querySelector('#nowRows [data-note]'));
     check(await app.evaluate(async () => !(await (await import('/src/db.js')).list('entries', { prune: false })).some(entry => entry.type === 'person-note') && (await (await import('/src/db.js')).list('people')).length === 1), 'Person-note deletion works offline and keeps the person');
+    await open('parking', '#parkingForm');
+    await app.locator('#parkingForm textarea').fill('Ebene 2 · offline');
+    await app.locator('#parkingForm button').click();
+    await app.waitForSelector('#parkingShow');
+    await app.reload();
+    await open('parking', '#parkingForm');
+    check(await app.locator('#parkingNote').textContent() === 'Ebene 2 · offline', 'Parking saves and restores offline with real worker and controlled device location');
+    await app.locator('#parkingShow').click();
+    check((await app.locator('#parkingPosition').textContent()).includes('50.000000'), 'Stored parking coordinates are available offline');
+    await app.locator('#parkingDelete').click();
+    await app.waitForSelector('#parkingForm textarea');
+    check(await app.evaluate(async () => !(await (await import('/src/db.js')).get('entries', 'parking-position'))), 'Parking deletion commits offline');
     check(requests.every(url => url.startsWith('http://127.0.0.1:8080/')), 'Offline helper flows request no external resources');
     check(errors.length === 0, `No offline browser errors: ${errors.join(', ')}`);
     return results;

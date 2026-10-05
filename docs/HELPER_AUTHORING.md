@@ -104,6 +104,8 @@ History-Einträge; Reload startet auf der Startseite. Es gibt keinen URL-Router.
 | Funktion / Wert | Zweck und Einsatz | Nicht verwenden für |
 | --- | --- | --- |
 | `await api.saveEntry(value)` | eigenen Datensatz schreiben; liefert ihn erst nach Commit mit ID zurück; vorhandene eigene ID aktualisiert ihn | fremde IDs, Einstellungen, vorweggenommene Erfolgsmeldung |
+| `await api.getPosition()` | aktuelle Position über die gemeinsame Geolocation-Abstraktion; ausschließlich nach bewusster Fachaktion (Parken) | automatische Helper-Ortung oder Hintergrundtracking |
+| `await api.deleteEntry(id)` | eigenen Entry nach Besitzerprüfung löschen; löst erst nach Commit auf | fremde Einträge oder globale Orte |
 | `await api.listEntries()` | eigene gespeicherte Entries ohne Löschungen lesen, danach fachlich sortieren/filtern | andere Helper, Zugriff auf `people`/`places`/`settings` |
 | `await api.recordUse()` | Zeitpunkt einer erfolgreichen Fachhandlung speichern | Öffnen, Tippen, ungültige Eingabe oder fehlgeschlagenes Speichern |
 | `await api.getGuidance()` | gespeicherte boolesche Hinweiseinstellung lesen | Navigation oder Fachzustand |
@@ -118,8 +120,9 @@ History-Einträge; Reload startet auf der Startseite. Es gibt keinen URL-Router.
 `root` und `signal` stehen neben `api` im Mount-Argument, nicht in `api`.
 `openSettings()`, `goBack()` und `goHome()` stoßen geschützte Shell-Navigation an;
 sie liefern kein Promise, auf dessen Abschluss ein Helper warten könnte.
-Es gibt keine Mount-API für aktuelle Position, Context-Abfragen, Export oder
-Einzellöschung. Browser-DOM-APIs innerhalb des eigenen Roots und reine gemeinsame
+Es gibt keine Mount-API für Context-Abfragen oder Export.
+`getPosition()` und `deleteEntry()` ergänzen die API für den konkreten Parken-Kernnutzen:
+eine ausdrücklich angeforderte aktuelle Position und das Entfernen des aktiven Zustands. Browser-DOM-APIs innerhalb des eigenen Roots und reine gemeinsame
 Utilities wie `createNavigation()` sind verwendbar; DB-/Shell-Interna nicht umgehen.
 
 ## `recordUse()` bedeutet fachlichen Erfolg
@@ -171,7 +174,12 @@ Intervall vor Tageszeit vor gespeicherter Nutzung. Ein Intervall beginnt erst na
 60/15 wird ab Minute 45 fällig und bleibt es bei Verspätung. Das „±“ im Einstellungslabel bezeichnet
 keine symmetrische Zeitspanne. Vor Fälligkeit kann „zuletzt verwendet“ den Helper
 weiterhin unter „Jetzt“ zeigen. Die Anzeige wird beim Rendern des Dashboards
-ausgewertet; der Context plant keine Timer, Benachrichtigungen oder Hintergrundprüfung.
+ausgewertet. Bei sichtbarer Startseite und tatsächlich vorhandenen Ortsverknüpfungen
+aktualisiert ein gemeinsamer Geolocation-Observer die Ortsgründe. Navigation und
+Wechsel in den Hintergrund stoppen ihn; Rückkehr fragt eine frische Position ab.
+Ortungsfehler entfernen Ortsgründe. Kein Polling, keine Benachrichtigungen oder
+Hintergrundprüfung. Der gewählte Radius gilt ohne Genauigkeitsaufschlag für die
+gemeldete Position; Kategorien ändern das Matching nicht.
 Ohne Standortfreigabe bleiben andere Gründe und „Alle Helfer“ nutzbar.
 Das ist unabhängig von den bestehenden Vordergrundprüfungen für PWA-Updates.
 
@@ -227,8 +235,8 @@ Rabatt ersetzt unter seiner eigenen festen ID eine Historie mit höchstens fünf
 Berechnungen. Kein zeitbasiertes Retention-System dafür nötig. Ein solcher Entry
 wird atomar ersetzt; Lesen und anschließendes Ersetzen sind **keine gemeinsame
 Transaktion**. Gleichzeitige Aktualisierungen derselben ID in mehreren Tabs können
-einander überschreiben. Die Mount-API bietet derzeit weder einzelne Löschung noch
-atomare Lese-Schreib-Operationen. Nicht direkt an der Shell vorbei speichern;
+einander überschreiben. Die Mount-API bietet eigene Einzellöschung, aber keine
+atomaren Lese-Schreib-Operationen. Nicht direkt an der Shell vorbei speichern;
 eine generische Erweiterung erst bei einem konkreten fachlichen Bedarf prüfen.
 
 `retention: { defaultWindow: 'always' }` aktiviert die gemeinsamen Optionen `7d`,
