@@ -130,7 +130,9 @@ Der Helper selbst fragt keinen Standort ab; Ortung ist im Test kontrolliert simu
 `helpers-offline-check.js` prüft den tatsächlichen Modul-Service-Worker und sämtliche
 registrierten Module/Assets in einem frischen Kontext. Nach Abschalten des Netzwerks:
 Rabatt berechnen, Trinken dokumentieren und beide nach Reload wiederherstellen;
-Schmerz speichern und wiederherstellen. Fremde Caches bleiben erhalten.
+Schmerz speichern und wiederherstellen; Parken und „Warte auf“ speichern und offline
+wieder öffnen. Ein fälliger „Warte auf“-Eintrag bleibt auch nach Öffnen und Zurück aktiv.
+Fremde Caches bleiben erhalten.
 Kein Worker-Mock in diesem Gate.
 
 ## Trinken und Intervallgrenzen
@@ -147,6 +149,17 @@ Metadatenfehler ohne Doppeleintrag, Mehrfachklick, Retention, Ausblenden,
 320 CSS px, 200 % Text und Reduced Motion. Eigene Standortabfragen/externe Requests
 werden ausgeschlossen. `TZ=Europe/Berlin node --test tests/drink.mjs` prüft die
 Tagesgrenzen auch mit Berliner Sommerzeit in Node.
+
+## Warte auf
+
+`warte-auf.mjs` prüft das minimale Entry-Schema, lokale date-only Wiedervorlage,
+Sortierung, explizites Erledigen/Weiterwarten, Importvalidierung und Speicherung vor
+`recordUse()`. `warte-auf-browser-check.js` prüft den echten Helper mit IndexedDB:
+eine erreichte Wiedervorlage bleibt nach Öffnen und Zurück sichtbar, bis sie ausdrücklich
+erledigt oder verschoben wird. Der Helper zeigt fällige Einträge nur bei Nutzung von
+0815; er erzeugt keine Push- oder System-Notifications. Den echten Offline-Flow deckt
+`helpers-offline-check.js` ab. „Jetzt“ kann derzeit keine einzelnen Helper-Entries
+anzeigen; ein Plattformmechanismus dafür ist bewusst nicht Teil dieses Helpers.
 
 Die relevanten Browserdateien sind über das externe Browsertool zusätzlich zu
 `npm test` auszuführen; die Abschnitte unten beschreiben weitere Core-/Release-Gates.

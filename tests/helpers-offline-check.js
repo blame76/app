@@ -172,6 +172,28 @@ async (page) => {
     await app.locator('#parkingDelete').click();
     await app.waitForSelector('#parkingForm textarea');
     check(await app.evaluate(async () => !(await (await import('/src/db.js')).get('entries', 'parking-position'))), 'Parking deletion commits offline');
+    await app.locator('#backButton').click();
+    await open('warte-auf', '#warteAufCreateForm');
+    const today = await app.evaluate(() => {
+      const date = new Date();
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    });
+    await app.locator('#warteAufCreateForm [name="text"]').fill('Offline-Rückmeldung');
+    await app.locator('#warteAufCreateForm [name="waitingForText"]').fill('Versicherung');
+    await app.locator('#warteAufCreateForm [name="expectedDate"]').fill(today);
+    await app.locator('#warteAufCreateForm button[type="submit"]').click();
+    await app.waitForSelector('.warte-auf-group h3');
+    check(await app.locator('.warte-auf-group h3').first().textContent() === 'Wieder im Blick', 'A due waiting entry is relevant offline on its selected date');
+    await app.reload();
+    await open('warte-auf', '#warteAufCreateForm');
+    const waiting = await app.evaluate(async () => (await (await import('/src/db.js')).list('entries')).find(entry => entry.helperId === 'warte-auf'));
+    check(waiting?.status === 'waiting' && waiting.expectedDate === today && await app.locator('.warte-auf-group h3').first().textContent() === 'Wieder im Blick', 'Offline reload restores a due entry without acknowledging it');
+    await app.locator('.warte-auf-item').filter({ hasText: 'Offline-Rückmeldung' }).click();
+    await app.locator('#backButton').click();
+    const afterOpen = await app.evaluate(async id => (await (await import('/src/db.js')).get('entries', id)), waiting.id);
+    check(afterOpen?.status === 'waiting'
+      && await app.locator('.warte-auf-item').filter({ hasText: 'Offline-Rückmeldung' }).count() === 1,
+      'Opening and returning leaves the due state active offline');
     check(requests.every(url => url.startsWith('http://127.0.0.1:8080/')), 'Offline helper flows request no external resources');
     check(errors.length === 0, `No offline browser errors: ${errors.join(', ')}`);
     return results;
