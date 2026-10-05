@@ -1,8 +1,8 @@
 import { HELPERS } from './helpers/registry.js';
 import { validateRegistry, helperDefaults } from './helpers/contract.js';
 import { list, get, put, remove, clearAll, exportAll, importAll, makeId, pruneEntries } from './db.js';
-import { getPosition, matchingPlaces, timeBucket, timeBucketLabel } from './context.js';
-import { TIME_BUCKETS, validateRule } from './schema.js';
+import { getPosition, watchPosition, matchingPlaces, timeBucket, timeBucketLabel } from './context.js';
+import { TIME_BUCKETS, PLACE_CATEGORIES, validateRule } from './schema.js';
 import { RETENTION_WINDOWS } from './retention.js';
 import { renderNotes, renderPeople, renderPerson } from './read-views.js';
 import { createNavigation } from './navigation.js';
@@ -11,6 +11,7 @@ import { renderNote, renderNoteEdit, renderNoteContext, renderNoteContextPicker 
 import { noteTextClass } from './note-presentation.js';
 import { startPwaUpdates } from './pwa-update.js';
 import { initializeTheme, saveTheme } from './theme.js';
+import { PLACE_RADII, LOCATION_EXPLANATION, RADIUS_EXPLANATION, groupPlaces, radiusLabel } from './places.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -21,11 +22,21 @@ let helperCleanup = null;
 let helperController = null;
 let viewVersion = 0;
 let dashboardVersion = 0;
+let stopLocationWatch = null;
+
 let composerVersion = 0;
 let installPrompt = null;
 let composerReturnFocus = null;
 const navigation = createNavigation({ title: 'Startseite', open: goHome });
 let helperBackAction = null;
+
+function pauseLocationContext() {
+  stopLocationWatch?.();
+  stopLocationWatch = null;
+  dashboardVersion++;
+}
+
+function dashboardVisible() { return !document.hidden && !$('#view-dashboard').hidden; }
 
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
@@ -158,6 +169,7 @@ function updateBackLabel() {
 }
 
 function showView(name, title, open, options = {}, section = name) {
+  pauseLocationContext();
   $('#noteDeleteDialog').close();
   navigation.enter({ title: title || 'Startseite', open }, { ...options, returnFocus: returnFocusTarget() });
   viewVersion++;
@@ -166,6 +178,7 @@ function showView(name, title, open, options = {}, section = name) {
   $(`#view-${name}`).hidden = false;
 
   const dashboard = name === 'dashboard';
+  if (dashboard) $('#nowRows').replaceChildren();
   $('#backButton').hidden = dashboard;
   updateBackLabel();
   $('#brandButton').hidden = !dashboard;
@@ -239,6 +252,13 @@ async function openHelper(id, options = {}) {
       signal: controller.signal,
       api: {
         recordUse: requireCurrent(() => recordUse(id)),
+        getPosition: requireCurrent(() => getPosition({ maximumAge: 0 })),
+        deleteEntry: requireCurrent(async entryId => {
+          const entry = await get('entries', entryId);
+          if (!current()) throw new DOMException('Helfer geschlossen.', 'AbortError');
+          if (entry && entry.helperId !== id) throw new Error('Fremder Eintrag.');
+          if (entry) await remove('entries', entryId);
+        }),
         saveEntry: requireCurrent(async value => {
           const entry = { ...value, id: value.id || makeId(id), helperId: id, createdAt: value.createdAt ?? Date.now() };
           await put('entries', entry);
@@ -323,13 +343,13 @@ function tile(helper, reason) {
   return `<button class="helper-tile" type="button" data-helper="${escapeHtml(helper.id)}"><strong>${escapeHtml(helper.label)}</strong>${reason ? `<span>${escapeHtml(reason)}</span>` : ''}</button>`;
 }
 
-async function dashboardCandidates(visible) {
+async function dashboardCandidates(visible, position) {
   const [places, entries, people] = await Promise.all([list('places'), list('entries', { prune: false }), list('people')]);
-  const hasPlaceRules = visible.some(({ rule }) => rule.placeIds.length)
+  const hasPlaceRules = visible.some(({ rule }) => rule.placeIds.some(id => places.some(place => place.id === id)))
     || entries.some(entry => isNote(entry) && noteContext(entry).placeIds.some(id => places.some(place => place.id === id)));
   let activePlaces = [];
-  if (hasPlaceRules) {
-    try { activePlaces = matchingPlaces(await getPosition(), places); } catch { activePlaces = []; }
+  if (hasPlaceRules && dashboardVisible()) {
+    try { activePlaces = matchingPlaces(position === undefined ? await getPosition() : position, places); } catch { activePlaces = []; }
   }
   const placeIds = new Set(activePlaces.map(place => place.id));
   const bucket = timeBucket();
@@ -346,7 +366,7 @@ async function dashboardCandidates(visible) {
     if (reason) items.push({ helper, reason, rank, usedAt });
   }
   items.push(...relevantNotes(entries, activePlaces, bucket).map(item => ({ ...item, person: people.find(person => person.id === item.note.personId) })));
-  return items.sort((a, b) => b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.helper.id).localeCompare(b.note?.id || b.helper.id));
+  return { hasPlaceRules, items: items.sort((a, b) => b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.helper.id).localeCompare(b.note?.id || b.helper.id)) };
 }
 
 function noteTile(note, reason, person) {
@@ -354,14 +374,28 @@ function noteTile(note, reason, person) {
   return `<button class="note-tile" type="button" data-note="${escapeHtml(note.id)}"><span class="note-tile-heading"><span class="note-eyebrow">${label}</span>${note.type === 'person-note' ? `<span class="note-person-name">${escapeHtml(person?.name || 'Person nicht mehr gespeichert')}</span>` : ''}</span><strong class="${noteTextClass(note.text)}">${escapeHtml(note.text)}</strong><span class="note-tile-context">${escapeHtml(reason)}</span></button>`;
 }
 
-async function renderDashboard() {
+async function renderDashboard({ position, contextOnly = false } = {}) {
   const version = ++dashboardVersion;
   const visible = await visibleHelpers();
+  if (version !== dashboardVersion) return;
   const favorites = visible.filter(({ rule }) => rule.favorite).map(({ helper }) => helper).sort((a, b) => a.label.localeCompare(b.label, 'de'));
-  const candidates = await dashboardCandidates(visible);
+  const { items: candidates, hasPlaceRules } = await dashboardCandidates(visible, position);
   if (version !== dashboardVersion) return;
 
-  $('#nowRows').innerHTML = candidates.slice(0, 9).map(({ helper, note, reason, person }) => note ? noteTile(note, reason, person) : tile(helper, reason)).join('');
+  const rows = $('#nowRows');
+  const html = candidates.slice(0, 9).map(({ helper, note, reason, person }) => note ? noteTile(note, reason, person) : tile(helper, reason)).join('');
+  if (rows.innerHTML !== html) {
+    const focused = rows.contains(document.activeElement) ? returnFocusTarget() : null;
+    rows.innerHTML = html;
+    if (focused) restoreFocus(focused);
+  }
+  if (!hasPlaceRules || !dashboardVisible()) { stopLocationWatch?.(); stopLocationWatch = null; }
+  else if (!stopLocationWatch) {
+    stopLocationWatch = watchPosition(next => {
+      if (dashboardVisible()) renderDashboard({ position: next, contextOnly: true }).catch(reportError);
+    });
+  }
+  if (contextOnly) return;
   $('#favoriteTiles').innerHTML = favorites.length ? favorites.map(helper => tile(helper, '')).join('') : '';
 
   const categories = [...new Set(visible.map(({ helper }) => helper.category))].sort((a, b) => a.localeCompare(b, 'de'));
@@ -385,6 +419,15 @@ async function renderAllHelpers(visibleSnapshot = null) {
     : `<p class="muted empty-state">${visible.length ? 'Keine Helfer gefunden.' : 'Keine sichtbaren Helfer.'}</p>`;
 }
 
+function radiusOptions(radius = 250) {
+  const options = PLACE_RADII.includes(radius) ? PLACE_RADII : [...PLACE_RADII, radius];
+  return options.map(value => `<option value="${escapeHtml(value)}" ${value === radius ? 'selected' : ''}>${escapeHtml(radiusLabel(value))}</option>`).join('');
+}
+
+function categoryOptions(category) {
+  return '<option value="">Ohne Kategorie</option>' + PLACE_CATEGORIES.map(value => `<option ${value === category ? 'selected' : ''}>${value}</option>`).join('');
+}
+
 async function renderSettings() {
   syncThemeChoice();
   const version = viewVersion;
@@ -394,7 +437,21 @@ async function renderSettings() {
 
   const places = await list('places');
   if (version !== viewVersion) return;
-  $('#placesList').innerHTML = places.length ? places.map(place => `<div class="list-item"><span><strong>${escapeHtml(place.name)}</strong><small>Radius ${escapeHtml(place.radius)} m</small></span><button class="quiet danger-text" type="button" data-remove-place="${escapeHtml(place.id)}">Entfernen</button></div>`).join('') : '<p class="muted">Noch kein Ort gespeichert.</p>';
+  $('#placesList').innerHTML = places.length ? groupPlaces(places).map(group => `<section><h3>${escapeHtml(group.label)}</h3>${group.places.map(place => `<form class="stack place-settings" data-place-form="${escapeHtml(place.id)}"><strong>${escapeHtml(place.name)}</strong><div class="form-grid two"><label>Radius<select name="radius" aria-label="Radius für ${escapeHtml(place.name)}">${radiusOptions(place.radius)}</select></label><label>Kategorie<select name="category" aria-label="Kategorie für ${escapeHtml(place.name)}">${categoryOptions(place.category)}</select></label></div><div class="actions"><button type="submit" class="secondary">Änderungen speichern</button><button class="quiet danger-text" type="button" data-remove-place="${escapeHtml(place.id)}">Entfernen</button></div><p role="status" class="muted"></p></form>`).join('')}</section>`).join('') : '<p class="muted">Noch kein Ort gespeichert.</p>';
+  for (const form of $$('#placesList form')) bindSubmit(form, async data => {
+    const place = await get('places', form.dataset.placeForm);
+    if (!place) throw new Error('Ort nicht mehr gespeichert.');
+    const next = { ...place, radius: Number(data.get('radius')) };
+    if (data.get('category')) next.category = data.get('category'); else delete next.category;
+    await put('places', next);
+    if (version !== viewVersion) return;
+    await renderSettings();
+    if (version !== viewVersion) return;
+    const savedForm = $$('#placesList form').find(item => item.dataset.placeForm === place.id);
+    if (!savedForm) return;
+    savedForm.querySelector('[role="status"]').textContent = 'Ort gespeichert.';
+    savedForm.querySelector('button').focus();
+  });
 
   const visibilityHtml = helpers.length ? (await Promise.all(helpers.map(async helper => {
     const rule = await getRule(helper);
@@ -674,7 +731,7 @@ async function openPerson(id, name, options = {}) {
 const staticViews = {
   privacy: {
     title: 'Datenschutz',
-    html: `<p>Erfasste Inhalte werden lokal in diesem Browser gespeichert und von der App nicht an einen Server übertragen. Es gibt kein Benutzerkonto und keine Nutzungsanalyse.</p><p>Nach Browserfreigabe wird der Standort auf der Startseite mit Ortsverknüpfungen und beim Öffnen von „Diesen Ort merken“ abgefragt. Die App wertet ihn lokal aus und fragt ihn nicht fortlaufend im Hintergrund ab.</p><p><strong>Vor Veröffentlichung:</strong> Angaben zu Server-Logs des tatsächlichen Hosters ergänzen.</p>`
+    html: `<p>Erfasste Inhalte werden lokal in diesem Browser gespeichert und von der App nicht an einen Server übertragen. Es gibt kein Benutzerkonto und keine Nutzungsanalyse.</p><p>Nach Browserfreigabe wird der Standort auf der Startseite mit Ortsverknüpfungen und beim Öffnen von „Diesen Ort merken“ abgefragt. Bei sichtbarer Startseite mit Ortsverknüpfungen aktualisiert die App die erkannten Orte bei Standortänderungen. Beim Verlassen der Startseite oder Wechsel in den Hintergrund endet diese Beobachtung. Beim Parkplatz merken wird der Standort nur nach deiner Aktion abgefragt und lokal gespeichert.</p><p>${LOCATION_EXPLANATION}</p><p><strong>Vor Veröffentlichung:</strong> Angaben zu Server-Logs des tatsächlichen Hosters ergänzen.</p>`
   },
   imprint: {
     title: 'Impressum',
@@ -733,7 +790,7 @@ async function openComposer(type, trigger = null) {
 
   if (type === 'place') {
     title.textContent = 'Diesen Ort merken';
-    body.innerHTML = `<form id="placeForm" class="composer-form"><label>Name<input name="name" placeholder="z. B. Einkaufszentrum" required></label><button type="submit">Ort speichern</button><p id="placeStatus" class="muted" aria-live="polite"></p></form>`;
+    body.innerHTML = `<form id="placeForm" class="composer-form"><label>Name<input name="name" placeholder="z. B. Einkaufszentrum" required></label><label>Kategorie<select name="category">${categoryOptions()}</select></label><label>Radius<select name="radius" aria-describedby="placeRadiusHelp">${radiusOptions()}</select></label><p id="placeRadiusHelp" class="muted">${RADIUS_EXPLANATION}</p><button type="submit">Ort speichern</button><p id="placeStatus" class="muted" aria-live="polite"></p></form>`;
     let position;
     const form = $('#placeForm');
     const status = $('#placeStatus');
@@ -743,7 +800,7 @@ async function openComposer(type, trigger = null) {
       if (!position || !current()) { toast('Standort noch nicht verfügbar.'); return; }
       const name = data.get('name').trim();
       if (!name) return;
-      await put('places', { id: makeId('place'), name, lat: position.lat, lon: position.lon, radius: 250, createdAt: Date.now() });
+      await put('places', { id: makeId('place'), name, lat: position.lat, lon: position.lon, radius: Number(data.get('radius')), ...(data.get('category') ? { category: data.get('category') } : {}), createdAt: Date.now() });
       if (current()) closeComposer();
       toast('Ort gespeichert.');
       if (!$('#view-settings').hidden) await renderSettings();
@@ -753,7 +810,7 @@ async function openComposer(type, trigger = null) {
     try {
       position = await getPosition({ maximumAge: 0 });
       if (!current()) return;
-      status.textContent = 'Standort bereit.';
+      status.textContent = `Standort bereit. Gemeldete Genauigkeit: etwa ${Math.round(position.accuracy)} Meter.`;
       saveButton.disabled = false;
     } catch {
       if (current()) status.textContent = 'Standort nicht verfügbar. Bitte die Standortfreigabe im Browser prüfen und erneut öffnen.';
@@ -822,6 +879,15 @@ async function initStorageStatus() {
 }
 
 function bindEvents() {
+  $('#locationExplanation').textContent = LOCATION_EXPLANATION;
+  $('#radiusExplanation').textContent = RADIUS_EXPLANATION;
+  document.addEventListener('visibilitychange', () => {
+    pauseLocationContext();
+    if (dashboardVisible()) refreshNow();
+    else $('#nowRows').replaceChildren();
+  });
+  window.addEventListener('pagehide', pauseLocationContext);
+  window.addEventListener('pageshow', event => { if (event.persisted && dashboardVisible()) refreshNow(); });
   $('#themeChoice').addEventListener('change', async event => {
     const value = event.target.value;
     const choices = $('#themeChoice');

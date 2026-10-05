@@ -44,6 +44,8 @@ function validateJson(value) {
   }
 }
 
+export const PLACE_CATEGORIES = ['Zuhause', 'Arbeit', 'Einkaufen', 'Mobilität', 'Freizeit', 'Sonstiges'];
+
 export function validateRecord(store, item) {
   requireValue(STORES.includes(store) && object(item) && text(item.id), `Ungültiger Datensatz in ${store}.`);
   validateJson(item);
@@ -67,6 +69,7 @@ export function validateRecord(store, item) {
     requireValue(text(item.name) && timestamp(item.createdAt), `Ungültiger Name/Zeitstempel in ${store}.`);
   }
   if (store === 'places') {
+    requireValue(item.category === undefined || PLACE_CATEGORIES.includes(item.category), 'Ungültige Ortskategorie.');
     requireValue(Number.isFinite(item.lat) && Math.abs(item.lat) <= 90 && Number.isFinite(item.lon) && Math.abs(item.lon) <= 180, 'Ungültige Koordinaten.');
     requireValue(Number.isFinite(item.radius) && item.radius > 0, 'Ungültiger Ortsradius.');
   }
