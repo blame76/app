@@ -1,7 +1,7 @@
 import { HELPERS } from './src/helpers/registry.js';
 
 // Bump on every release that changes the shell, registry, helpers or assets.
-const CACHE = '0815-v0.7.0-7f5320cb7a2659ce';
+const CACHE = '0815-v0.7.1-0b4bf2d9f7456a41';
 const CACHE_PREFIX = '0815-';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './assets/styles.css', './assets/notes.css', './assets/signature.css',
