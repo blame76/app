@@ -1,0 +1,16 @@
+.warte-auf { overflow-wrap: anywhere; }
+.warte-auf-group { margin-top: var(--space-section); }
+.warte-auf-group h3 { margin: 0 0 var(--space-lg); font-size: 1rem; font-weight: 500; }
+.warte-auf-group ul { display: grid; gap: .5rem; list-style: none; margin: 0; padding: 0; }
+.warte-auf-item { width: 100%; display: grid; gap: .25rem; text-align: left; }
+.warte-auf-completed { margin-top: var(--space-section); border-top: 1px solid var(--border-subtle); padding-top: var(--space-lg); }
+.warte-auf-completed summary { min-height: 48px; cursor: pointer; }
+.warte-auf-metadata { display: grid; gap: var(--space-lg); margin: 0 0 var(--space-section); }
+.warte-auf-metadata div { display: grid; gap: .25rem; }
+.warte-auf-metadata dt { color: var(--text-muted); font-size: .875rem; }
+.warte-auf-metadata dd { margin: 0; }
+.warte-auf-detail-actions { margin-top: var(--space-section); }
+.warte-auf-back { margin: 0 0 var(--space-lg); }
+.warte-auf-form { margin-top: var(--space-section); }
+.warte-auf-form label { overflow-wrap: anywhere; }
+.warte-auf-form input { min-width: 0; max-width: 100%; }
