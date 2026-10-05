@@ -31,8 +31,7 @@
   font-size: 16px;
   line-height: 1.5;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
+:root[data-theme="dark"] {
     color-scheme: dark;
     --surface-page: #211f1e;
     --surface-paper: #292625;
@@ -49,7 +48,6 @@
     --color-danger-hover: #cd9a9d;
     --shadow-overlay: 0 8px 32px rgba(0, 0, 0, .24);
   }
-}
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { background: var(--surface-page); color: var(--text-primary); }
@@ -117,6 +115,7 @@ code { overflow-wrap: anywhere; font-size: .9em; }
 /* The header stays quiet; the open helper owns the page title. */
 .app-header { max-width: var(--content-width); margin: 0 auto; min-height: 112px; padding: 1.5rem var(--gutter); display: grid; grid-template-columns: 48px minmax(0,1fr) 48px; align-items: center; gap: 1rem; position: relative; z-index: 30; }
 .brand-button { grid-column: 1 / span 2; justify-self: start; background: transparent; color: var(--text-primary); border: 0; padding: .25rem 0; min-height: 48px; font-family: var(--display-font); font-size: 2rem; font-weight: 400; letter-spacing: -.05em; }
+.signature-heading-script { display: none; }
 .focus-title { margin: 0; font-family: var(--display-font); font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 400; line-height: 1.15; letter-spacing: -.035em; overflow-wrap: anywhere; min-width: 0; }
 .icon-button { width: 48px; min-width: 48px; padding: .25rem; font-size: 1.4rem; }
 .header-menu-wrap { position: relative; justify-self: end; }
@@ -251,3 +250,7 @@ main { max-width: var(--content-width); margin: 0 auto; padding: 0 var(--gutter)
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
   button:active, .button-like:active, .pain-choice:active { transform: none !important; }
 }
+
+/* Only the added settings controls; existing palettes and components are preserved. */
+#themeStatus:empty { display: none; }
+.pain-signature-value { display: none; }

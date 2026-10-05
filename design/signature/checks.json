@@ -1,0 +1,855 @@
+{
+  "pass1": {
+    "pass": "pass-1",
+    "screenshots": 24,
+    "checks": [
+      {
+        "label": "a/dashboard/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/pain/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/notes/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/detail/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/dashboard/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/pain/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/notes/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/detail/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/dashboard/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/pain/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/notes/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/detail/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/dashboard/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/pain/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/notes/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/detail/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/dashboard: 200% text at 320px",
+        "passed": false
+      },
+      {
+        "label": "a/pain: 200% text at 320px",
+        "passed": false
+      },
+      {
+        "label": "a/notes: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "a/detail: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "a: keyboard radios update value",
+        "passed": true
+      },
+      {
+        "label": "a: clear keyboard focus",
+        "passed": true
+      },
+      {
+        "label": "a: radio touch targets",
+        "passed": true
+      },
+      {
+        "label": "a: reduced motion",
+        "passed": true
+      },
+      {
+        "label": "A: editorial gesture at least 6rem",
+        "passed": true
+      },
+      {
+        "label": "b/dashboard/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/pain/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/notes/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/detail/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/dashboard/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/pain/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/notes/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/detail/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/dashboard/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/pain/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/notes/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/detail/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/dashboard/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/pain/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/notes/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/detail/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/dashboard: 200% text at 320px",
+        "passed": false
+      },
+      {
+        "label": "b/pain: 200% text at 320px",
+        "passed": false
+      },
+      {
+        "label": "b/notes: 200% text at 320px",
+        "passed": false
+      },
+      {
+        "label": "b/detail: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "b: keyboard radios update value",
+        "passed": true
+      },
+      {
+        "label": "b: clear keyboard focus",
+        "passed": true
+      },
+      {
+        "label": "b: radio touch targets",
+        "passed": true
+      },
+      {
+        "label": "b: reduced motion",
+        "passed": true
+      },
+      {
+        "label": "c/dashboard/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/pain/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/notes/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/detail/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/dashboard/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/pain/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/notes/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/detail/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/dashboard/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/pain/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/notes/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/detail/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/dashboard/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/pain/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/notes/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/detail/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/dashboard: 200% text at 320px",
+        "passed": false
+      },
+      {
+        "label": "c/pain: 200% text at 320px",
+        "passed": false
+      },
+      {
+        "label": "c/notes: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "c/detail: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "c: keyboard radios update value",
+        "passed": true
+      },
+      {
+        "label": "c: clear keyboard focus",
+        "passed": true
+      },
+      {
+        "label": "c: radio touch targets",
+        "passed": true
+      },
+      {
+        "label": "c: reduced motion",
+        "passed": true
+      },
+      {
+        "label": "No page errors: ",
+        "passed": true
+      },
+      {
+        "label": "Only local resources",
+        "passed": true
+      },
+      {
+        "label": "Studies do not register a service worker",
+        "passed": true
+      }
+    ]
+  },
+  "pass2": {
+    "pass": "pass-2",
+    "screenshots": 24,
+    "checks": [
+      {
+        "label": "a/dashboard/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/pain/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/notes/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/detail/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/dashboard/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/pain/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/notes/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/detail/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "a/dashboard/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/pain/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/notes/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/detail/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/dashboard/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/pain/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/notes/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/detail/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "a/dashboard: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "a/pain: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "a/notes: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "a/detail: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "a: keyboard radios update value",
+        "passed": true
+      },
+      {
+        "label": "a: clear keyboard focus",
+        "passed": true
+      },
+      {
+        "label": "a: radio touch targets",
+        "passed": true
+      },
+      {
+        "label": "a: reduced motion",
+        "passed": true
+      },
+      {
+        "label": "A: editorial gesture at least 6rem",
+        "passed": true
+      },
+      {
+        "label": "b/dashboard/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/pain/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/notes/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/detail/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/dashboard/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/pain/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/notes/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/detail/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "b/dashboard/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/pain/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/notes/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/detail/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/dashboard/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/pain/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/notes/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/detail/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "b/dashboard: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "b/pain: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "b/notes: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "b/detail: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "b: keyboard radios update value",
+        "passed": true
+      },
+      {
+        "label": "b: clear keyboard focus",
+        "passed": true
+      },
+      {
+        "label": "b: radio touch targets",
+        "passed": true
+      },
+      {
+        "label": "b: reduced motion",
+        "passed": true
+      },
+      {
+        "label": "c/dashboard/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/pain/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/notes/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/detail/390: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/dashboard/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/pain/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/notes/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/detail/1280: no horizontal overflow",
+        "passed": true
+      },
+      {
+        "label": "c/dashboard/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/pain/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/notes/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/detail/320: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/dashboard/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/pain/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/notes/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/detail/768: reflow",
+        "passed": true
+      },
+      {
+        "label": "c/dashboard: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "c/pain: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "c/notes: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "c/detail: 200% text at 320px",
+        "passed": true
+      },
+      {
+        "label": "c: keyboard radios update value",
+        "passed": true
+      },
+      {
+        "label": "c: clear keyboard focus",
+        "passed": true
+      },
+      {
+        "label": "c: radio touch targets",
+        "passed": true
+      },
+      {
+        "label": "c: reduced motion",
+        "passed": true
+      },
+      {
+        "label": "No page errors: ",
+        "passed": true
+      },
+      {
+        "label": "Only local resources",
+        "passed": true
+      },
+      {
+        "label": "Studies do not register a service worker",
+        "passed": true
+      }
+    ]
+  },
+  "contrast": [
+    {
+      "d": "a",
+      "screen": "dashboard",
+      "issues": []
+    },
+    {
+      "d": "a",
+      "screen": "pain",
+      "issues": []
+    },
+    {
+      "d": "a",
+      "screen": "notes",
+      "issues": []
+    },
+    {
+      "d": "a",
+      "screen": "detail",
+      "issues": []
+    },
+    {
+      "d": "b",
+      "screen": "dashboard",
+      "issues": []
+    },
+    {
+      "d": "b",
+      "screen": "pain",
+      "issues": []
+    },
+    {
+      "d": "b",
+      "screen": "notes",
+      "issues": []
+    },
+    {
+      "d": "b",
+      "screen": "detail",
+      "issues": []
+    },
+    {
+      "d": "c",
+      "screen": "dashboard",
+      "issues": []
+    },
+    {
+      "d": "c",
+      "screen": "pain",
+      "issues": []
+    },
+    {
+      "d": "c",
+      "screen": "notes",
+      "issues": []
+    },
+    {
+      "d": "c",
+      "screen": "detail",
+      "issues": []
+    }
+  ],
+  "pwa-test": [
+    "Deploy one",
+    "First installation claims the page without a reload",
+    "Standalone window hides installation action",
+    "Deploy two",
+    "Foreground update automatically reloads the dashboard once",
+    "Update preserves IndexedDB content",
+    "Deploy three",
+    "Worker activation does not discard an unsaved edit",
+    "Update does not write the unsaved draft to storage",
+    "Deferred update announces itself through the existing status",
+    "Existing save commits the complete edit before reload",
+    "Reading view remains open until the user returns home",
+    "Returning home applies the deferred release once",
+    "Latest worker removes old app caches and preserves foreign caches",
+    "Latest shell and local content survive a real offline reload",
+    "Offline update checks do not reload or break the shell",
+    "No unhandled browser errors: "
+  ],
+  "browser0": [
+    {
+      "name": "browser-check.js",
+      "passed": true,
+      "checks": 25
+    },
+    {
+      "name": "design-check.js",
+      "passed": true,
+      "checks": 22
+    },
+    {
+      "name": "discount-browser-check.js",
+      "passed": true,
+      "checks": 34
+    },
+    {
+      "name": "drink-browser-check.js",
+      "passed": true,
+      "checks": 41
+    }
+  ],
+  "browser1": [
+    {
+      "name": "editorial-browser-check.js",
+      "passed": true,
+      "checks": 154
+    },
+    {
+      "name": "helpers-offline-check.js",
+      "passed": true,
+      "checks": 19
+    },
+    {
+      "name": "language-browser-check.js",
+      "passed": true,
+      "checks": 36
+    },
+    {
+      "name": "navigation-browser-check.js",
+      "passed": true,
+      "checks": 26
+    }
+  ],
+  "browser2": [
+    {
+      "name": "notes-browser-check.js",
+      "passed": true,
+      "checks": 120
+    },
+    {
+      "name": "notes-craft-browser-check.js",
+      "passed": true,
+      "checks": 106
+    },
+    {
+      "name": "pain-browser-check.js",
+      "passed": true,
+      "checks": 88
+    },
+    {
+      "name": "person-notes-browser-check.js",
+      "passed": true,
+      "checks": 90
+    }
+  ],
+  "browser3": [
+    {
+      "name": "personal-object-check.js",
+      "passed": true,
+      "checks": 30
+    },
+    {
+      "name": "read-browser-check.js",
+      "passed": true,
+      "checks": 40
+    }
+  ],
+  "contrastFinal": [
+    {
+      "direction": "a",
+      "screen": "dashboard",
+      "minimumRatio": 5.44511492673406,
+      "passed": true
+    },
+    {
+      "direction": "a",
+      "screen": "pain",
+      "minimumRatio": 5.44511492673406,
+      "passed": true
+    },
+    {
+      "direction": "a",
+      "screen": "notes",
+      "minimumRatio": 5.44511492673406,
+      "passed": true
+    },
+    {
+      "direction": "a",
+      "screen": "detail",
+      "minimumRatio": 5.44511492673406,
+      "passed": true
+    },
+    {
+      "direction": "b",
+      "screen": "dashboard",
+      "minimumRatio": 5.783857047930179,
+      "passed": true
+    },
+    {
+      "direction": "b",
+      "screen": "pain",
+      "minimumRatio": 4.9945918431342315,
+      "passed": true
+    },
+    {
+      "direction": "b",
+      "screen": "notes",
+      "minimumRatio": 5.783857047930179,
+      "passed": true
+    },
+    {
+      "direction": "b",
+      "screen": "detail",
+      "minimumRatio": 5.783857047930179,
+      "passed": true
+    },
+    {
+      "direction": "c",
+      "screen": "dashboard",
+      "minimumRatio": 6.316261401134432,
+      "passed": true
+    },
+    {
+      "direction": "c",
+      "screen": "pain",
+      "minimumRatio": 5.973101969901773,
+      "passed": true
+    },
+    {
+      "direction": "c",
+      "screen": "notes",
+      "minimumRatio": 5.973101969901773,
+      "passed": true
+    },
+    {
+      "direction": "c",
+      "screen": "detail",
+      "minimumRatio": 5.973101969901773,
+      "passed": true
+    }
+  ]
+}

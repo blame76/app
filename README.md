@@ -1,6 +1,6 @@
 # 0815 – Alltagshelfer
 
-v0.6.2 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
+v0.6.6 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
 **Notizen** und **Personen-Notizen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
@@ -202,6 +202,26 @@ nicht für Konfiguration. Bereinigung erfolgt bei App-Start, Eintragslesen, Expo
 Import und Regeländerung. Details stehen im Helper-Vertrag. Verkürzen kann Daten
 unwiderruflich löschen; Exportdateien außerhalb der App werden davon nicht verändert.
 
+## Design: Light / Dark / Signature
+
+Unter **Verknüpfungen & Orte → Design** lassen sich genau drei Modi auswählen:
+**Light**, **Dark** und **Signature**. Die Wahl bleibt im vorhandenen lokalen
+Settings-Store erhalten. Beim ersten Start ohne gespeicherte Wahl wird die bisherige
+Systemdarstellung einmal übernommen; danach gibt es keinen automatischen Moduswechsel.
+Light und Dark behalten Farben, Typografie, Abstände und Komponenten.
+
+Signature folgt jetzt der Bildreferenz als **Mono Editorial**: Anthrazit und
+Elfenbein, Cormorant Garamond für Inhalte und ein sparsamer Great-Vibes-Kapitelakzent.
+Notizen erhalten einen Serif-/Script-Auftakt, Tageskapitel, eine helle erste Notiz
+und dunkle weitere Leseflächen. Beide Schriften werden lokal mit Lizenzen und
+Offline-Cache ausgeliefert. Funktionen und Datenmodelle bleiben erhalten.
+
+[Umsetzung und Prüfung](docs/SIGNATURE_REFERENCE.md) ·
+[Wiederverwendbares Briefing](docs/SIGNATURE_BRIEF.md) ·
+[Studien, Kritik und Screenshots](design/signature-reference/README.md).
+Die früheren C- und A/v2-Entwürfe bleiben historische Archive unter
+`design/signature/` und `design/signature-v2/`. Studien werden nicht mit der PWA ausgeliefert.
+
 ## Releases und Offline
 
 Bei jeder Änderung an Shell, Registry, Helpern oder Assets:
@@ -219,9 +239,16 @@ Voraussetzung für die Registry-Tests in Node.
 Der Worker lädt Release-Assets mit `cache: 'reload'`, verwaltet nur `0815-`-Caches,
 speichert nur erfolgreiche nicht umgeleitete GET-Antworten ohne Query-Parameter
 und verwendet den HTML-Fallback ausschließlich für Navigationen. Ein neuer Worker
-wird direkt aktiviert; bereits offene Seiten übernehmen die neue Oberfläche beim
-nächsten Neuladen. Bei lokalem Entwickeln ohne Versionswechsel gegebenenfalls
-Worker/Cache in den Browser-Devtools löschen. Der Pages-Workflow erhöht keine Versionen.
+wird direkt aktiviert. Die App prüft beim Start, Wiederaufnehmen, Online-Wechsel und
+je sichtbarer Minute auf Updates. Ein Controller-Wechsel lädt die Startseite einmal
+neu. In Helpern, Editoren, offenen Composern oder während eines Speichervorgangs
+bleibt die Eingabe erhalten; das Neuladen folgt nach Rückkehr auf die Startseite.
+Die Erstinstallation erzeugt keinen Reload. Offline bleibt die zuletzt vollständig
+geladene Version nutzbar. Altversionen ohne diesen Listener erhalten ihn beim nächsten
+Neuladen/Neustart. Bei lokalem Entwickeln ohne Versionswechsel gegebenenfalls
+Worker/Cache in den Browser-Devtools löschen. Der Pages-Workflow erhöht keine Paketversionen. `bin/build-pages` ergänzt den
+Worker-Cache-Namen jedoch um einen reproduzierbaren Hash aller Runtime-Dateien,
+sodass geänderte Assets auch ohne manuellen Versionssprung einen neuen Worker erzeugen.
 
 ## Rechtliches
 

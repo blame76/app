@@ -1,5 +1,10 @@
 # 0815 – Editorial Glow Up
 
+Aktuell: **Signature · Mono Editorial · 0.6.6**, anhand der Bildreferenz des Nutzers.
+Die folgenden Grundregeln beschreiben Light/Dark. Die zusätzliche Signature-
+Gestaltung steht am Ende und in [`docs/SIGNATURE_REFERENCE.md`](docs/SIGNATURE_REFERENCE.md).
+Verbindliche Wiederholungsvorgaben: [`docs/SIGNATURE_BRIEF.md`](docs/SIGNATURE_BRIEF.md).
+
 `0.6.2` verfeinert ausschließlich die Darstellung der Notizen und Personen-Notizen.
 `assets/notes.css` enthält deren Komposition; `src/note-presentation.js` liefert nur
 Typografieklassen anhand der Textlänge. Funktionaler Stand bleibt `0.6.1`.
@@ -49,8 +54,11 @@ die Nähe zusammengehöriger Information und Pausen zwischen Tagen tragen die Ko
 
 ## Light / Dark
 
-Die Farbwelten folgen ausschließlich `prefers-color-scheme`. `color-scheme` stimmt auch
-native Formulare auf den Modus ab; passende Theme-Metas färben den Browserrahmen.
+Light und Dark sind explizite Modi (`data-theme="light"` / `data-theme="dark"`).
+Die ursprünglichen Farben und Komponenten bleiben erhalten. Beim ersten Start ohne
+gespeicherte Wahl wird die bisherige Systemdarstellung einmal übernommen und lokal
+gespeichert; spätere Systemänderungen wechseln den Modus nicht. `color-scheme` stimmt
+native Formulare auf den ausgewählten Modus ab; Theme-Metas folgen derselben Wahl.
 Das Manifest nutzt die Light-Grundfarbe als statischen Startwert.
 
 | Rolle | Light | Dark |
@@ -170,3 +178,34 @@ Datenmodelle, Helper Contract, Context Engine, Storage, Retention,
 Import/Export und Navigationslogik sind unverändert. Für die Veröffentlichung auf
 `main` werden App-Version und Service-Worker-Cache gemeinsam auf `0.5.8` erhöht.
 Die Worker-Logik bleibt unverändert; die Prüfung verwendet frische Browserkontexte.
+
+## Design Modes · Signature / Mono Editorial
+
+Genau Light / Dark / Signature, lokal im vorhandenen Settings-Store gespeichert.
+Die jüngste Bildreferenz präzisiert Signature und ersetzt die vormalige warme,
+sehr zurückhaltende A/v2-Richtung. Light/Dark behalten die oben beschriebenen Regeln;
+alle neuen visuellen Selektoren stehen unter `html[data-theme="signature"]`.
+
+**Farblich ruhig, typografisch ausdrucksstark:** Anthrazit `#171716`, Elfenbein
+`#eeece4`, gestufte Grauflächen und eine helle erste Notiz. Lokale Cormorant Garamond
+trägt Titel und Inhalte. Great Vibes erscheint nur als dekoratives „Journal“ unter
+„NOTIZEN“; Bedienung, Uhrzeiten, Eingaben und Auswahlziffern bleiben System-Sans.
+Der helle/dunkle Materialkontrast und die typografische Komposition entsprechen
+nun der visuellen Vorlage. Jetzt bleibt kleiner als der Hauptgedanke.
+
+Hier erlaubt die ausdrückliche Bildreferenz einen ausdrucksstarken Kapitelauftakt
+und eine Schreibschrift. Die Regeln „ruhig“ und „Richer, not louder“ werden deshalb
+auf die Farbgebung und Lesbarkeit bezogen. Die früheren Einschränkungen des
+A/v2-Briefings sind in `docs/SIGNATURE_V2.md` ausschließlich historisch dokumentiert.
+Keine Termin- oder Kalenderfunktion der Bildvorlage wird übernommen.
+
+Neu hinzu kommt nur ein dekoratives, für Screenreader verborgenes Header-Element.
+Die Darstellung verwendet lokale Fonts statt systemabhängiger Ersatzschriften;
+beide WOFF2s und OFL-Lizenzen werden precached, ohne Font-CDN oder Runtime-Framework.
+Framework-/Bundlerfreiheit, AA-Kontraste, 320-px-Reflow, 200 % Text, Reduced Motion,
+Tastaturbedienung, Fokus und bestehende Funktionen bleiben verbindlich.
+
+Umsetzung: [`docs/SIGNATURE_REFERENCE.md`](docs/SIGNATURE_REFERENCE.md).
+Exakte Farben, Schriftrollen, Größen und Abnahme:
+[`docs/SIGNATURE_BRIEF.md`](docs/SIGNATURE_BRIEF.md).
+Zwei gesichtete Passes: [`design/signature-reference/README.md`](design/signature-reference/README.md).

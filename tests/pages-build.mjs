@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { cpSync, existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -50,6 +50,14 @@ test('Pages build is reproducible, complete under /app/ and excludes development
     assert.equal(new URL(manifest.start_url, base).href, base.href);
     assert.equal(new URL(manifest.scope, base).href, base.href);
     for (const icon of manifest.icons) requireAsset(icon.src);
+    for (const [path] of first.filter(([path]) => path.endsWith('.css'))) {
+      const source = readFileSync(join(output, path), 'utf8');
+      for (const [, asset] of source.matchAll(/url\(['"](\.\.?\/[^'"]+)['"]\)/g)) requireAsset(asset, new URL(path, base));
+    }
+    for (const font of ['CormorantGaramond', 'GreatVibes']) {
+      requireAsset(`./assets/fonts/${font}.woff2`);
+      requireAsset(`./assets/fonts/OFL-${font}.txt`);
+    }
     for (const [path] of first.filter(([path]) => path.endsWith('.js'))) {
       const source = readFileSync(join(output, path), 'utf8');
       const relativeTo = new URL(path, base);
@@ -70,4 +78,35 @@ test('Pages build is reproducible, complete under /app/ and excludes development
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }
+});
+
+test('Every changed deployed asset updates the worker cache without a manual version bump', () => {
+  const fixture = mkdtempSync(join(tmpdir(), '0815-release-'));
+  try {
+    for (const path of ['bin', 'src', 'assets', 'index.html', 'manifest.webmanifest', 'sw.js', 'package.json']) {
+      cpSync(join(root, path), join(fixture, path), { recursive: true });
+    }
+    const build = () => {
+      const result = spawnSync(process.execPath, [join(fixture, 'bin/build-pages')], { encoding: 'utf8' });
+      assert.equal(result.status, 0, result.stderr);
+      return readFileSync(join(fixture, 'dist/sw.js'), 'utf8').match(/const CACHE = '([^']+)'/)[1];
+    };
+    const original = build();
+    assert.match(original, /^0815-v[\d.]+-[a-f0-9]{16}$/);
+    assert.equal(build(), original, 'Same runtime files produce the same release');
+    mkdirSync(join(fixture, 'design/signature'), { recursive: true });
+    writeFileSync(join(fixture, 'design/signature/mockup.html'), 'Design only');
+    assert.equal(build(), original, 'Design studies do not affect the production release');
+    for (const file of ['assets/styles.css', 'assets/signature.css', 'assets/fonts/CormorantGaramond.woff2', 'assets/fonts/GreatVibes.woff2', 'src/theme.js', 'src/helpers/pain/index.js', 'src/pwa-update.js', 'index.html']) {
+      const source = readFileSync(join(fixture, file));
+      writeFileSync(join(fixture, file), Buffer.concat([source, Buffer.from('\n/* changed runtime asset */\n')]));
+      assert.notEqual(build(), original, file);
+      writeFileSync(join(fixture, file), source);
+      assert.equal(build(), original, 'Restoring content restores the release');
+    }
+    assert.ok(existsSync(join(fixture, 'dist/src/pwa-update.js')));
+    assert.ok(existsSync(join(fixture, 'dist/src/theme.js')));
+    assert.ok(existsSync(join(fixture, 'dist/assets/signature.css')));
+    assert.ok(!existsSync(join(fixture, 'dist/design')));
+  } finally { rmSync(fixture, { recursive: true, force: true }); }
 });

@@ -200,13 +200,17 @@ export default {
         <form class="stack" id="painEntryForm">
           <fieldset aria-describedby="pain-scale${guidance ? ' pain-intensity-hint' : ''}"><legend tabindex="-1">Wie stark ist der Schmerz gerade?</legend>
             <p class="muted pain-question-hint" id="pain-intensity-hint" data-guidance-copy ${guidance ? '' : 'hidden'}>Wähle die Zahl, die gerade am ehesten passt.</p>
+            <div class="pain-signature-value" aria-hidden="true"><output class="pain-value-number">${draft.intensity ?? '–'}</output><span>von 10</span></div>
             <div class="pain-intensities">${Array.from({ length: 10 }, (_, index) => index + 1).map(number => `<label class="pain-choice pain-number"><input type="radio" name="intensity" value="${number}" ${draft.intensity === number ? 'checked' : ''} required><span>${number}</span></label>`).join('')}</div>
             <p class="muted pain-hint" id="pain-scale">1 = wenig · 10 = sehr stark</p>
           </fieldset>
           <button type="submit">Speichern</button><button class="quiet" type="button" data-pain="back">Zurück</button>
         </form>`;
       const form = content.querySelector('#painEntryForm');
-      form.addEventListener('change', () => { draft.intensity = Number(new FormData(form).get('intensity')); });
+      form.addEventListener('change', () => {
+        draft.intensity = Number(new FormData(form).get('intensity'));
+        form.querySelector('.pain-value-number').value = draft.intensity;
+      });
       bindForm(form, values => record(draft.bodyArea, values.has('intensity') ? Number(values.get('intensity')) : null));
       content.querySelector('[data-pain="change-area"]').addEventListener('click', () => {
         if (fromArea) api.goBack();

@@ -7,10 +7,16 @@
   <meta name="theme-color" content="#211f1e" media="(prefers-color-scheme: dark)">
   <meta name="description" content="0815 – Alltagshelfer mit lokal gespeicherten Inhalten.">
   <title>0815 – Alltagshelfer</title>
+  <style>html[data-theme-loading] body { visibility: hidden; }</style>
+  <script>
+    document.documentElement.dataset.themeLoading = '';
+    setTimeout(() => { delete document.documentElement.dataset.themeLoading; }, 3000);
+  </script>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./assets/icons/icon-192.png">
   <link rel="stylesheet" href="./assets/styles.css">
   <link rel="stylesheet" href="./assets/notes.css">
+  <link rel="stylesheet" href="./assets/signature.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Zum Inhalt</a>
@@ -19,6 +25,7 @@
     <button id="backButton" class="icon-button quiet" type="button" aria-label="Zurück zur Startseite" hidden>←</button>
     <button id="brandButton" class="brand-button" type="button" aria-label="Zur Startseite">0815</button>
     <h1 id="focusTitle" class="focus-title" tabindex="-1" hidden></h1>
+    <span id="signatureHeadingScript" class="signature-heading-script" aria-hidden="true"></span>
     <button id="helperSettingsButton" class="icon-button quiet" type="button" aria-label="Helfer-Einstellungen" hidden>⚙</button>
     <div id="headerMenuWrap" class="header-menu-wrap">
       <button id="menuButton" class="icon-button quiet" type="button" aria-label="Menü öffnen" aria-expanded="false">⋯</button>
@@ -78,6 +85,19 @@
     <section id="view-settings" class="view focus-view" hidden aria-labelledby="settingsTitle">
       <div class="focus-host">
         <h2 id="settingsTitle" class="visually-hidden">Verknüpfungen & Orte</h2>
+
+        <details id="designSettings" class="settings-block" open>
+          <summary>Design</summary>
+          <div class="settings-content">
+            <fieldset id="themeChoice" aria-describedby="themeStatus">
+              <legend class="visually-hidden">Design</legend>
+              <label class="check-row"><input type="radio" name="theme" value="light">Light</label>
+              <label class="check-row"><input type="radio" name="theme" value="dark">Dark</label>
+              <label class="check-row"><input type="radio" name="theme" value="signature">Signature</label>
+            </fieldset>
+            <p id="themeStatus" class="muted" role="status"></p>
+          </div>
+        </details>
 
         <details class="settings-block" open>
           <summary>Verknüpfungen</summary>
