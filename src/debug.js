@@ -1,6 +1,12 @@
-// Debug utilities for location and other diagnostics
+// Debug utilities for diagnostics (location, etc.)
 import { distanceMeters } from './context.js';
 
+/**
+ * Format distance in human-readable units.
+ * Returns approximate values: meters for <1km, kilometers for >=1km
+ * @param {number} meters - Distance in meters
+ * @returns {string} Formatted distance (e.g. "ca. 250 m" or "ca. 12.5 km")
+ */
 export function formatDistance(meters) {
   if (meters === null || meters === undefined) return '—';
   if (meters < 1000) {
@@ -13,6 +19,13 @@ export function formatDistance(meters) {
   return `ca. ${km} km`;
 }
 
+/**
+ * Calculate location debug info for a note with place context
+ * @param {object} position - Current position {lat, lon, accuracy}
+ * @param {array} places - Available places
+ * @param {object} noteContext - Note context {placeIds, timeBuckets}
+ * @returns {object} {distance, status, place} - distance in meters, status message if any
+ */
 export function getLocationDebugInfo(position, places, noteContext) {
   // No position available
   if (!position) return { distance: null, status: 'GPS unklar' };
@@ -39,10 +52,4 @@ export function getLocationDebugInfo(position, places, noteContext) {
   }
   
   return { distance, status: null, place };
-}
-
-export async function getDebugMode() {
-  // This function would typically fetch from database/storage
-  // For now it's a placeholder - the actual implementation will be in app.js
-  return false;
 }

@@ -28,7 +28,7 @@ function timestamp(at, compact = false) {
 export function renderNote(root, note, places, actions, person = null, { debugMode = false, position = null } = {}) {
   const article = element('article', undefined, 'note-detail');
   if (note.type === 'person-note') article.append(element('p', person?.name || 'Person nicht mehr gespeichert', 'note-person-name'));
-  article.append(element('p', note.text, `note-text ${noteTextClass(note.text)`));
+  article.append(element('p', note.text, `note-text ${noteTextClass(note.text)}`));
   const dates = element('div', undefined, 'note-dates muted');
   dates.append(timestamp(note.createdAt));
   if (note.updatedAt !== undefined) {
@@ -40,9 +40,8 @@ export function renderNote(root, note, places, actions, person = null, { debugMo
   // Add debug distance info if debug mode is enabled
   if (debugMode && position) {
     const context = noteContext(note);
-    const debugInfo = getLocationDebugInfo(position, places, context);
-    
     if (context.placeIds && context.placeIds.length > 0) {
+      const debugInfo = getLocationDebugInfo(position, places, context);
       const debugLine = element('p', undefined, 'note-debug-distance muted');
       const distance = formatDistance(debugInfo.distance);
       const statusText = debugInfo.status ? ` · ${debugInfo.status}` : '';
@@ -52,7 +51,6 @@ export function renderNote(root, note, places, actions, person = null, { debugMo
   }
   
   article.append(dates);
-  
   const context = element('section', undefined, 'note-context-summary');
   const heading = element('h2', 'Wieder zeigen', 'note-eyebrow');
   heading.id = 'noteContextTitle';
