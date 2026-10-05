@@ -1,11 +1,11 @@
 /* Signature · Mono Editorial. All visual rules are isolated from Light and Dark. */
 @font-face {
   font-family: '0815 Editorial'; font-style: normal; font-weight: 300 700; font-display: swap;
-  src: url('./fonts/CormorantGaramond.woff2') format('woff2');
+  src: url('../../assets/fonts/CormorantGaramond.woff2') format('woff2');
 }
 @font-face {
   font-family: '0815 Script'; font-style: normal; font-weight: 400; font-display: swap;
-  src: url('./fonts/GreatVibes.woff2') format('woff2');
+  src: url('../../assets/fonts/GreatVibes.woff2') format('woff2');
 }
 html[data-theme="signature"] {
   color-scheme: dark;

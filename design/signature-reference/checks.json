@@ -1,0 +1,540 @@
+{
+  "release": "0.6.6",
+  "date": "2026-10-05",
+  "branch": "feature/signature-v2",
+  "direction": "Mono Editorial / Monochromes Luxury Editorial",
+  "browser": "Chromium",
+  "baseline": "5f7599b",
+  "limitations": [
+    "Standalone mode simulated; no OS installation, hardware zoom or screenreader test",
+    "Offline retains the most recent fully cached release"
+  ],
+  "studies": [
+    {
+      "pass": "pass-1",
+      "screenshots": 8,
+      "checks": [
+        "a/390/dashboard: reflow",
+        "a/390/dashboard: AA text contrast []",
+        "a/390/notes: reflow",
+        "a/390/notes: AA text contrast []",
+        "a/390/detail: reflow",
+        "a/390/detail: AA text contrast []",
+        "a/390/pain: reflow",
+        "a/390/pain: AA text contrast []",
+        "a/1280/dashboard: reflow",
+        "a/1280/dashboard: AA text contrast []",
+        "a/1280/notes: reflow",
+        "a/1280/notes: AA text contrast []",
+        "a/1280/detail: reflow",
+        "a/1280/detail: AA text contrast []",
+        "a/1280/pain: reflow",
+        "a/1280/pain: AA text contrast []",
+        "a/320/dashboard: reflow",
+        "a/320/dashboard: AA text contrast []",
+        "a/320/notes: reflow",
+        "a/320/notes: AA text contrast []",
+        "a/320/detail: reflow",
+        "a/320/detail: AA text contrast []",
+        "a/320/pain: reflow",
+        "a/320/pain: AA text contrast []",
+        "a/768/dashboard: reflow",
+        "a/768/dashboard: AA text contrast []",
+        "a/768/notes: reflow",
+        "a/768/notes: AA text contrast []",
+        "a/768/detail: reflow",
+        "a/768/detail: AA text contrast []",
+        "a/768/pain: reflow",
+        "a/768/pain: AA text contrast []",
+        "a/200%/dashboard: reflow",
+        "a/200%/dashboard: AA text contrast []",
+        "a/200%/notes: reflow",
+        "a/200%/notes: AA text contrast []",
+        "a/200%/detail: reflow",
+        "a/200%/detail: AA text contrast []",
+        "a/200%/pain: reflow",
+        "a/200%/pain: AA text contrast []",
+        "a: native keyboard radios update the value",
+        "a: keyboard focus",
+        "a: 44px number targets",
+        "a: Reduced Motion",
+        "No browser errors: ",
+        "Only local resources",
+        "No rejected Signature styles, app bootstrap or worker",
+        "Studies create no databases"
+      ]
+    },
+    {
+      "pass": "pass-2",
+      "screenshots": 8,
+      "checks": [
+        "a/390/dashboard: reflow",
+        "a/390/dashboard: AA text contrast []",
+        "a/390/notes: reflow",
+        "a/390/notes: AA text contrast []",
+        "a/390/detail: reflow",
+        "a/390/detail: AA text contrast []",
+        "a/390/pain: reflow",
+        "a/390/pain: AA text contrast []",
+        "a/1280/dashboard: reflow",
+        "a/1280/dashboard: AA text contrast []",
+        "a/1280/notes: reflow",
+        "a/1280/notes: AA text contrast []",
+        "a/1280/detail: reflow",
+        "a/1280/detail: AA text contrast []",
+        "a/1280/pain: reflow",
+        "a/1280/pain: AA text contrast []",
+        "a/320/dashboard: reflow",
+        "a/320/dashboard: AA text contrast []",
+        "a/320/notes: reflow",
+        "a/320/notes: AA text contrast []",
+        "a/320/detail: reflow",
+        "a/320/detail: AA text contrast []",
+        "a/320/pain: reflow",
+        "a/320/pain: AA text contrast []",
+        "a/768/dashboard: reflow",
+        "a/768/dashboard: AA text contrast []",
+        "a/768/notes: reflow",
+        "a/768/notes: AA text contrast []",
+        "a/768/detail: reflow",
+        "a/768/detail: AA text contrast []",
+        "a/768/pain: reflow",
+        "a/768/pain: AA text contrast []",
+        "a/200%/dashboard: reflow",
+        "a/200%/dashboard: AA text contrast []",
+        "a/200%/notes: reflow",
+        "a/200%/notes: AA text contrast []",
+        "a/200%/detail: reflow",
+        "a/200%/detail: AA text contrast []",
+        "a/200%/pain: reflow",
+        "a/200%/pain: AA text contrast []",
+        "a: native keyboard radios update the value",
+        "a: keyboard focus",
+        "a: 44px number targets",
+        "a: Reduced Motion",
+        "No browser errors: ",
+        "Only local resources",
+        "No rejected Signature styles, app bootstrap or worker",
+        "Studies create no databases"
+      ]
+    }
+  ],
+  "signature": {
+    "checks": [
+      "First start migrates the previous dark appearance once",
+      "System changes do not change the saved mode",
+      "Design has exactly Light, Dark and Signature",
+      "Explicit Light overrides a dark system",
+      "Explicit Dark retains native dark controls on a light system",
+      "Failed save keeps the persisted mode and restores the radio selection",
+      "Theme save changes only the existing theme setting",
+      "Signature survives a restart",
+      "Stored Signature is restored before the app becomes visible",
+      "Browser frame follows the neutral Signature surface",
+      "390/dashboard: reflow",
+      "390/dashboard: AA text contrast []",
+      "390: navigation heading stays quieter than the thought",
+      "390: no dominant header color area",
+      "390: selected Pain value is shown",
+      "390: native Pain inputs fill 44px touch targets",
+      "390/pain: reflow",
+      "390/pain: AA text contrast []",
+      "390/notes: reflow",
+      "390/notes: AA text contrast []",
+      "390/detail: reflow",
+      "390/detail: AA text contrast []",
+      "390/settings: reflow",
+      "390/settings: AA text contrast []",
+      "390/drink: reflow",
+      "390/drink: AA text contrast []",
+      "390/discount: reflow",
+      "390/discount: AA text contrast []",
+      "1280/dashboard: reflow",
+      "1280/dashboard: AA text contrast []",
+      "1280: navigation heading stays quieter than the thought",
+      "1280: no dominant header color area",
+      "1280: selected Pain value is shown",
+      "1280: native Pain inputs fill 44px touch targets",
+      "1280/pain: reflow",
+      "1280/pain: AA text contrast []",
+      "1280/notes: reflow",
+      "1280/notes: AA text contrast []",
+      "1280/detail: reflow",
+      "1280/detail: AA text contrast []",
+      "1280/settings: reflow",
+      "1280/settings: AA text contrast []",
+      "1280/drink: reflow",
+      "1280/drink: AA text contrast []",
+      "1280/discount: reflow",
+      "1280/discount: AA text contrast []",
+      "320/dashboard: reflow",
+      "320/dashboard: AA text contrast []",
+      "320: navigation heading stays quieter than the thought",
+      "320: no dominant header color area",
+      "320: selected Pain value is shown",
+      "320: native Pain inputs fill 44px touch targets",
+      "320/pain: reflow",
+      "320/pain: AA text contrast []",
+      "320/notes: reflow",
+      "320/notes: AA text contrast []",
+      "320/detail: reflow",
+      "320/detail: AA text contrast []",
+      "320/settings: reflow",
+      "320/settings: AA text contrast []",
+      "320/drink: reflow",
+      "320/drink: AA text contrast []",
+      "320/discount: reflow",
+      "320/discount: AA text contrast []",
+      "768/dashboard: reflow",
+      "768/dashboard: AA text contrast []",
+      "768: navigation heading stays quieter than the thought",
+      "768: no dominant header color area",
+      "768: selected Pain value is shown",
+      "768: native Pain inputs fill 44px touch targets",
+      "768/pain: reflow",
+      "768/pain: AA text contrast []",
+      "768/notes: reflow",
+      "768/notes: AA text contrast []",
+      "768/detail: reflow",
+      "768/detail: AA text contrast []",
+      "768/settings: reflow",
+      "768/settings: AA text contrast []",
+      "768/drink: reflow",
+      "768/drink: AA text contrast []",
+      "768/discount: reflow",
+      "768/discount: AA text contrast []",
+      "200%/dashboard: reflow",
+      "200%/dashboard: AA text contrast []",
+      "200%/notes: reflow",
+      "200%/notes: AA text contrast []",
+      "200%/detail: reflow",
+      "200%/detail: AA text contrast []",
+      "200%/edit: reflow",
+      "200%/edit: AA text contrast []",
+      "200%/settings: reflow",
+      "200%/settings: AA text contrast []",
+      "200%/pain area: reflow",
+      "200%/pain area: AA text contrast []",
+      "200%/pain intensity: reflow",
+      "200%/pain intensity: AA text contrast []",
+      "Keyboard radio selection updates the visual value",
+      "Pain keyboard focus remains visible",
+      "Signature respects Reduced Motion",
+      "Signature Pain saves through the unchanged model",
+      "Signature uses the existing Notes edit lifecycle",
+      "Script is a decorative chapter accent with no duplicated accessible heading",
+      "Both bundled font faces load and Notes use the reference serif",
+      "Script leaves the header outside the Notes chapter",
+      "Design selection is keyboard accessible with a visible focus",
+      "Signature loads only local resources",
+      "No browser errors: "
+    ],
+    "screenshots": 14
+  },
+  "pwa": [
+    "Deploy one",
+    "First installation claims the page without a reload",
+    "Standalone window hides installation action",
+    "First release uses its own stylesheet bytes",
+    "Deploy two",
+    "Foreground update automatically reloads the dashboard once",
+    "Deployment preserves the locally selected Signature mode",
+    "Foreground deployment replaces the previous stylesheet despite the HTTP cache",
+    "Update preserves IndexedDB content",
+    "Deploy three",
+    "Worker activation does not discard an unsaved edit",
+    "Update does not write the unsaved draft to storage",
+    "Deferred update announces itself through the existing status",
+    "Existing save commits the complete edit before reload",
+    "Reading view remains open until the user returns home",
+    "Returning home applies the deferred release once",
+    "Latest worker removes old app caches and preserves foreign caches",
+    "Latest shell and local content survive a real offline reload",
+    "Mono Editorial settings, module and latest stylesheet bytes survive the offline reload",
+    "Both local font faces load offline and the latest worker includes their licenses",
+    "Offline update checks do not reload or break the shell",
+    "No unhandled browser errors: "
+  ],
+  "legacy": [
+    {
+      "name": "browser-check.js",
+      "passed": true,
+      "checks": 25
+    },
+    {
+      "name": "design-check.js",
+      "passed": true,
+      "checks": 22
+    },
+    {
+      "name": "discount-browser-check.js",
+      "passed": true,
+      "checks": 34
+    },
+    {
+      "name": "drink-browser-check.js",
+      "passed": true,
+      "checks": 41
+    },
+    {
+      "name": "editorial-browser-check.js",
+      "passed": true,
+      "checks": 154
+    },
+    {
+      "name": "helpers-offline-check.js",
+      "passed": true,
+      "checks": 19
+    },
+    {
+      "name": "language-browser-check.js",
+      "passed": true,
+      "checks": 36
+    },
+    {
+      "name": "navigation-browser-check.js",
+      "passed": true,
+      "checks": 26
+    },
+    {
+      "name": "notes-browser-check.js",
+      "passed": true,
+      "checks": 120
+    },
+    {
+      "name": "notes-craft-browser-check.js",
+      "passed": true,
+      "checks": 106
+    },
+    {
+      "name": "pain-browser-check.js",
+      "passed": true,
+      "checks": 88
+    },
+    {
+      "name": "person-notes-browser-check.js",
+      "passed": true,
+      "checks": 90
+    },
+    {
+      "name": "personal-object-check.js",
+      "passed": true,
+      "checks": 30
+    },
+    {
+      "name": "read-browser-check.js",
+      "passed": true,
+      "checks": 40
+    }
+  ],
+  "lightDark": [
+    {
+      "mode": "light",
+      "width": 390,
+      "screen": "dashboard",
+      "identical": true,
+      "size": [
+        390,
+        1473
+      ],
+      "beforePixelHash": "e19b3d64760516a2a0955e968431d51a1675bb5abba2cbea96cf45b817fc9608",
+      "afterPixelHash": "e19b3d64760516a2a0955e968431d51a1675bb5abba2cbea96cf45b817fc9608"
+    },
+    {
+      "mode": "light",
+      "width": 390,
+      "screen": "pain",
+      "identical": true,
+      "size": [
+        390,
+        844
+      ],
+      "beforePixelHash": "ade551e4c49954dea5db137fdbf6b5e0fd1bcb3773067848b3b97b785b7f5b82",
+      "afterPixelHash": "ade551e4c49954dea5db137fdbf6b5e0fd1bcb3773067848b3b97b785b7f5b82"
+    },
+    {
+      "mode": "light",
+      "width": 390,
+      "screen": "notes",
+      "identical": true,
+      "size": [
+        390,
+        980
+      ],
+      "beforePixelHash": "b71dbf8c08ee9c72ce3cc75b45ad3e3ac426f075359bd16d25e1099796794464",
+      "afterPixelHash": "b71dbf8c08ee9c72ce3cc75b45ad3e3ac426f075359bd16d25e1099796794464"
+    },
+    {
+      "mode": "light",
+      "width": 390,
+      "screen": "detail",
+      "identical": true,
+      "size": [
+        390,
+        844
+      ],
+      "beforePixelHash": "cb955c1d84c45e83a6b75934866ce1b2d4924b24347c22f3cee1df4aed09dbf9",
+      "afterPixelHash": "cb955c1d84c45e83a6b75934866ce1b2d4924b24347c22f3cee1df4aed09dbf9"
+    },
+    {
+      "mode": "light",
+      "width": 1280,
+      "screen": "dashboard",
+      "identical": true,
+      "size": [
+        1280,
+        1570
+      ],
+      "beforePixelHash": "2fba651553371fd4d93f863d0bdc859b13a0153379be144692df716521436771",
+      "afterPixelHash": "2fba651553371fd4d93f863d0bdc859b13a0153379be144692df716521436771"
+    },
+    {
+      "mode": "light",
+      "width": 1280,
+      "screen": "pain",
+      "identical": true,
+      "size": [
+        1280,
+        960
+      ],
+      "beforePixelHash": "b6ca03397c57f447a026c3c6629a7b22d993119a3da4ef4a8abb23c352023ada",
+      "afterPixelHash": "b6ca03397c57f447a026c3c6629a7b22d993119a3da4ef4a8abb23c352023ada"
+    },
+    {
+      "mode": "light",
+      "width": 1280,
+      "screen": "notes",
+      "identical": true,
+      "size": [
+        1280,
+        960
+      ],
+      "beforePixelHash": "cfa39f995adb423888d422bb04c8b711f4798f9a34b3ddc7dfa274f9afef9614",
+      "afterPixelHash": "cfa39f995adb423888d422bb04c8b711f4798f9a34b3ddc7dfa274f9afef9614"
+    },
+    {
+      "mode": "light",
+      "width": 1280,
+      "screen": "detail",
+      "identical": true,
+      "size": [
+        1280,
+        960
+      ],
+      "beforePixelHash": "a2a0b903ab0ecd9d0fefac4eaedf04fc4d309b0abd422d6fe02ed3cc67dcd47f",
+      "afterPixelHash": "a2a0b903ab0ecd9d0fefac4eaedf04fc4d309b0abd422d6fe02ed3cc67dcd47f"
+    },
+    {
+      "mode": "dark",
+      "width": 390,
+      "screen": "dashboard",
+      "identical": true,
+      "size": [
+        390,
+        1473
+      ],
+      "beforePixelHash": "e69464fa534673613fc044cf4d3e0c4e9bd55a6eaf9eb06018902d4e4fe889fb",
+      "afterPixelHash": "e69464fa534673613fc044cf4d3e0c4e9bd55a6eaf9eb06018902d4e4fe889fb"
+    },
+    {
+      "mode": "dark",
+      "width": 390,
+      "screen": "pain",
+      "identical": true,
+      "size": [
+        390,
+        844
+      ],
+      "beforePixelHash": "927c27446c1375e2809dc4e186d0a9e943a29dfc42edc6874a28466c149de87e",
+      "afterPixelHash": "927c27446c1375e2809dc4e186d0a9e943a29dfc42edc6874a28466c149de87e"
+    },
+    {
+      "mode": "dark",
+      "width": 390,
+      "screen": "notes",
+      "identical": true,
+      "size": [
+        390,
+        980
+      ],
+      "beforePixelHash": "4291b5ceff9daeeefcb7eef291a04dce31868f6f2723aac1ca9c59992c26c68d",
+      "afterPixelHash": "4291b5ceff9daeeefcb7eef291a04dce31868f6f2723aac1ca9c59992c26c68d"
+    },
+    {
+      "mode": "dark",
+      "width": 390,
+      "screen": "detail",
+      "identical": true,
+      "size": [
+        390,
+        844
+      ],
+      "beforePixelHash": "77584d848585544ac156f77d0957f48235aa1d56805a208b725a1c0d706b1fa9",
+      "afterPixelHash": "77584d848585544ac156f77d0957f48235aa1d56805a208b725a1c0d706b1fa9"
+    },
+    {
+      "mode": "dark",
+      "width": 1280,
+      "screen": "dashboard",
+      "identical": true,
+      "size": [
+        1280,
+        1570
+      ],
+      "beforePixelHash": "8fb97f10ddd2ef39a3e0bd5e6be75094444b1c6a1f1f2066f358d6f6c3b1e25a",
+      "afterPixelHash": "8fb97f10ddd2ef39a3e0bd5e6be75094444b1c6a1f1f2066f358d6f6c3b1e25a"
+    },
+    {
+      "mode": "dark",
+      "width": 1280,
+      "screen": "pain",
+      "identical": true,
+      "size": [
+        1280,
+        960
+      ],
+      "beforePixelHash": "d68abd54eadb59cf1bef34f74f4a111c4962cba4e4dce4f9b90494fc0e6f8fc1",
+      "afterPixelHash": "d68abd54eadb59cf1bef34f74f4a111c4962cba4e4dce4f9b90494fc0e6f8fc1"
+    },
+    {
+      "mode": "dark",
+      "width": 1280,
+      "screen": "notes",
+      "identical": true,
+      "size": [
+        1280,
+        960
+      ],
+      "beforePixelHash": "92626d9e108612e27af09e12f36ff7f4b70b5f9dd68ba7080f11af32e65776cf",
+      "afterPixelHash": "92626d9e108612e27af09e12f36ff7f4b70b5f9dd68ba7080f11af32e65776cf"
+    },
+    {
+      "mode": "dark",
+      "width": 1280,
+      "screen": "detail",
+      "identical": true,
+      "size": [
+        1280,
+        960
+      ],
+      "beforePixelHash": "63834e2208e17c5624ae25be65ccb8c55b3ecb8451904bc9d745a87009030106",
+      "afterPixelHash": "63834e2208e17c5624ae25be65ccb8c55b3ecb8451904bc9d745a87009030106"
+    }
+  ],
+  "node": {
+    "testFiles": 10,
+    "passed": 10,
+    "timezone": "Europe/Berlin",
+    "timezoneFiles": 4
+  },
+  "syntax": {
+    "files": 41,
+    "passed": 41
+  },
+  "visualReview": {
+    "studyShots": 16,
+    "liveShots": 14,
+    "reviewed": true,
+    "notes": "Each pass and final live contact sheets reviewed; mobile Notes additionally inspected at full resolution."
+  }
+}

@@ -157,7 +157,7 @@ function updateBackLabel() {
   $('#backButton').setAttribute('aria-label', title && title !== 'Startseite' ? `Zurück zu ${title}` : 'Zurück zur Startseite');
 }
 
-function showView(name, title, open, options = {}) {
+function showView(name, title, open, options = {}, section = name) {
   $('#noteDeleteDialog').close();
   navigation.enter({ title: title || 'Startseite', open }, { ...options, returnFocus: returnFocusTarget() });
   viewVersion++;
@@ -171,6 +171,9 @@ function showView(name, title, open, options = {}) {
   $('#brandButton').hidden = !dashboard;
   $('#focusTitle').hidden = dashboard;
   $('#focusTitle').textContent = title;
+  const notesChapter = section === 'notes';
+  $('.app-header').dataset.section = notesChapter ? 'notes' : name;
+  $('#signatureHeadingScript').textContent = notesChapter ? 'Journal' : '';
   $('#headerMenuWrap').hidden = !dashboard;
   $('#helperSettingsButton').hidden = !(name === 'helper' && activeHelper);
   closeMenu();
@@ -403,7 +406,7 @@ async function renderSettings() {
 async function openCoreView(name, options = {}) {
   const open = () => openCoreView(name, { replace: true });
   if (name === 'notes' || name === 'people') {
-    showView('read', name === 'notes' ? 'Notizen' : 'Personen', open, options);
+    showView('read', name === 'notes' ? 'Notizen' : 'Personen', open, options, name);
     const version = viewVersion;
     const root = $('#readHost');
     root.classList.remove('read-person');
@@ -679,7 +682,7 @@ const staticViews = {
   },
   appinfo: {
     title: 'App-Info & Open Source',
-    html: `<p>0815 ist eine installierbare Web-App unter MIT-Lizenz.</p><p>Entwickelt mit HTML, CSS und JavaScript, ohne externe Laufzeit-Abhängigkeiten.</p>`
+    html: `<p>0815 ist eine installierbare Web-App unter MIT-Lizenz.</p><p>Entwickelt mit HTML, CSS und JavaScript, ohne externe Laufzeit-Abhängigkeiten.</p><p>Signature verwendet die lokal mitgelieferten Schriften Cormorant Garamond und Great Vibes unter SIL Open Font License 1.1: <a href="./assets/fonts/OFL-CormorantGaramond.txt">Lizenz Cormorant Garamond</a>, <a href="./assets/fonts/OFL-GreatVibes.txt">Lizenz Great Vibes</a>.</p>`
   }
 };
 

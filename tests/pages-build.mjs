@@ -50,6 +50,14 @@ test('Pages build is reproducible, complete under /app/ and excludes development
     assert.equal(new URL(manifest.start_url, base).href, base.href);
     assert.equal(new URL(manifest.scope, base).href, base.href);
     for (const icon of manifest.icons) requireAsset(icon.src);
+    for (const [path] of first.filter(([path]) => path.endsWith('.css'))) {
+      const source = readFileSync(join(output, path), 'utf8');
+      for (const [, asset] of source.matchAll(/url\(['"](\.\.?\/[^'"]+)['"]\)/g)) requireAsset(asset, new URL(path, base));
+    }
+    for (const font of ['CormorantGaramond', 'GreatVibes']) {
+      requireAsset(`./assets/fonts/${font}.woff2`);
+      requireAsset(`./assets/fonts/OFL-${font}.txt`);
+    }
     for (const [path] of first.filter(([path]) => path.endsWith('.js'))) {
       const source = readFileSync(join(output, path), 'utf8');
       const relativeTo = new URL(path, base);
@@ -89,9 +97,9 @@ test('Every changed deployed asset updates the worker cache without a manual ver
     mkdirSync(join(fixture, 'design/signature'), { recursive: true });
     writeFileSync(join(fixture, 'design/signature/mockup.html'), 'Design only');
     assert.equal(build(), original, 'Design studies do not affect the production release');
-    for (const file of ['assets/styles.css', 'assets/signature.css', 'src/theme.js', 'src/helpers/pain/index.js', 'src/pwa-update.js', 'index.html']) {
-      const source = readFileSync(join(fixture, file), 'utf8');
-      writeFileSync(join(fixture, file), source + '\n/* changed runtime asset */\n');
+    for (const file of ['assets/styles.css', 'assets/signature.css', 'assets/fonts/CormorantGaramond.woff2', 'assets/fonts/GreatVibes.woff2', 'src/theme.js', 'src/helpers/pain/index.js', 'src/pwa-update.js', 'index.html']) {
+      const source = readFileSync(join(fixture, file));
+      writeFileSync(join(fixture, file), Buffer.concat([source, Buffer.from('\n/* changed runtime asset */\n')]));
       assert.notEqual(build(), original, file);
       writeFileSync(join(fixture, file), source);
       assert.equal(build(), original, 'Restoring content restores the release');

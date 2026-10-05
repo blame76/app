@@ -40,6 +40,9 @@ test('Install includes registered helper module and its additional assets', asyn
   assert.ok(urls.includes('https://example.test/app/src/helpers/example/extra.js'));
   assert.ok(urls.includes('https://example.test/app/assets/notes.css'));
   assert.ok(urls.includes('https://example.test/app/assets/signature.css'));
+  for (const file of ['CormorantGaramond.woff2', 'GreatVibes.woff2', 'OFL-CormorantGaramond.txt', 'OFL-GreatVibes.txt']) {
+    assert.ok(urls.includes(`https://example.test/app/assets/fonts/${file}`));
+  }
   assert.ok(urls.includes('https://example.test/app/src/theme.js'));
   assert.ok(urls.includes('https://example.test/app/src/note-presentation.js'));
   assert.ok(w.precached.every(request => request.cache === 'reload'));

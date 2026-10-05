@@ -22,8 +22,13 @@ with tempfile.TemporaryDirectory(prefix='0815-pwa-deploy-') as temp:
         else:
             shutil.copy2(project / name, source / name)
     original_html = (source / 'index.html').read_text()
+    original_signature = (source / 'assets/signature.css').read_text()
     for i, name in enumerate(['one', 'two', 'three']):
         (source / 'index.html').write_text(original_html.replace('<html lang="de">', f'<html lang="de" data-release="{name}">'))
+        # Distinct stylesheet bytes expose stale asset caches as well as stale HTML.
+        override = ['#2c2c29', '#20201e', None][i]
+        stylesheet = original_signature + (f'\nhtml[data-theme="signature"] {{ --surface-page: {override}; }}\n' if override else '')
+        (source / 'assets/signature.css').write_text(stylesheet)
         subprocess.run(['node', str(source / 'bin/build-pages')], check=True, capture_output=True)
         shutil.copytree(source / 'dist', root / name)
         # Model distinct release Last-Modified values, not three files in one second.

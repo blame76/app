@@ -33,6 +33,7 @@ async (page) => {
     await app.locator('input[name="theme"][value="signature"]').check();
     await app.waitForFunction(() => document.documentElement.dataset.theme === 'signature' && !document.querySelector('#themeChoice').disabled);
     await app.locator('#backButton').click();
+    check(await app.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--surface-page').trim()) === '#2c2c29', 'First release uses its own stylesheet bytes');
     await app.evaluate(async () => {
       const db = await import('/app/src/db.js');
       await db.put('entries', { id: 'update-note', type: 'note', text: 'Bleibt lokal.', createdAt: Date.now() });
@@ -44,6 +45,7 @@ async (page) => {
     await app.waitForSelector('#allHelperList [data-helper]', { state: 'attached' });
     check(navigations === 2, 'Foreground update automatically reloads the dashboard once');
     check(await app.getAttribute('html', 'data-theme') === 'signature', 'Deployment preserves the locally selected Signature mode');
+    check(await app.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--surface-page').trim()) === '#20201e', 'Foreground deployment replaces the previous stylesheet despite the HTTP cache');
     check((await record()).text === 'Bleibt lokal.', 'Update preserves IndexedDB content');
     await app.locator('#menuButton').click();
     await app.locator('[data-view="notes"]').click();
@@ -73,7 +75,15 @@ async (page) => {
     await app.reload();
     await app.waitForSelector('#allHelperList [data-helper]', { state: 'attached' });
     check(await app.getAttribute('html', 'data-release') === 'three' && (await record()).text === 'Entwurf während des Deployments.', 'Latest shell and local content survive a real offline reload');
-    check(await app.getAttribute('html', 'data-theme') === 'signature' && await app.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()) === '#66515e', 'Signature v2 settings, module and stylesheet survive the offline reload');
+    check(await app.getAttribute('html', 'data-theme') === 'signature' && await app.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() === '#eeece4' && getComputedStyle(document.documentElement).getPropertyValue('--surface-page').trim() === '#171716'), 'Mono Editorial settings, module and latest stylesheet bytes survive the offline reload');
+    const fontsOffline = await app.evaluate(async () => {
+      const fontFaces = await Promise.all([document.fonts.load('500 32px "0815 Editorial"', 'Gedanke'), document.fonts.load('400 48px "0815 Script"', 'Journal')]);
+      const cache = await caches.open((await caches.keys()).find(key => key.startsWith('0815-')));
+      const files = ['CormorantGaramond.woff2', 'GreatVibes.woff2', 'OFL-CormorantGaramond.txt', 'OFL-GreatVibes.txt'];
+      const cached = await Promise.all(files.map(file => cache.match(new URL(`./assets/fonts/${file}`, location.href))));
+      return fontFaces.every(faces => faces.length > 0 && faces.every(font => font.status === 'loaded')) && cached.every(Boolean);
+    });
+    check(fontsOffline, 'Both local font faces load offline and the latest worker includes their licenses');
     await app.evaluate(() => window.dispatchEvent(new Event('focus')));
     check(navigations === 4, 'Offline update checks do not reload or break the shell');
     check(errors.length === 0, `No unhandled browser errors: ${errors.join(', ')}`);

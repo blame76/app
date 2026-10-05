@@ -1,6 +1,6 @@
 # 0815 – Alltagshelfer
 
-v0.6.5 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
+v0.6.6 enthält **Schmerz v0.1**, **Rabatt** und **Trinken**, vollständige lokale
 **Notizen** und **Personen-Notizen**. Die gehärtete technische
 Baseline ist als `baseline-v0.4.1` erhalten; die bestehende Gestaltung und Shell bilden
 den Rahmen für einzeln entwickelte Helper.
@@ -210,15 +210,17 @@ Settings-Store erhalten. Beim ersten Start ohne gespeicherte Wahl wird die bishe
 Systemdarstellung einmal übernommen; danach gibt es keinen automatischen Moduswechsel.
 Light und Dark behalten Farben, Typografie, Abstände und Komponenten.
 
-Signature v2 integriert **A · Editorial Material**: warme neutrale Flächen,
-feine Tiefenunterschiede bei Werkzeugen und eine offene, sorgfältige Notes-Komposition.
-Ein gedämpfter Aubergine-Akzent kennzeichnet Auswahl und Zustände. Fachlogik, Datenmodelle
-und Bedienung bleiben unverändert. Umsetzung und Prüfung:
-[`docs/SIGNATURE_V2.md`](docs/SIGNATURE_V2.md).
-Die zwei neuen Varianten mit Screenshots und Kritik stehen in
-[`design/signature-v2/README.md`](design/signature-v2/README.md).
-Der frühere C-Entwurf ist verworfen und bleibt ausschließlich als historisches Archiv
-unter `design/signature/` erhalten. Studien werden nicht mit der PWA ausgeliefert.
+Signature folgt jetzt der Bildreferenz als **Mono Editorial**: Anthrazit und
+Elfenbein, Cormorant Garamond für Inhalte und ein sparsamer Great-Vibes-Kapitelakzent.
+Notizen erhalten einen Serif-/Script-Auftakt, Tageskapitel, eine helle erste Notiz
+und dunkle weitere Leseflächen. Beide Schriften werden lokal mit Lizenzen und
+Offline-Cache ausgeliefert. Funktionen und Datenmodelle bleiben erhalten.
+
+[Umsetzung und Prüfung](docs/SIGNATURE_REFERENCE.md) ·
+[Wiederverwendbares Briefing](docs/SIGNATURE_BRIEF.md) ·
+[Studien, Kritik und Screenshots](design/signature-reference/README.md).
+Die früheren C- und A/v2-Entwürfe bleiben historische Archive unter
+`design/signature/` und `design/signature-v2/`. Studien werden nicht mit der PWA ausgeliefert.
 
 ## Releases und Offline
 

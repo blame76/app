@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>0815 · Mono Editorial · Vergleich</title>
+  <style>
+    :root{color-scheme:dark;font:16px/1.6 system-ui,sans-serif;background:#171716;color:#eeece4}
+    body{max-width:1560px;margin:0 auto;padding:clamp(1.25rem,4vw,3rem)}
+    h1,h2{font-family:Georgia,serif;font-weight:400;line-height:1.2}h1{font-size:clamp(2rem,4vw,3rem)}
+    p{max-width:75ch}a{color:inherit;text-underline-offset:.2em}
+    .controls{display:flex;flex-wrap:wrap;gap:1rem 2rem;margin:2rem 0}label{display:grid;gap:.4rem}
+    select{min-height:44px;font:inherit;padding:.5rem;background:#363633;color:inherit;border:1px solid #92928a;border-radius:4px}
+    .variants{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2rem}article{min-width:0}
+    figure{margin:1.5rem 0}img{display:block;width:100%;max-width:390px;height:auto;border:1px solid #4c4c47}
+    figure[data-wide] img{max-width:none}figcaption{font-size:.875rem;color:#b7b7ae;margin-top:.75rem}
+    :focus-visible{outline:3px solid #eeece4;outline-offset:4px}
+    @media(max-width:850px){.variants{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <p>0815 / Signature / 0.6.6</p><h1>Farblich ruhig, typografisch ausdrucksstark.</h1>
+  <p>Die Bildreferenz wird durch Anthrazit, helle Serifentexte, einen kalligrafischen
+    Kapitelakzent und abgestufte Leseflächen umgesetzt. Zwei gesichtete Studien-Passes
+    und die Ausgabe der echten App.</p>
+  <p><a href="../../">Anwendung</a> · <a id="study" href="./?screen=notes">Interaktive Studie</a> ·
+    <a href="../../docs/SIGNATURE_BRIEF.md">Wiederverwendbares Briefing</a> ·
+    <a href="./CRITIQUE.md">Visuelle Kritik</a></p>
+  <div class="controls">
+    <label>Ansicht<select id="screen"><option value="notes">Notizen</option><option value="dashboard">Jetzt</option><option value="detail">Notizdetail</option><option value="pain">Schmerz</option></select></label>
+    <label>Breite<select id="width"><option value="390">390 px</option><option value="1280">1280 px</option></select></label>
+  </div>
+  <div class="variants">
+    <article data-stage="1"><h2>Pass 1</h2><p>Erster Referenzentwurf.</p><figure><a class="shot"><img alt=""></a><figcaption></figcaption></figure></article>
+    <article data-stage="2"><h2>Pass 2</h2><p>Mehr Textbreite auf Mobil, ruhigeres Jetzt.</p><figure><a class="shot"><img alt=""></a><figcaption></figcaption></figure></article>
+    <article data-stage="live"><h2>Integrierte App</h2><p>Bestehende Renderer und lokale Daten.</p><figure><a class="shot"><img alt=""></a><figcaption></figcaption></figure></article>
+  </div>
+  <script>
+    function update(){
+      const screen=document.querySelector('#screen').value,width=document.querySelector('#width').value;
+      const label=document.querySelector('#screen').selectedOptions[0].textContent;
+      document.querySelector('#study').href=`./?screen=${screen}`;
+      for(const article of document.querySelectorAll('[data-stage]')){
+        const stage=article.dataset.stage;
+        const src=stage==='live'?`./integrated/mono-${width}-${screen}.png`:`./screenshots/pass-${stage}/a-${width}-${screen}.png`;
+        article.querySelector('.shot').href=src;const img=article.querySelector('img');img.src=src;
+        img.alt=`${label} · ${width} px · ${stage==='live'?'echte App':`Pass ${stage}`}`;
+        article.querySelector('figcaption').textContent=img.alt+' · Anklicken für volle Auflösung.';
+        article.querySelector('figure').toggleAttribute('data-wide',width==='1280');
+      }
+    }
+    for(const select of document.querySelectorAll('select'))select.addEventListener('change',update);update();
+  </script>
+</body>
+</html>

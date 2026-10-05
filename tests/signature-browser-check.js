@@ -26,6 +26,7 @@ async (page) => {
     return app.evaluate(async () => { const db = await import('/src/db.js'); return JSON.stringify([await Promise.all(['entries','places','people','helperRules'].map(name => db.list(name, {prune:false}))), (await db.list('settings')).filter(item => item.id !== 'theme')]); });
   }
   async function inspect(label) {
+    await app.evaluate(() => document.fonts.ready);
     await app.mouse.move(0, 0);
     check(await app.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${label}: reflow`);
     const failures = await app.evaluate(() => {
@@ -47,7 +48,7 @@ async (page) => {
     await app.evaluate(() => { document.querySelector('#toast').hidden = true; });
     const framing = await app.addStyleTag({content:'body{display:flex;flex-direction:column;min-height:100vh}.app-header{width:100%}main{width:100%;flex:1;padding-bottom:3rem!important}.skip-link:not(:focus){visibility:hidden}.action-footer{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;margin:auto auto 0}'});
     await app.waitForTimeout(220);
-    await app.screenshot({ path: `/home/benjamin-lam/Projekte/blame76/app/design/signature-v2/integrated/a-${width}-${label}.png`, fullPage: true, animations: 'allow' });
+    await app.screenshot({ path: `/home/benjamin-lam/Projekte/blame76/app/design/signature-reference/integrated/mono-${width}-${label}.png`, fullPage: true, animations: 'allow' });
     await framing.evaluate(el=>el.remove());
   }
   try {
@@ -75,7 +76,7 @@ async (page) => {
     await app.reload(); await ready();
     check(await app.getAttribute('html','data-theme') === 'signature', 'Signature survives a restart');
     check(await app.evaluate(()=>window.visibleThemes.length>0&&window.visibleThemes.every(value=>value==='signature')), 'Stored Signature is restored before the app becomes visible');
-    check(await app.evaluate(()=>[...document.querySelectorAll('meta[name="theme-color"]')].every(m=>m.content==='#f1ede5'&&!m.hasAttribute('media'))), 'Browser frame follows the neutral Signature surface');
+    check(await app.evaluate(()=>[...document.querySelectorAll('meta[name="theme-color"]')].every(m=>m.content==='#171716'&&!m.hasAttribute('media'))), 'Browser frame follows the neutral Signature surface');
     await app.evaluate(async()=>{
       const db=await import('/src/db.js');const {HELPERS}=await import('/src/helpers/registry.js');const {helperDefaults}=await import('/src/helpers/contract.js');
       for(const helper of HELPERS){await db.put('helperRules',{...helperDefaults(helper),visible:true,favorite:true,timeBuckets:['evening']});await db.put('settings',{id:`usage:${helper.id}`,lastUsedAt:Date.now()-120000});}
@@ -87,7 +88,7 @@ async (page) => {
       await app.setViewportSize({width,height:width===390?844:960}); await home();
       await inspect(`${width}/dashboard`); await shot('dashboard');
       check(await app.locator('.home-accordion > summary').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize)<parseFloat(getComputedStyle(document.querySelector('#nowRows .note-tile strong')).fontSize)), `${width}: navigation heading stays quieter than the thought`);
-      check(await app.locator('.app-header').evaluate(el=>['rgba(0, 0, 0, 0)','rgb(241, 237, 229)'].includes(getComputedStyle(el).backgroundColor)), `${width}: no dominant header color area`);
+      check(await app.locator('.app-header').evaluate(el=>['rgba(0, 0, 0, 0)','rgb(23, 23, 22)'].includes(getComputedStyle(el).backgroundColor)), `${width}: no dominant header color area`);
       await open('pain','#painAreaForm');await app.locator('input[name="bodyArea"][value="Rücken"]').check();await app.locator('#painAreaForm button[type="submit"]').click();
       await app.locator('input[name="intensity"][value="4"]').check();
       check(await app.locator('.pain-value-number').textContent()==='4', `${width}: selected Pain value is shown`);
@@ -117,6 +118,11 @@ async (page) => {
     await app.locator('[data-pain="done"]').click();
     await notes();await app.locator('#readHost [data-note="one"]').click();await app.locator('#noteEdit').click();await app.locator('#noteEditText').fill('Ein Gedanke, den ich wieder lesen möchte.');await app.locator('#noteEditForm button[type="submit"]').click();await app.waitForSelector('#noteEdit');
     check(await app.locator('.note-text').textContent()==='Ein Gedanke, den ich wieder lesen möchte.','Signature uses the existing Notes edit lifecycle');
+    await notes(); await app.evaluate(() => document.fonts.ready);
+    check(await app.locator('#signatureHeadingScript').evaluate(el => el.textContent === 'Journal' && el.getAttribute('aria-hidden') === 'true' && getComputedStyle(el).fontFamily.includes('0815 Script')), 'Script is a decorative chapter accent with no duplicated accessible heading');
+    check(await app.locator('.note-copy').first().evaluate(el => getComputedStyle(el).fontFamily.includes('0815 Editorial')) && await app.evaluate(() => [...document.fonts].every(font => font.status === 'loaded')), 'Both bundled font faces load and Notes use the reference serif');
+    await app.locator('#readHost [data-note="one"]').click();
+    check(await app.locator('#signatureHeadingScript').isHidden() && await app.locator('#signatureHeadingScript').textContent() === '', 'Script leaves the header outside the Notes chapter');
     await settings();await app.locator('input[name="theme"][value="light"]').focus();await app.keyboard.press('Space');await app.waitForFunction(()=>document.documentElement.dataset.theme==='light');
     check(await app.locator('input[name="theme"][value="light"]').evaluate(el=>getComputedStyle(el).outlineWidth==='3px'),'Design selection is keyboard accessible with a visible focus');
     check(requests.every(url=>url.startsWith('http://127.0.0.1:8080/')),'Signature loads only local resources');

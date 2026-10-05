@@ -1,5 +1,8 @@
 # Signature v2 · Editorial Material
 
+> Historischer Stand 0.6.5. Die aktuelle, anhand der Bildreferenz umgesetzte
+> Richtung ist [Mono Editorial · 0.6.6](SIGNATURE_REFERENCE.md).
+
 **0.6.5 · 4. Oktober 2026 · `feature/signature-v2`**
 
 Der C-Entwurf aus 0.6.4 ist verworfen. Nach zwei statischen Entwürfen, Screenshots,

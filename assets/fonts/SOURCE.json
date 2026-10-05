@@ -1,0 +1,49 @@
+{
+  "repository": "https://github.com/google/fonts",
+  "revision": "9710da1eacb3be272583c3224dcb70f9da6eadbb",
+  "downloadDate": "2026-10-05",
+  "files": [
+    {
+      "file": "CormorantGaramond.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf",
+      "sha256": "b20b7d9626dd956b2c5e558692ad328b1f19e3275e2782db4fa07670d83f35e0",
+      "bytes": 1195560
+    },
+    {
+      "file": "GreatVibes.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl/greatvibes/GreatVibes-Regular.ttf",
+      "sha256": "8d509802186f1b51572531ecf313e8098f9a5bfdfaca93f0c9b34467f9982d15",
+      "bytes": 457588
+    },
+    {
+      "file": "OFL-CormorantGaramond.txt",
+      "url": "https://raw.githubusercontent.com/google/fonts/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl/cormorantgaramond/OFL.txt",
+      "sha256": "60700d351cac4650c51f3f9db318d2a420f8b45052dba2715eb5fec41f0f6956",
+      "bytes": 4387
+    },
+    {
+      "file": "OFL-GreatVibes.txt",
+      "url": "https://raw.githubusercontent.com/google/fonts/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl/greatvibes/OFL.txt",
+      "sha256": "61093a21f5e63dedf54222b3c09997e54c0fe43e3851d21386e02ddcbc246d49",
+      "bytes": 4399
+    }
+  ],
+  "conversion": {
+    "tool": "fonttools",
+    "version": "4.59.2",
+    "format": "woff2",
+    "glyphs": "complete, no subsetting"
+  },
+  "bundled": [
+    {
+      "file": "CormorantGaramond.woff2",
+      "bytes": 209308,
+      "sha256": "1bc54bf0b932389bf0390c76be4f69413a5730aefe78424c2d57b929933a0c29"
+    },
+    {
+      "file": "GreatVibes.woff2",
+      "bytes": 161864,
+      "sha256": "c5c9aae6939f1bcf219b58dd897c84073139e8c7e3ca7fe971f90f46f718bf2c"
+    }
+  ]
+}

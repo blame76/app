@@ -12,6 +12,8 @@ const output = join(root, 'dist');
 const files = [...new Set([
   'index.html', 'manifest.webmanifest', 'sw.js',
   'assets/styles.css', 'assets/notes.css', 'assets/signature.css', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
+  'assets/fonts/CormorantGaramond.woff2', 'assets/fonts/GreatVibes.woff2',
+  'assets/fonts/OFL-CormorantGaramond.txt', 'assets/fonts/OFL-GreatVibes.txt',
   'src/app.js', 'src/db.js', 'src/schema.js', 'src/context.js', 'src/retention.js',
   'src/read-views.js', 'src/navigation.js',
   'src/notes.js', 'src/note-views.js', 'src/note-presentation.js', 'src/pwa-update.js', 'src/theme.js',

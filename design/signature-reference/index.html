@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="de" data-theme="signature">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>0815 · Signature · Mono Editorial</title>
+  <link rel="stylesheet" href="../../assets/styles.css">
+  <link rel="stylesheet" href="../../assets/notes.css">
+  <link rel="stylesheet" href="../../src/helpers/pain/styles.css">
+  <link rel="stylesheet" href="./draft.css">
+  <link rel="stylesheet" href="../signature-v2/review.css">
+</head>
+<body>
+  <nav class="review-bar" aria-label="Designstudie">
+    <a href="./comparison.html">Vergleich</a>
+    <a data-screen-link="dashboard">Jetzt</a>
+    <a data-screen-link="notes">Notizen</a>
+    <a data-screen-link="detail">Detail</a>
+    <a data-screen-link="pain">Schmerz</a>
+  </nav>
+  <a class="skip-link" href="#main">Zum Inhalt</a>
+  <header class="app-header">
+    <button id="backButton" class="icon-button quiet" type="button" aria-label="Zurück">←</button>
+    <button id="brandButton" class="brand-button" type="button" aria-label="Zur Startseite">0815</button>
+    <h1 id="focusTitle" class="focus-title" tabindex="-1"></h1>
+    <span id="signatureHeadingScript" class="signature-heading-script" aria-hidden="true"></span>
+    <button id="helperSettingsButton" class="icon-button quiet" type="button" aria-label="Helfer-Einstellungen" hidden>⚙</button>
+    <div class="header-menu-wrap"><button id="menuButton" class="icon-button quiet" type="button" aria-label="Notizen öffnen">⋯</button></div>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <footer class="action-footer" aria-label="Erfassen">
+    <button type="button" data-demo="Ort erfassen"><span aria-hidden="true">◎</span><span>Ort</span></button>
+    <button type="button" data-demo="Notiz erfassen"><span aria-hidden="true">＋</span><span>Notiz</span></button>
+    <button type="button" data-demo="Person erfassen"><span aria-hidden="true">○</span><span>Person</span></button>
+  </footer>
+  <p id="studyStatus" class="toast" role="status" hidden></p>
+  <script type="module" src="./study.js"></script>
+</body>
+</html>

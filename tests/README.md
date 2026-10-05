@@ -247,7 +247,7 @@ Shell-Änderungen ohne Versionssprung und Ausschluss der Signature-Studien aus d
 Die isolierten Signature-Aufnahmen und deren Reflow-/Bedienprüfungen stehen in
 [`design/signature/README.md`](../design/signature/README.md).
 
-## Design Modes und Signature v2
+## Design Modes und Signature / Mono Editorial
 
 `signature-browser-check.js` nutzt echte Settings und IndexedDB. Es prüft exakt drei
 Optionen, einmalige Übernahme des bisherigen Modus, explizites Light/Dark gegen die
@@ -255,13 +255,13 @@ Systemeinstellung, Neustart-Persistenz, Fehler/Retry und unveränderte Fachdaten
 Die reale Signature-Ausgabe wird bei 320/390/768/1280 px und 320 px mit 200 % Text auf
 Reflow, Textkontraste, Tastatur, Fokus und Reduced Motion geprüft. Schmerz und Notes
 speichern weiter über die bestehenden Abläufe. Aufnahmen stehen unter
-`design/signature-v2/integrated/`; nur für Full-Page-Aufnahmen sitzt der Footer am
+`design/signature-reference/integrated/`; nur für Full-Page-Aufnahmen sitzt der Footer am
 Dokumentende und der inaktive Skip-Link wird verborgen.
 
 `theme-screenshots.js` erfasst identische reale Fixtures vor/nach der Integration
 unter `.playwright-mcp/theme-before-*` und `theme-after-*`. Nachher läuft jeder Modus
 gegen die entgegengesetzte Systemeinstellung. Die archivierte Pixelgleichheit aller
-16 Paare steht in `design/signature-v2/checks.json`. Für einen neuen Vergleich
+16 Paare steht in `design/signature-reference/checks.json`. Für einen neuen Vergleich
 den Ausgangsstand vor Änderungen mit `?phase=before` und den neuen Stand mit
 `?phase=after` im bereitgestellten Browser erfassen und die PNG-Pixel vergleichen.
 
@@ -273,3 +273,12 @@ pro Pass. Über den bereitgestellten Browser zuerst `design/signature-v2/?pass=1
 beziehungsweise `?pass=2` öffnen, dann die Datei ausführen. Je Pass entstehen 16
 Screenshots. Pass 1 ist archiviert; aktuelle CSS zeigt Pass 2. Die Studien laden
 keine verworfenen C-Styles, registrieren keinen Worker und erstellen keine Datenbanken.
+
+`design/signature-reference/capture.js` prüft die neue Bildreferenz mit 48 Checks
+und acht Screenshots je Pass. Ausgangsseite `design/signature-reference/?pass=1`
+bzw. `?pass=2`. Beide Passes sind archiviert; aktuelle CSS entspricht Pass 2.
+Der Live-Gate prüft zusätzlich beide geladenen Schriftdateien, Serif-Inhalte und
+das dekorative, für Screenreader ausgeblendete Script im Notes-Kapitel. Der echte
+PWA-Gate lädt beide Schriftfamilien offline und prüft deren Fonts/OFL-Dateien im
+aktuellen Cache. Der Pages-Gate prüft CSS-Font-URLs unter `/app/` und Release-Hashes
+nach Änderungen beider Binärdateien. Die vorigen A/B-Studien bleiben historische Tests.

@@ -1,7 +1,7 @@
 import { get, put } from './db.js';
 
 export const DESIGN_MODES = ['light', 'dark', 'signature'];
-const colors = { light: '#f5f2eb', dark: '#211f1e', signature: '#f1ede5' };
+const colors = { light: '#f5f2eb', dark: '#211f1e', signature: '#171716' };
 
 function applyTheme(value) {
   document.documentElement.dataset.theme = value;
