@@ -12,7 +12,7 @@ import { renderNote, renderNoteEdit, renderNoteContext, renderNoteContextPicker 
 import { noteTextClass } from './note-presentation.js';
 import { startPwaUpdates } from './pwa-update.js';
 import { initializeTheme, saveTheme } from './theme.js';
-import { PLACE_RADII, LOCATION_EXPLANATION, RADIUS_EXPLANATION, groupPlaces, radiusLabel } from './places.js';
+import { PLACE_RADII, LOCATION_EXPLANATION, RADIUS_EXPLANATION, groupPlaces, parsePlaceCoordinates, radiusLabel } from './places.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -804,7 +804,7 @@ async function openPerson(id, name, options = {}) {
 const staticViews = {
   privacy: {
     title: 'Datenschutz',
-    html: `<p>Erfasste Inhalte werden lokal in diesem Browser gespeichert und von der App nicht an einen Server übertragen. Es gibt kein Benutzerkonto und keine Nutzungsanalyse.</p><p>Nach Browserfreigabe wird der Standort auf der Startseite mit Ortsverknüpfungen und beim Öffnen von „Diesen Ort merken“ abgefragt. Bei sichtbarer Startseite mit Ortsverknüpfungen aktualisiert die App die erkannten Orte bei Standortänderungen. Beim Verlassen der Startseite oder Wechsel in den Hintergrund endet diese Beobachtung. Beim Parkplatz merken wird der Standort nur nach deiner Aktion abgefragt und lokal gespeichert.</p><p>${LOCATION_EXPLANATION}</p><p><strong>Vor Veröffentlichung:</strong> Angaben zu Server-Logs des tatsächlichen Hosters ergänzen.</p>`
+    html: `<p>Erfasste Inhalte werden lokal in diesem Browser gespeichert und von der App nicht an einen Server übertragen. Es gibt kein Benutzerkonto und keine Nutzungsanalyse.</p><p>Nach Browserfreigabe wird der Standort auf der Startseite mit Ortsverknüpfungen und bei „Ort hinzufügen“ nur nach der bewussten Auswahl „Hier“ abgefragt. Manuell eingegebene Koordinaten werden lokal gespeichert und lösen keine Standortabfrage aus. Bei sichtbarer Startseite mit Ortsverknüpfungen aktualisiert die App die erkannten Orte bei Standortänderungen. Beim Verlassen der Startseite oder Wechsel in den Hintergrund endet diese Beobachtung. Beim Parkplatz merken wird der Standort nur nach deiner Aktion abgefragt und lokal gespeichert.</p><p>${LOCATION_EXPLANATION}</p><p><strong>Vor Veröffentlichung:</strong> Angaben zu Server-Logs des tatsächlichen Hosters ergänzen.</p>`
   },
   imprint: {
     title: 'Impressum',
@@ -862,15 +862,105 @@ async function openComposer(type, trigger = null) {
   }
 
   if (type === 'place') {
-    title.textContent = 'Diesen Ort merken';
-    body.innerHTML = `<form id="placeForm" class="composer-form"><label>Name<input name="name" placeholder="z. B. Einkaufszentrum" required></label><label>Kategorie<select name="category">${categoryOptions()}</select></label><label>Radius<select name="radius" aria-describedby="placeRadiusHelp">${radiusOptions()}</select></label><p id="placeRadiusHelp" class="muted">${RADIUS_EXPLANATION}</p><button type="submit">Ort speichern</button><p id="placeStatus" class="muted" aria-live="polite"></p></form>`;
-    let position;
+    title.textContent = 'Ort hinzufügen';
+    body.innerHTML = `<form id="placeForm" class="composer-form">
+      <label>Name<input name="name" placeholder="z. B. Einkaufszentrum" required></label>
+      <fieldset aria-describedby="placePositionHelp"><legend>Position</legend>
+        <label class="check-row"><input type="radio" name="positionSource" value="current"> Hier</label>
+        <label class="check-row"><input type="radio" name="positionSource" value="manual"> Andere Position</label>
+      </fieldset>
+      <p id="placePositionHelp" class="muted">„Hier“ fragt deinen Browser erst nach dieser Auswahl nach dem aktuellen Standort. „Andere Position“ verwendet nur die von dir eingefügten Koordinaten.</p>
+      <div id="placeCurrentPosition" class="stack" hidden><p id="placeStatus" class="muted" aria-live="polite"></p></div>
+      <div id="placeManualPosition" class="stack" hidden>
+        <label>Koordinaten<input name="coordinates" placeholder="53.0793, 8.8017" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="placeCoordinateHint placeCoordinateStatus"></label>
+        <p id="placeCoordinateHint" class="muted">Breitengrad, Längengrad · Dezimalpunkt verwenden. Auch <code>geo:53.0793,8.8017</code> wird akzeptiert.</p>
+        <details id="placeCoordinateHelp">
+          <summary>Wo finde ich die Koordinaten?</summary>
+          <div class="prose">
+            <p><strong>Google Maps:</strong> Ort suchen oder einen Pin setzen und die angezeigten Koordinaten kopieren.</p>
+            <p><strong>Apple Karten:</strong> Ort oder Pin öffnen, zu „Koordinaten“ scrollen und kopieren.</p>
+            <p>0815 verwendet die eingefügten Werte nur lokal zum Speichern und Erkennen dieses Ortes.</p>
+          </div>
+        </details>
+        <p id="placeCoordinateStatus" class="muted" role="status"></p>
+      </div>
+      <label>Kategorie<select name="category">${categoryOptions()}</select></label>
+      <label>Radius<select name="radius" aria-describedby="placeRadiusHelp">${radiusOptions()}</select></label>
+      <p id="placeRadiusHelp" class="muted">${RADIUS_EXPLANATION}</p>
+      <button type="submit" disabled>Ort speichern</button>
+    </form>`;
+
     const form = $('#placeForm');
-    const status = $('#placeStatus');
     const saveButton = form.querySelector('button[type="submit"]');
-    saveButton.disabled = true;
+    const currentPanel = $('#placeCurrentPosition');
+    const manualPanel = $('#placeManualPosition');
+    const status = $('#placeStatus');
+    const coordinates = form.elements.namedItem('coordinates');
+    const coordinateStatus = $('#placeCoordinateStatus');
+    let currentPosition = null;
+    let locationRequest = 0;
+
+    const source = () => form.elements.namedItem('positionSource').value;
+    const updateManualState = () => {
+      const parsed = parsePlaceCoordinates(coordinates.value);
+      const hasValue = coordinates.value.trim().length > 0;
+      coordinateStatus.textContent = !hasValue
+        ? ''
+        : parsed
+          ? `Position erkannt: ${parsed.lat}, ${parsed.lon}`
+          : 'Koordinaten nicht erkannt. Beispiel: 53.0793, 8.8017';
+      if (source() === 'manual') saveButton.disabled = !parsed;
+    };
+
+    async function selectPositionSource() {
+      const selected = source();
+      const request = ++locationRequest;
+      currentPosition = null;
+      currentPanel.hidden = selected !== 'current';
+      manualPanel.hidden = selected !== 'manual';
+
+      if (selected === 'manual') {
+        status.textContent = '';
+        updateManualState();
+        coordinates.focus();
+        return;
+      }
+
+      if (selected !== 'current') {
+        saveButton.disabled = true;
+        return;
+      }
+
+      saveButton.disabled = true;
+      status.textContent = 'Standort wird abgefragt …';
+      try {
+        const position = await getPosition({ maximumAge: 0 });
+        if (!current() || request !== locationRequest || source() !== 'current') return;
+        currentPosition = position;
+        status.textContent = `Standort bereit. Gemeldete Genauigkeit: etwa ${Math.round(position.accuracy)} Meter.`;
+        saveButton.disabled = false;
+      } catch {
+        if (current() && request === locationRequest && source() === 'current') {
+          status.textContent = 'Standort nicht verfügbar. Bitte die Standortfreigabe im Browser prüfen oder „Andere Position“ wählen.';
+        }
+      }
+    }
+
+    for (const input of form.querySelectorAll('input[name="positionSource"]')) input.addEventListener('change', selectPositionSource);
+    coordinates.addEventListener('input', updateManualState);
+
     bindSubmit(form, async data => {
-      if (!position || !current()) { toast('Standort noch nicht verfügbar.'); return; }
+      if (!current()) return;
+      const selected = data.get('positionSource');
+      const position = selected === 'current'
+        ? currentPosition
+        : selected === 'manual'
+          ? parsePlaceCoordinates(data.get('coordinates'))
+          : null;
+      if (!position) {
+        toast(selected === 'manual' ? 'Bitte gültige Koordinaten eingeben.' : selected === 'current' ? 'Standort noch nicht verfügbar.' : 'Bitte „Hier“ oder „Andere Position“ wählen.');
+        return;
+      }
       const name = data.get('name').trim();
       if (!name) return;
       await put('places', { id: makeId('place'), name, lat: position.lat, lon: position.lon, radius: Number(data.get('radius')), ...(data.get('category') ? { category: data.get('category') } : {}), createdAt: Date.now() });
@@ -878,16 +968,8 @@ async function openComposer(type, trigger = null) {
       toast('Ort gespeichert.');
       if (!$('#view-settings').hidden) await renderSettings();
     });
+
     form.querySelector('input[name="name"]').focus();
-    status.textContent = 'Standort wird abgefragt …';
-    try {
-      position = await getPosition({ maximumAge: 0 });
-      if (!current()) return;
-      status.textContent = `Standort bereit. Gemeldete Genauigkeit: etwa ${Math.round(position.accuracy)} Meter.`;
-      saveButton.disabled = false;
-    } catch {
-      if (current()) status.textContent = 'Standort nicht verfügbar. Bitte die Standortfreigabe im Browser prüfen und erneut öffnen.';
-    }
   }
 
   if (type === 'person') {
