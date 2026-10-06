@@ -352,3 +352,13 @@ Ortungsfehler, Vordergrundlebenszyklus, Fokus, 320 px/200 % Text und externe Req
 `helpers-offline-check.js` ergänzt Speichern, Reload, Anzeigen und Löschen des
 Parkplatzes mit echtem Worker und kontrollierter Geräteposition. Reale Geräteortung
 und Betriebssystem-Standortdienste werden dadurch nicht geprüft.
+
+## Eigene Zeitfenster
+
+`time-windows.mjs` prüft Default-Kompatibilität, überlappende und über Mitternacht
+laufende Fenster, Start-/Endgrenzen, Prioritäten, beide Notizarten, Validierung und
+alte/neue Importformate. `time-windows-browser-check.js` führt den tatsächlichen
+Speicher- und Bearbeitungsablauf mit Reload, beiden Notizarten, Löschung ohne
+Kaskade, Import/Export, drei Themes, 320 px/200 % Text und echtem Offline-Worker aus.
+Es nutzt die kontrollierte Playwright-Uhr und isolierte Browserprofile.
+Ergebnisse, Korrektur und offene Prüflücken: [Zeitfenster-Prüfbericht](../docs/TIME_WINDOWS_TESTS.md).

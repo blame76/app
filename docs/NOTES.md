@@ -38,8 +38,9 @@ Unveränderte importierte Texte einschließlich Rand-Whitespace bleiben erhalten
 Abbrechen und Zurück speichern keinen Entwurf; leerer Text ist nicht speicherbar.
 
 Kontext verwendet gespeicherte `places`, `matchingPlaces()`, `getPosition()` und
-`TIME_BUCKETS` (`morning`, `midday`, `evening`, `night`). Jeder Ort und jede Tageszeit
-kann ausgewählt, ersetzt und einzeln entfernt werden. Kontextänderungen berühren
+`TIME_BUCKETS` (`morning`, `midday`, `evening`, `night`) plus lokal konfigurierte
+Zeitfenster mit stabilen `time-…`-IDs. Jeder Ort und jedes Zeitfenster kann ausgewählt,
+ersetzt und einzeln entfernt werden. Kontextänderungen berühren
 weder Text noch Zeitstempel und aktualisieren „Jetzt“.
 
 Die Semantik ist ausdrücklich **Ort ODER Tageszeit**. Ein Ortsmatch hat Rang 400,

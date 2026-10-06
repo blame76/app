@@ -44,6 +44,7 @@ test('Install includes registered helper module and its additional assets', asyn
     assert.ok(urls.includes(`https://example.test/app/assets/fonts/${file}`));
   }
   assert.ok(urls.includes('https://example.test/app/src/theme.js'));
+  assert.ok(urls.includes('https://example.test/app/src/time-windows.js'));
   assert.ok(urls.includes('https://example.test/app/src/note-presentation.js'));
   assert.ok(w.precached.every(request => request.cache === 'reload'));
 });

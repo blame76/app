@@ -1,8 +1,8 @@
 import { HELPERS } from './helpers/registry.js';
 import { validateRegistry, helperDefaults } from './helpers/contract.js';
 import { list, get, put, remove, clearAll, exportAll, importAll, makeId, pruneEntries } from './db.js';
-import { evaluateHelperContext, getPosition, watchPosition, matchingPlaces, nextTimeBoundary, timeBucket, timeBucketLabel } from './context.js';
-import { TIME_BUCKETS, PLACE_CATEGORIES, validateRule } from './schema.js';
+import { evaluateHelperContext, getPosition, watchPosition, matchingPlaces, matchingTimeWindows, nextTimeBoundary, timeBucketLabel } from './context.js';
+import { PLACE_CATEGORIES, validateRule } from './schema.js';
 import { fromLegacyMinutes, INTERVAL_UNITS, intervalLabel, intervalUnitLabel } from './intervals.js';
 import { RETENTION_WINDOWS } from './retention.js';
 import { renderNotes, renderPeople, renderPerson } from './read-views.js';
@@ -13,6 +13,7 @@ import { noteTextClass } from './note-presentation.js';
 import { startPwaUpdates } from './pwa-update.js';
 import { initializeTheme, saveTheme } from './theme.js';
 import { PLACE_RADII, LOCATION_EXPLANATION, RADIUS_EXPLANATION, groupPlaces, parsePlaceCoordinates, radiusLabel } from './places.js';
+import { allTimeWindows, DEFAULT_TIME_WINDOWS, findTimeWindow, minutesToTime, timeToMinutes, TIME_WINDOW_SETTING_ID, validateCustomTimeWindow } from './time-windows.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -164,6 +165,28 @@ function stopHelper() {
 
 async function lastUsed(helperId) {
   return (await get('settings', `usage:${helperId}`))?.lastUsedAt || 0;
+}
+
+async function customTimeWindows() {
+  return (await get('settings', TIME_WINDOW_SETTING_ID))?.value || [];
+}
+
+async function configuredTimeWindows() {
+  return allTimeWindows(await customTimeWindows());
+}
+
+function customTimeWindowFromForm(id, data) {
+  const window = {
+    id,
+    label: data.get('label').trim(),
+    startMinute: timeToMinutes(data.get('start')),
+    endMinute: timeToMinutes(data.get('end'))
+  };
+  return validateCustomTimeWindow(window);
+}
+
+async function storeCustomTimeWindows(windows) {
+  await put('settings', { id: TIME_WINDOW_SETTING_ID, value: windows });
 }
 
 function returnFocusTarget() {
@@ -323,17 +346,22 @@ async function openHelperSettings(id, options = {}) {
   const root = $('#helperSettingsHost');
   root.replaceChildren();
   const rule = await getRule(helper);
-  const places = await list('places');
+  const [places, timeWindows] = await Promise.all([list('places'), configuredTimeWindows()]);
   if (version !== viewVersion) return;
   const contexts = helper.contexts || [];
   const hasContexts = contexts.length > 0;
+  const missingTimeIds = rule.timeBuckets.filter(id => !findTimeWindow(id, timeWindows));
+  const timeOptions = [
+    ...timeWindows.map(window => ({ id: window.id, label: timeBucketLabel(window.id, { capitalize: true, timeWindows }) })),
+    ...missingTimeIds.map(id => ({ id, label: 'Zeitfenster nicht mehr vorhanden' }))
+  ];
   root.innerHTML = `
     <form id="helperSettingsForm" class="stack">
       <label class="toggle-row"><span><strong>Favorit</strong><small>In „Favoriten“ anzeigen.</small></span><input name="favorite" type="checkbox" ${rule.favorite ? 'checked' : ''}></label>
       <label class="toggle-row"><span><strong>Sichtbar</strong><small>In „Alle Helfer“ anzeigen.</small></span><input name="visible" type="checkbox" ${rule.visible ? 'checked' : ''}></label>
       ${hasContexts ? '<h2 class="settings-question">Wann soll dieser Helfer unter „Jetzt“ erscheinen?</h2>' : ''}
       ${contexts.includes('place') ? `<fieldset><legend>An einem Ort</legend>${places.length ? places.map(place => `<label class="check-row"><input type="checkbox" name="place" value="${escapeHtml(place.id)}" ${rule.placeIds.includes(place.id) ? 'checked' : ''}> ${escapeHtml(place.name)}</label>`).join('') : '<p class="muted">Noch kein Ort gespeichert.</p>'}</fieldset>` : ''}
-      ${contexts.includes('time') ? `<fieldset><legend>Zu einer Tageszeit</legend>${TIME_BUCKETS.map(bucket => `<label class="check-row"><input type="checkbox" name="time" value="${bucket}" ${rule.timeBuckets.includes(bucket) ? 'checked' : ''}> ${timeBucketLabel(bucket, { capitalize: true })}</label>`).join('')}</fieldset>` : ''}
+      ${contexts.includes('time') ? `<fieldset><legend>In einem Zeitfenster</legend>${timeOptions.map(option => `<label class="check-row"><input type="checkbox" name="time" value="${escapeHtml(option.id)}" ${rule.timeBuckets.includes(option.id) ? 'checked' : ''}> <span>${escapeHtml(option.label)}</span></label>`).join('')}</fieldset>` : ''}
       ${contexts.includes('interval') ? `<fieldset><legend>Nach erfolgreicher Nutzung wieder zeigen</legend><div class="form-grid two">
         <label>Zeitraum<input name="intervalValue" type="number" min="1" max="1000" step="1" inputmode="numeric" value="${escapeHtml(rule.interval?.value ?? '')}"></label>
         <label>Einheit<select name="intervalUnit">${INTERVAL_UNITS.map(unit => `<option value="${unit}" ${rule.interval?.unit === unit ? 'selected' : ''}>${intervalUnitLabel(unit, rule.interval?.value)}</option>`).join('')}</select></label>
@@ -388,23 +416,23 @@ function tile(helper, reason, launchPlace) {
 }
 
 async function dashboardCandidates(visible, position = null, date = new Date()) {
-  const [places, entries, people] = await Promise.all([list('places'), list('entries', { prune: false }), list('people')]);
+  const [places, entries, people, timeWindows] = await Promise.all([list('places'), list('entries', { prune: false }), list('people'), configuredTimeWindows()]);
   const hasPlaceRules = visible.some(({ rule }) => rule.placeIds.some(id => places.some(place => place.id === id)))
     || entries.some(entry => isNote(entry) && noteContext(entry).placeIds.some(id => places.some(place => place.id === id)));
   const activePlaces = matchingPlaces(position, places);
-  const bucket = timeBucket(date);
+  const activeTimeIds = matchingTimeWindows(date, timeWindows).map(window => window.id);
   const items = [];
   let nextIntervalAt = null;
   for (const { helper, rule } of visible) {
     const usedAt = await lastUsed(helper.id);
-    const state = evaluateHelperContext(rule, activePlaces, usedAt, date);
+    const state = evaluateHelperContext(rule, activePlaces, usedAt, date, timeWindows);
     if (state.nextIntervalAt !== null && (nextIntervalAt === null || state.nextIntervalAt < nextIntervalAt)) nextIntervalAt = state.nextIntervalAt;
     if (state.match) items.push({ helper, usedAt, ...state.match });
   }
-  items.push(...relevantNotes(entries, activePlaces, bucket).map(item => ({ ...item, person: people.find(person => person.id === item.note.personId) })));
+  items.push(...relevantNotes(entries, activePlaces, activeTimeIds, timeWindows).map(item => ({ ...item, person: people.find(person => person.id === item.note.personId) })));
   const hasTimeRules = visible.some(({ rule }) => rule.timeBuckets.length)
     || entries.some(entry => isNote(entry) && noteContext(entry).timeBuckets.length);
-  const nextRefreshAt = Math.min(nextIntervalAt ?? Infinity, hasTimeRules ? nextTimeBoundary(date) : Infinity);
+  const nextRefreshAt = Math.min(nextIntervalAt ?? Infinity, hasTimeRules ? (nextTimeBoundary(date, timeWindows) ?? Infinity) : Infinity);
   return {
     hasPlaceRules,
     nextRefreshAt: Number.isFinite(nextRefreshAt) ? nextRefreshAt : null,
@@ -501,11 +529,12 @@ function categoryOptions(category) {
 async function renderSettings() {
   syncThemeChoice();
   const version = viewVersion;
-  const rules = await list('helperRules');
+  const [rules, customWindows] = await Promise.all([list('helperRules'), customTimeWindows()]);
+  const timeWindows = allTimeWindows(customWindows);
   if (version !== viewVersion) return;
   $('#rulesList').innerHTML = rules.length ? rules.map(rule => {
     const interval = rule.interval || (rule.intervalMinutes ? fromLegacyMinutes(rule.intervalMinutes) : null);
-    return `<div class="list-item"><span><strong>${escapeHtml(helperById(rule.id)?.label || rule.id)}</strong><small>${escapeHtml([rule.favorite ? 'Favorit' : '', rule.placeIds?.length ? `${rule.placeIds.length} ${rule.placeIds.length === 1 ? 'Ort' : 'Orte'}` : '', rule.timeBuckets?.length ? rule.timeBuckets.map(timeBucketLabel).join(', ') : '', interval ? `Nach Nutzung: ${intervalLabel(interval)}` : ''].filter(Boolean).join(' · ') || 'Keine Verknüpfung')}</small></span></div>`;
+    return `<div class="list-item"><span><strong>${escapeHtml(helperById(rule.id)?.label || rule.id)}</strong><small>${escapeHtml([rule.favorite ? 'Favorit' : '', rule.placeIds?.length ? `${rule.placeIds.length} ${rule.placeIds.length === 1 ? 'Ort' : 'Orte'}` : '', rule.timeBuckets?.length ? rule.timeBuckets.map(id => findTimeWindow(id, timeWindows) ? timeBucketLabel(id, { timeWindows }) : 'Zeitfenster nicht mehr vorhanden').join(', ') : '', interval ? `Nach Nutzung: ${intervalLabel(interval)}` : ''].filter(Boolean).join(' · ') || 'Keine Verknüpfung')}</small></span></div>`;
   }).join('') : '<p class="muted">Noch keine Verknüpfungen.</p>';
 
   const places = await list('places');
@@ -524,6 +553,42 @@ async function renderSettings() {
     if (!savedForm) return;
     savedForm.querySelector('[role="status"]').textContent = 'Ort gespeichert.';
     savedForm.querySelector('button').focus();
+  });
+
+  $('#defaultTimeWindows').innerHTML = DEFAULT_TIME_WINDOWS.map(window =>
+    `<div class="list-item"><span><strong>${escapeHtml(timeBucketLabel(window.id, { capitalize: true, timeWindows }))}</strong><small>Standard</small></span></div>`
+  ).join('');
+  $('#timeWindowsList').innerHTML = customWindows.length
+    ? customWindows.map(window => `<form class="stack time-window-settings" data-time-window-form="${escapeHtml(window.id)}">
+        <label>Name<input name="label" value="${escapeHtml(window.label)}" maxlength="60" required></label>
+        <div class="form-grid two">
+          <label>Von<input name="start" type="time" value="${minutesToTime(window.startMinute)}" required></label>
+          <label>Bis<input name="end" type="time" value="${minutesToTime(window.endMinute)}" required></label>
+        </div>
+        <div class="actions"><button type="submit" class="secondary">Änderungen speichern</button><button class="quiet danger-text" type="button" data-remove-time-window="${escapeHtml(window.id)}">Entfernen</button></div>
+        <p role="status" class="muted"></p>
+      </form>`).join('')
+    : '<p class="muted">Noch kein eigenes Zeitfenster.</p>';
+  for (const form of $$('#timeWindowsList form')) bindSubmit(form, async data => {
+    const id = form.dataset.timeWindowForm;
+    let nextWindow;
+    try { nextWindow = customTimeWindowFromForm(id, data); }
+    catch {
+      toast('Bitte Name sowie unterschiedliche Start- und Endzeit für das Zeitfenster prüfen.');
+      return;
+    }
+    const current = await customTimeWindows();
+    if (!current.some(window => window.id === id)) throw new Error('Zeitfenster nicht mehr vorhanden.');
+    await storeCustomTimeWindows(current.map(window => window.id === id ? nextWindow : window));
+    if (version !== viewVersion) return;
+    await renderSettings();
+    if (version !== viewVersion) return;
+    const savedForm = $$('#timeWindowsList form').find(item => item.dataset.timeWindowForm === id);
+    if (savedForm) {
+      savedForm.querySelector('[role="status"]').textContent = 'Zeitfenster gespeichert.';
+      savedForm.querySelector('button').focus();
+    }
+    if (dashboardVisible()) refreshNow();
   });
 
   const visibilityHtml = helpers.length ? (await Promise.all(helpers.map(async helper => {
@@ -582,7 +647,7 @@ async function openNoteScreen(id, title, open, options, render) {
   root.setAttribute('aria-busy', 'true');
   const current = () => version === viewVersion;
   try {
-    const [note, places] = await Promise.all([get('entries', id), list('places')]);
+    const [note, places, timeWindows] = await Promise.all([get('entries', id), list('places'), configuredTimeWindows()]);
     if (!current()) return;
     if (!isNote(note)) { toast('Notiz nicht mehr vorhanden.'); await goBack(); return; }
     const person = note.type === 'person-note' && note.personId ? await get('people', note.personId) : null;
@@ -592,7 +657,7 @@ async function openNoteScreen(id, title, open, options, render) {
       navigation.enter({ title: resolvedTitle, open }, { replace: true });
       $('#focusTitle').textContent = resolvedTitle;
     }
-    render(root, note, places, current, person);
+    render(root, note, places, current, person, timeWindows);
     if ($('#quickComposer').hidden) $('#focusTitle').focus({ preventScroll: true });
   } catch (error) {
     if (current()) reportError(error, 'Notiz konnte nicht geladen werden. Bitte erneut versuchen.');
@@ -619,12 +684,12 @@ async function refreshNoteList() {
 }
 
 async function openNote(id, options = {}) {
-  await openNoteScreen(id, 'Notiz', () => openNote(id, { replace: true }), options, (root, note, places, current, person) => {
+  await openNoteScreen(id, 'Notiz', () => openNote(id, { replace: true }), options, (root, note, places, current, person, timeWindows) => {
     renderNote(root, note, places, {
       edit: guarded(() => openNoteEdit(id)),
       context: guarded(() => openNoteContext(id)),
       remove: () => confirmNoteDelete(id, noteLabel(note))
-    }, person);
+    }, person, { timeWindows });
   });
 }
 
@@ -676,19 +741,19 @@ function contextActions(root, note, current, actions, capture = false) {
         buttons.forEach(button => { button.disabled = false; });
       }
     }
-  }, { capture });
+  }, { capture, timeWindows: actions.timeWindows || DEFAULT_TIME_WINDOWS });
 }
 
 async function openNoteContext(id, kind = null, options = {}) {
-  const title = kind ? (kind === 'placeIds' ? 'Ort' : 'Tageszeit') : 'Wann soll diese Notiz wieder auftauchen?';
-  await openNoteScreen(id, title, () => openNoteContext(id, kind, { replace: true }), options, (root, note, places, current) => {
+  const title = kind ? (kind === 'placeIds' ? 'Ort' : 'Zeitfenster') : 'Wann soll diese Notiz wieder auftauchen?';
+  await openNoteScreen(id, title, () => openNoteContext(id, kind, { replace: true }), options, (root, note, places, current, person, timeWindows) => {
     if (!kind) {
       contextActions(root, note, current, {
-        places, choose: kind => openNoteContext(id, kind), done: goBack,
+        places, timeWindows, choose: kind => openNoteContext(id, kind), done: goBack,
         refresh: () => openNoteContext(id, null, { replace: true })
       });
     } else {
-      const form = renderNoteContextPicker(root, note, places, kind, guarded(goBack));
+      const form = renderNoteContextPicker(root, note, places, kind, guarded(goBack), { timeWindows });
       bindSubmit(form, async data => {
         try { await saveNoteContext(id, { [kind]: data.getAll('context') }, current); }
         catch { if (current()) contextError(root, 'Verknüpfung konnte nicht gespeichert werden. Bitte erneut versuchen.'); return; }
@@ -745,7 +810,7 @@ function noteFollowup(note, composerCurrent) {
     $('#quickComposerTitle').textContent = 'Gespeichert';
     // Saving is already complete: Done remains available even if context reads fail.
     const actions = {
-      places: [], choose: kind => show(kind), done: closeComposer,
+      places: [], timeWindows: DEFAULT_TIME_WINDOWS, choose: kind => show(kind), done: closeComposer,
       refresh: () => show(null, '#quickNoteChoosePlace')
     };
     if (!kind) {
@@ -754,13 +819,13 @@ function noteFollowup(note, composerCurrent) {
     }
     body.setAttribute('aria-busy', 'true');
     try {
-      const [saved, places] = await Promise.all([requireNote(note.id), list('places')]);
+      const [saved, places, timeWindows] = await Promise.all([requireNote(note.id), list('places'), configuredTimeWindows()]);
       if (!current()) return;
       note = saved;
       body.replaceChildren();
-      if (!kind) contextActions(body, note, current, { ...actions, places }, true);
+      if (!kind) contextActions(body, note, current, { ...actions, places, timeWindows }, true);
       else {
-        const form = renderNoteContextPicker(body, note, places, kind, guarded(() => show(null, kind === 'placeIds' ? '#quickNoteChoosePlace' : '#quickNoteChooseTime')), { capture: true });
+        const form = renderNoteContextPicker(body, note, places, kind, guarded(() => show(null, kind === 'placeIds' ? '#quickNoteChoosePlace' : '#quickNoteChooseTime')), { capture: true, timeWindows });
         bindSubmit(form, async data => {
           try { await saveNoteContext(note.id, { [kind]: data.getAll('context') }, current); }
           catch { if (current()) contextError(body, 'Notiz gespeichert. Verknüpfung konnte nicht gespeichert werden.'); return; }
@@ -1085,6 +1150,15 @@ function bindEvents() {
     if (staticButton) { openStatic(staticButton.dataset.static); return; }
     const removePlaceButton = event.target.closest('[data-remove-place]');
     if (removePlaceButton) { await remove('places', removePlaceButton.dataset.removePlace); await renderSettings(); return; }
+    const removeTimeWindowButton = event.target.closest('[data-remove-time-window]');
+    if (removeTimeWindowButton) {
+      if (!confirm('Zeitfenster entfernen? Bestehende Verknüpfungen bleiben gespeichert, sind aber nicht mehr aktiv.')) return;
+      const id = removeTimeWindowButton.dataset.removeTimeWindow;
+      await storeCustomTimeWindows((await customTimeWindows()).filter(window => window.id !== id));
+      await renderSettings();
+      if (dashboardVisible()) refreshNow();
+      return;
+    }
     const visibleToggle = event.target.closest('[data-helper-visible]');
     if (visibleToggle) {
       const helper = helperById(visibleToggle.dataset.helperVisible);
@@ -1104,6 +1178,20 @@ function bindEvents() {
   $('#helperSearch').addEventListener('input', guarded(() => renderAllHelpers()));
   $('#helperCategory').addEventListener('change', guarded(() => renderAllHelpers()));
   $('#settingsAddPlace').addEventListener('click', guarded(addPlaceFromSettings));
+  bindSubmit($('#timeWindowCreateForm'), async data => {
+    let window;
+    try { window = customTimeWindowFromForm(makeId('time'), data); }
+    catch {
+      toast('Bitte Name sowie unterschiedliche Start- und Endzeit für das Zeitfenster prüfen.');
+      return;
+    }
+    const current = await customTimeWindows();
+    await storeCustomTimeWindows([...current, window]);
+    $('#timeWindowCreateForm').reset();
+    toast('Zeitfenster hinzugefügt.');
+    await renderSettings();
+    if (dashboardVisible()) refreshNow();
+  });
 
   $('#persistStorageButton').addEventListener('click', guarded(async () => {
     if (!navigator.storage?.persist) { toast('Speicherschutz ist hier nicht verfügbar.'); return; }

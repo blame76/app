@@ -31,6 +31,7 @@ test('Pages build is reproducible, complete under /app/ and excludes development
     const output = join(fixture, 'dist');
     const first = snapshot(output);
     assert.ok(existsSync(join(output, '.nojekyll')));
+    assert.equal(readFileSync(join(output, 'src/time-windows.js'), 'utf8'), readFileSync(join(root, 'src/time-windows.js'), 'utf8'));
     assert.ok(!first.some(([path]) => /README|\.md$|\.env|local-export|package\.json|^bin\//.test(path)));
     for (const helper of HELPERS) {
       for (const path of [`./src/helpers/${helper.id}/index.js`, ...(helper.offlineAssets || [])]) {
@@ -97,7 +98,7 @@ test('Every changed deployed asset updates the worker cache without a manual ver
     mkdirSync(join(fixture, 'design/signature'), { recursive: true });
     writeFileSync(join(fixture, 'design/signature/mockup.html'), 'Design only');
     assert.equal(build(), original, 'Design studies do not affect the production release');
-    for (const file of ['assets/styles.css', 'assets/signature.css', 'assets/fonts/CormorantGaramond.woff2', 'assets/fonts/GreatVibes.woff2', 'src/theme.js', 'src/helpers/pain/index.js', 'src/pwa-update.js', 'index.html']) {
+    for (const file of ['assets/styles.css', 'assets/signature.css', 'assets/fonts/CormorantGaramond.woff2', 'assets/fonts/GreatVibes.woff2', 'src/theme.js', 'src/time-windows.js', 'src/helpers/pain/index.js', 'src/pwa-update.js', 'index.html']) {
       const source = readFileSync(join(fixture, file));
       writeFileSync(join(fixture, file), Buffer.concat([source, Buffer.from('\n/* changed runtime asset */\n')]));
       assert.notEqual(build(), original, file);

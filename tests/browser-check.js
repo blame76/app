@@ -86,6 +86,7 @@ async (page) => {
     await app.evaluate(() => Object.defineProperty(navigator, 'geolocation', { configurable: true, value: { getCurrentPosition(success) { window.resolveGeo = success; } } }));
     await app.locator('[data-composer="place"]').click();
     await app.locator('#placeForm input[name="name"]').fill('Privater Ortsname');
+    await app.locator('#placeForm [name="positionSource"][value="current"]').check();
     check(await app.locator('#placeForm button').isDisabled(), 'Place save disabled while geolocation is pending');
     const url = app.url();
     await app.evaluate(() => document.querySelector('#placeForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
