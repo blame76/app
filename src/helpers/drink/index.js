@@ -6,7 +6,7 @@ const clockTime = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2
 export default {
   id: 'drink', label: 'Trinken', category: 'Wohlbefinden', defaultVisible: true,
   contexts: ['interval'],
-  defaults: { intervalMinutes: 60, toleranceMinutes: 15 },
+  defaults: { interval: { value: 1, unit: 'hour' }, earlyBy: { value: 15, unit: 'minute' } },
   retention: { defaultWindow: 'always' },
   validateEntry: validateDrinkEntry,
   offlineAssets: ['./src/helpers/drink/model.js', './src/helpers/drink/styles.css'],
