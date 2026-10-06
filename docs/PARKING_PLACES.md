@@ -7,8 +7,9 @@ Merken fragen ausdrücklich eine aktuelle Position an. Anzeigen zeigt die gespei
 Koordinaten; Bearbeiten erhält Position und Zeitpunkt; Löschen entfernt den Zustand.
 Karten, Navigation, Historie und automatische Parkerkennung sind nicht enthalten.
 
-Dauerhafte Orte haben eine optionale Kategorie: Zuhause, Arbeit, Einkaufen, Mobilität,
-Freizeit oder Sonstiges. Die Ortsliste zeigt ausschließlich belegte Kategorien plus
+Dauerhafte Orte können entweder aus der aktuellen Position oder aus manuell eingefügten
+Koordinaten entstehen; beide verwenden dasselbe bestehende Place-Schema. Eine optionale
+Kategorie ist Zuhause, Arbeit, Einkaufen, Mobilität, Freizeit oder Sonstiges. Die Ortsliste zeigt ausschließlich belegte Kategorien plus
 „Ohne Kategorie“. Kategorie und Radius können auch bei bestehenden Orten geändert
 werden. Regeln verknüpfen weiterhin konkrete Place-IDs, niemals Kategorien.
 
@@ -41,7 +42,9 @@ ODER-Regel ein eigener Grund. Gespeicherte Notizen und ihre Leseansichten bleibe
 2. Verlassen der Startseite, `pagehide` oder verborgenes Dokument: Observer stoppen,
    verspätete Antworten ignorieren. Rückkehr prüft frisch. Kein Polling und kein
    Hintergrund-Geofencing. Ohne Ortsverknüpfungen gibt es keine automatische Ortung.
-3. „Diesen Ort merken“: wie bisher beim bewussten Öffnen des Formulars eine Einzelabfrage.
+3. „Ort hinzufügen“: Öffnen ortet nicht. Erst die bewusste Auswahl „Hier“ startet eine
+   frische Einzelabfrage. „Andere Position“ akzeptiert lokal eingefügte Koordinaten und
+   löst keine Standortabfrage und keinen externen Geocoding-Request aus.
 4. Parken: nur beim Klick auf Merken/Neu merken eine Einzelabfrage. Öffnen, Anzeigen,
    Notizbearbeitung und Löschen orten nicht.
 

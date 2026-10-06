@@ -86,14 +86,15 @@ Die gemeinsame Shell ist bereits vorbereitet für:
 - zuletzt verwendet
 
 Standort wird erst abgefragt, wenn ein sichtbarer Helfer eine Ortsverknüpfung besitzt,
-eine Notiz mit einem vorhandenen Ort verknüpft ist oder der Nutzer aktiv „Ort“ wählt.
+eine Notiz mit einem vorhandenen Ort verknüpft ist oder der Nutzer bei „Ort hinzufügen“
+bewusst „Hier“ wählt. Alternativ kann ein Ort ohne Standortabfrage über Koordinaten angelegt werden.
 Notizen verwenden dasselbe Ortsmatching und dieselben Tageszeiten. Kein Hintergrund-Geofencing.
 
 ## Core-Footer
 
 Die drei Grundaktionen sind keine Helfer:
 
-- **Ort** – aktuellen Ort lokal merken
+- **Ort** – aktuellen Standort oder manuell eingefügte Koordinaten lokal als Ort speichern
 - **Notiz** – schnelle lokale Notiz
 - **Person** – Person anlegen/auswählen und Referenz oder Geschenkidee **hinzufügen**; bestehende Einträge werden nicht überschrieben
 

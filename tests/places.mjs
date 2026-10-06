@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { groupPlaces, PLACE_RADII, radiusLabel } from '../src/places.js';
+import { groupPlaces, parsePlaceCoordinates, PLACE_RADII, radiusLabel } from '../src/places.js';
 import { PLACE_CATEGORIES, validateRecord, validateImport, STORES } from '../src/schema.js';
 import { matchingPlaces, distanceMeters, watchPosition } from '../src/context.js';
 import { relevantNotes } from '../src/notes.js';
@@ -22,6 +22,17 @@ test('Groups omit empty categories, sort names, and keep uncategorized places', 
 });
 test('Radius labels describe scope without promising accuracy', () => {
   assert.deepEqual(PLACE_RADII.map(radiusLabel), ['20 Meter · sehr eng', '50 Meter · eng', '100 Meter · nah', '250 Meter · Umgebung']);
+});
+test('Manual coordinates accept paste-friendly decimal and geo formats only within valid ranges', () => {
+  for (const [value, expected] of [
+    ['53.0793, 8.8017', { lat: 53.0793, lon: 8.8017 }],
+    [' 53.0793 8.8017 ', { lat: 53.0793, lon: 8.8017 }],
+    ['geo:53.0793,8.8017', { lat: 53.0793, lon: 8.8017 }],
+    ['geo:-33.8688,151.2093;u=35', { lat: -33.8688, lon: 151.2093 }]
+  ]) assert.deepEqual(parsePlaceCoordinates(value), expected, value);
+  for (const value of ['', '91, 8', '53, 181', '53,0793, 8,8017', 'https://maps.example/53.0,8.0', 'nur Text']) {
+    assert.equal(parsePlaceCoordinates(value), null, value);
+  }
 });
 test('Every radius uses measured distance without silently adding accuracy; exit hides and reentry shows notes', () => {
   for (const radius of PLACE_RADII) {
