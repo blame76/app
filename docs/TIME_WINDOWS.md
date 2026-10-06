@@ -279,4 +279,5 @@ Bisherige Implementierungscommits:
 - `fe06dd38` · `feat: add custom time window model`
 - `1a912267` · `feat: manage named time windows`
 
-Tests sind ausdrücklich der nächste unabhängige Schritt.
+Die unabhängige Prüfung ist im [Prüfbericht](TIME_WINDOWS_TESTS.md) dokumentiert,
+einschließlich neuer Tests, einer Reflow-Korrektur und verbleibender Prüflücken.
