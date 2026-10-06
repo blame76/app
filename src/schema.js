@@ -1,9 +1,9 @@
 import { validateIntervalPair } from './intervals.js';
-import { TIME_BUCKET_IDS } from './context.js';
+import { DEFAULT_TIME_WINDOW_IDS, isTimeWindowId, TIME_WINDOW_SETTING_ID, validateCustomTimeWindows } from './time-windows.js';
 
 // Shared validation for settings, imports and helper declarations. No HTML belongs here.
 export const STORES = ['entries', 'people', 'places', 'helperRules', 'settings'];
-export const TIME_BUCKETS = TIME_BUCKET_IDS;
+export const TIME_BUCKETS = DEFAULT_TIME_WINDOW_IDS;
 export const CONTEXT_TYPES = ['place', 'time', 'interval'];
 
 function requireValue(condition, message) {
@@ -30,7 +30,7 @@ export function validateRule(rule) {
     requireValue(rule[key] === undefined || typeof rule[key] === 'boolean', `Ungültiger Wert für ${key}.`);
   }
   requireValue(rule.placeIds === undefined || strings(rule.placeIds), 'Ungültige Ortsverknüpfungen.');
-  requireValue(rule.timeBuckets === undefined || (strings(rule.timeBuckets) && rule.timeBuckets.every(bucket => TIME_BUCKETS.includes(bucket))), 'Ungültige Tageszeiten.');
+  requireValue(rule.timeBuckets === undefined || (strings(rule.timeBuckets) && rule.timeBuckets.every(isTimeWindowId)), 'Ungültige Zeitfenster.');
   const hasStructuredInterval = Object.hasOwn(rule, 'interval') || Object.hasOwn(rule, 'earlyBy');
   if (hasStructuredInterval) {
     validateIntervalPair(rule.interval ?? null, rule.earlyBy ?? null);
@@ -70,7 +70,7 @@ export function validateRecord(store, item) {
       if (item.context !== undefined) {
         requireValue(object(item.context), 'Ungültige Notizverknüpfung.');
         requireValue(item.context.placeIds === undefined || strings(item.context.placeIds), 'Ungültige Ortsverknüpfungen.');
-        requireValue(item.context.timeBuckets === undefined || (strings(item.context.timeBuckets) && item.context.timeBuckets.every(bucket => TIME_BUCKETS.includes(bucket))), 'Ungültige Tageszeiten.');
+        requireValue(item.context.timeBuckets === undefined || (strings(item.context.timeBuckets) && item.context.timeBuckets.every(isTimeWindowId)), 'Ungültige Zeitfenster.');
       }
     }
   }
@@ -84,6 +84,9 @@ export function validateRecord(store, item) {
   }
   if (store === 'settings' && item.id.startsWith('usage:')) {
     requireValue(timestamp(item.lastUsedAt), 'Ungültiger Nutzungszeitpunkt.');
+  }
+  if (store === 'settings' && item.id === TIME_WINDOW_SETTING_ID) {
+    validateCustomTimeWindows(item.value);
   }
   return item;
 }

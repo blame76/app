@@ -1,6 +1,6 @@
 import { noteContext, noteLinks, noteLabel } from './notes.js';
-import { TIME_BUCKETS } from './schema.js';
 import { timeBucketLabel } from './context.js';
+import { DEFAULT_TIME_WINDOWS, findTimeWindow } from './time-windows.js';
 import { noteTextClass } from './note-presentation.js';
 import { formatDistance, getLocationDebugInfo } from './debug.js';
 
@@ -25,7 +25,7 @@ function timestamp(at, compact = false) {
   return time;
 }
 
-export function renderNote(root, note, places, actions, person = null, { debugMode = false, position = null } = {}) {
+export function renderNote(root, note, places, actions, person = null, { debugMode = false, position = null, timeWindows = DEFAULT_TIME_WINDOWS } = {}) {
   const article = element('article', undefined, 'note-detail');
   if (note.type === 'person-note') article.append(element('p', person?.name || 'Person nicht mehr gespeichert', 'note-person-name'));
   article.append(element('p', note.text, `note-text ${noteTextClass(note.text)}`));
@@ -56,7 +56,7 @@ export function renderNote(root, note, places, actions, person = null, { debugMo
   heading.id = 'noteContextTitle';
   context.setAttribute('aria-labelledby', heading.id);
   context.append(heading);
-  const links = noteLinks(note, places);
+  const links = noteLinks(note, places, timeWindows);
   if (links.length) {
     const list = element('ul', undefined, 'note-links');
     for (const link of links) list.append(element('li', link.label));
@@ -86,7 +86,7 @@ export function renderNoteEdit(root, note, cancel) {
   return form;
 }
 
-export function renderNoteContext(root, note, places, actions, { capture = false } = {}) {
+export function renderNoteContext(root, note, places, actions, { capture = false, timeWindows = DEFAULT_TIME_WINDOWS } = {}) {
   const prefix = capture ? 'quickNote' : 'note';
   const section = element('div', undefined, 'note-context');
   if (capture) {
@@ -95,7 +95,7 @@ export function renderNoteContext(root, note, places, actions, { capture = false
     heading.tabIndex = -1;
     section.append(heading);
   }
-  const links = noteLinks(note, places);
+  const links = noteLinks(note, places, timeWindows);
   if (links.length) {
     const list = element('ul', undefined, 'note-context-links');
     for (const [index, link] of links.entries()) {
@@ -109,22 +109,27 @@ export function renderNoteContext(root, note, places, actions, { capture = false
     section.append(list);
   }
   const choices = element('div', undefined, 'note-context-choices');
-  choices.append(button('Ort', `${prefix}ChoosePlace`, () => actions.choose('placeIds'), 'secondary'), button('Tageszeit', `${prefix}ChooseTime`, () => actions.choose('timeBuckets'), 'secondary'));
+  choices.append(button('Ort', `${prefix}ChoosePlace`, () => actions.choose('placeIds'), 'secondary'), button('Zeitfenster', `${prefix}ChooseTime`, () => actions.choose('timeBuckets'), 'secondary'));
   section.append(choices, element('p', 'Eine passende Bedingung reicht.', 'muted'), button('Fertig', `${prefix}ContextDone`, actions.done));
   root.append(section);
 }
 
-export function renderNoteContextPicker(root, note, places, kind, cancel, { capture = false } = {}) {
+export function renderNoteContextPicker(root, note, places, kind, cancel, { capture = false, timeWindows = DEFAULT_TIME_WINDOWS } = {}) {
   const prefix = capture ? 'quickNote' : 'note';
   const context = noteContext(note);
   const options = kind === 'placeIds'
     ? [...places.map(place => ({ id: place.id, label: place.name })), ...context.placeIds.filter(id => !places.some(place => place.id === id)).map(id => ({ id, label: 'Ort nicht mehr gespeichert' }))]
-    : TIME_BUCKETS.map(id => ({ id, label: timeBucketLabel(id, { capitalize: true }) }));
+    : [
+      ...timeWindows.map(window => ({ id: window.id, label: timeBucketLabel(window.id, { capitalize: true, timeWindows }) })),
+      ...context.timeBuckets
+        .filter(id => !findTimeWindow(id, timeWindows))
+        .map(id => ({ id, label: 'Zeitfenster nicht mehr vorhanden' }))
+    ];
   const form = element('form', undefined, 'stack note-context-picker');
   form.id = `${prefix}ContextForm`;
   const fieldset = element('fieldset');
-  fieldset.append(element('legend', kind === 'placeIds' ? 'An einem Ort' : 'Zu einer Tageszeit', 'note-eyebrow'));
-  if (!options.length) fieldset.append(element('p', 'Noch kein Ort gespeichert.', 'muted'));
+  fieldset.append(element('legend', kind === 'placeIds' ? 'An einem Ort' : 'In einem Zeitfenster', 'note-eyebrow'));
+  if (!options.length) fieldset.append(element('p', kind === 'placeIds' ? 'Noch kein Ort gespeichert.' : 'Noch kein Zeitfenster verfügbar.', 'muted'));
   for (const option of options) {
     const label = element('label', undefined, 'note-context-option');
     const input = element('input');
