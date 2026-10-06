@@ -1,4 +1,4 @@
-import { intervalAfterLabel, intervalDueAt } from './intervals.js';
+import { intervalAfterLabel, intervalDueAt, intervalLabel } from './intervals.js';
 
 export const TIME_BUCKETS = Object.freeze([
   Object.freeze({ id: 'morning', label: 'morgens', startHour: 5, endHour: 11 }),
@@ -27,6 +27,12 @@ export function timeBucketLabel(id, { capitalize = false } = {}) {
   return `${label} · ${String(bucket.startHour).padStart(2, '0')}–${String(bucket.endHour).padStart(2, '0')} Uhr`;
 }
 
+function compactTimeBucketLabel(id) {
+  const bucket = timeDefinition(id);
+  if (!bucket) return id;
+  return `${bucket.label} (${String(bucket.startHour).padStart(2, '0')}–${String(bucket.endHour).padStart(2, '0')} Uhr)`;
+}
+
 export function nextTimeBoundary(date = new Date()) {
   const now = date.getTime();
   const candidates = [];
@@ -50,16 +56,37 @@ function ruleIntervalDueAt(rule, lastUsedAt) {
 export function evaluateHelperContext(rule, activePlaces, lastUsedAt, date = new Date()) {
   const now = date.getTime();
   const dueAt = ruleIntervalDueAt(rule, lastUsedAt);
+  const bucket = timeBucket(date);
+  const matches = [];
   const matchedPlace = activePlaces.find(place => rule.placeIds.includes(place.id));
-  let match = null;
+
   if (matchedPlace) {
-    match = { reason: matchedPlace.name || 'Ort', rank: 400, launchPlace: { id: matchedPlace.id, name: matchedPlace.name } };
-  } else if (dueAt !== null && now >= dueAt) {
-    match = { reason: `wieder im Blick · nach ${intervalAfterLabel(rule.interval)}`, rank: 300 };
-  } else {
-    const bucket = timeBucket(date);
-    if (rule.timeBuckets.includes(bucket)) match = { reason: timeBucketLabel(bucket), rank: 200 };
+    matches.push({
+      reason: matchedPlace.name || 'Ort',
+      why: matchedPlace.name || 'Ort',
+      rank: 400,
+      launchPlace: { id: matchedPlace.id, name: matchedPlace.name }
+    });
   }
+  if (dueAt !== null && now >= dueAt) {
+    matches.push({
+      reason: `wieder im Blick · nach ${intervalAfterLabel(rule.interval)}`,
+      why: `Intervall ${intervalLabel(rule.interval)}`,
+      rank: 300
+    });
+  }
+  if (rule.timeBuckets.includes(bucket)) {
+    matches.push({
+      reason: timeBucketLabel(bucket),
+      why: compactTimeBucketLabel(bucket),
+      rank: 200
+    });
+  }
+
+  const primary = matches[0] || null;
+  const match = primary
+    ? { ...primary, why: matches.length === 1 ? primary.reason : matches.map(item => item.why).join(' · ') }
+    : null;
   return { match, nextIntervalAt: dueAt !== null && dueAt > now ? dueAt : null };
 }
 

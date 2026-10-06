@@ -384,7 +384,7 @@ async function openHelperSettings(id, options = {}) {
 
 function tile(helper, reason, launchPlace) {
   const placeData = launchPlace ? ` data-place-id="${escapeHtml(launchPlace.id)}" data-place-name="${escapeHtml(launchPlace.name)}"` : '';
-  return `<button class="helper-tile" type="button" data-helper="${escapeHtml(helper.id)}"${placeData}><strong>${escapeHtml(helper.label)}</strong>${reason ? `<span>${escapeHtml(reason)}</span>` : ''}</button>`;
+  return `<button class="helper-tile" type="button" data-helper="${escapeHtml(helper.id)}"${placeData}><strong>${escapeHtml(helper.label)}</strong>${reason ? `<span class="tile-reason">${escapeHtml(reason)}</span>` : ''}</button>`;
 }
 
 async function dashboardCandidates(visible, position = null, date = new Date()) {
@@ -445,7 +445,7 @@ async function renderDashboard({ position = dashboardPosition, contextOnly = fal
   if (version !== dashboardVersion) return;
 
   const rows = $('#nowRows');
-  const html = candidates.map(({ helper, note, reason, person, launchPlace }) => note ? noteTile(note, reason, person) : tile(helper, reason, launchPlace)).join('');
+  const html = candidates.map(({ helper, note, reason, why, person, launchPlace }) => note ? noteTile(note, reason, person) : tile(helper, why || reason, launchPlace)).join('');
   if (rows.innerHTML !== html) {
     const focused = rows.contains(document.activeElement) ? returnFocusTarget() : null;
     rows.innerHTML = html;
