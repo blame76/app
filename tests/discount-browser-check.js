@@ -121,8 +121,8 @@ async (page) => {
     await app.emulateMedia({ reducedMotion: 'reduce' });
     check(await app.locator('#discountForm button').evaluate(element => parseFloat(getComputedStyle(element).transitionDuration) === 0), 'Discount respects Reduced Motion');
     await app.locator('#backButton').click();
-    await app.waitForSelector('#nowRows [data-helper="discount"]');
-    check(await app.locator('#nowRows [data-helper="discount"] span').textContent() === 'zuletzt verwendet', 'Successful discount use reaches the ordinary dashboard reason');
+    await app.waitForFunction(() => !document.querySelector('#view-dashboard').hidden);
+    check(await app.locator('#nowRows [data-helper="discount"]').count() === 0, 'Successful discount use alone does not invent a dashboard reason');
     await app.evaluate(async () => (await import('/src/db.js')).put('places', { id: 'shopping', name: 'Einkaufszentrum', lat: 50, lon: 8, radius: 250, createdAt: Date.now() }));
     await open();
     await app.locator('#helperSettingsButton').click();

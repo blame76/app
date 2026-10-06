@@ -40,7 +40,7 @@ test('At Mama OR in the evening, the same person note resurfaces exactly once', 
   assert.equal(atMama[0].reason, 'Bei Mama');
   assert.equal(atMama[0].rank, 400);
   const evening = relevantNotes([linked], [], 'evening');
-  assert.equal(evening[0].reason, 'abends');
+  assert.equal(evening[0].reason, 'abends · 15–22 Uhr');
   assert.equal(evening[0].rank, 200);
   assert.equal(relevantNotes([linked], [place], 'evening').length, 1);
   assert.equal(relevantNotes([linked], [], 'morning').length, 0);

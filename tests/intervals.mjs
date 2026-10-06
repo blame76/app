@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { fromLegacyMinutes, intervalDueAt, intervalLabel } from '../src/intervals.js';
+import { fromLegacyMinutes, intervalAfterLabel, intervalDueAt, intervalLabel } from '../src/intervals.js';
 
 test('Legacy minute intervals convert to the largest exact familiar unit', () => {
   assert.deepEqual(fromLegacyMinutes(60), { value: 1, unit: 'hour' });
@@ -16,6 +16,9 @@ test('Interval labels use readable German singular and plural forms', () => {
   assert.equal(intervalLabel({ value: 1, unit: 'year' }), '1 Jahr');
   assert.equal(intervalLabel({ value: 3, unit: 'day' }), '3 Tage');
   assert.equal(intervalLabel({ value: 2, unit: 'week' }), '2 Wochen');
+  assert.equal(intervalAfterLabel({ value: 1, unit: 'day' }), '1 Tag');
+  assert.equal(intervalAfterLabel({ value: 3, unit: 'day' }), '3 Tagen');
+  assert.equal(intervalAfterLabel({ value: 2, unit: 'month' }), '2 Monaten');
 });
 
 test('Due time subtracts the earlier-display duration from the interval date', () => {

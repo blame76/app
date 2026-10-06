@@ -42,7 +42,7 @@ bereits gespeicherte Person, wenn Name und Formular unverändert sind.
 
 Ortsmatches haben wie zuvor Vorrang vor Tageszeiten; danach zählt die neueste
 Erstellungszeit. Das Dashboard begrenzt Helper, normale Notizen und Personen-Notizen
-gemeinsam auf neun Einträge. Geolocation läuft einmal über die vorhandene Shell, wenn
+gemeinsam ohne stilles Anzeigelimit. Geolocation läuft einmal über die vorhandene Shell, wenn
 mindestens eine relevante Ortsverknüpfung besteht. Eine verweigerte Ortung verhindert
 keinen Tageszeitmatch. Namen werden aktuell aus `people` gelesen und sicher als Text
 gerendert; fehlende Personen bleiben als „Person nicht mehr gespeichert“ erkennbar.

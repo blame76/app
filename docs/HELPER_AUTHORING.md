@@ -134,7 +134,8 @@ Der Nutzer hat die eigentliche fachliche Aktion erfolgreich abgeschlossen.
 **Öffnen ist nicht Benutzung.** Auch Klick, begonnenes Formular, noch nicht erfolgreiche
 Berechnung und fehlgeschlagenes Speichern zählen nicht. Schmerz gespeichert,
 Rabatt berechnet, Getränk dokumentiert: `recordUse()` danach. Dies steuert
-„zuletzt verwendet“ und Intervalle.
+den Startpunkt konfigurierter Intervalle. Eine frühere Nutzung allein ist kein Anlass,
+den Helper unter „Jetzt“ zu zeigen.
 Scheitert nur diese zweite Speicherung, bleibt die erfolgreiche Fachhandlung
 erfolgreich. Ergebnis anzeigen und den Metadatenfehler separat melden; keinen
 doppelten Eintrag durch einen vermeintlich notwendigen Retry anbieten.
@@ -148,6 +149,16 @@ Context bietet einen Anlass, den Helper unter „Jetzt“ anzuzeigen:
 `place` = bewusst verknüpfter gespeicherter Ort, `time` = lokale Tageszeit,
 `interval` = Zeit seit erfolgreicher Nutzung. Er ist kein Hintergrundtracking,
 keine Notification Engine, kein Empfehlungssystem und keine KI.
+
+Für den Context-Kern gelten sieben Produktregeln:
+
+1. „Jetzt“ zeigt definierte aktuelle Anlässe, keine Nutzungsvermutungen.
+2. Eine passende konfigurierte Bedingung reicht; Contexts sind ODER-verknüpft.
+3. Ein Intervall beginnt ausschließlich nach einer erfolgreichen Fachhandlung mit `recordUse()`.
+4. Zeitfenster müssen vor der Auswahl verständlich sein.
+5. Eine sichtbare Kachel nennt genau einen wahren, verständlichen Grund.
+6. Ortung bleibt eine Vordergrundfunktion und darf sichere Inhalte nicht blockieren.
+7. Ohne aktuellen Anlass erscheint ein Inhalt nicht unter „Jetzt“.
 
 Nur sinnvolle Arten in `contexts` deklarieren: Rabatt → `['place']`, Trinken →
 `['interval']`, Pain → `['place', 'time', 'interval']`. Ohne Angabe keine Kontextregeln.
@@ -167,8 +178,10 @@ defaults: {
 ```
 
 Alle Felder sind optional und brauchen ihre deklarierte Kontextart; Ortsdefaults
-gibt es nicht. Zeitwerte: `morning` 00–11, `midday` 11–15, `evening` 15–19,
-`night` 19–24, lokale Gerätezeit, Endgrenzen exklusiv. Intervalle verwenden
+gibt es nicht. Zeitwerte: `morning` 05–11, `midday` 11–15, `evening` 15–22,
+`night` 22–05, lokale Gerätezeit, Endgrenzen exklusiv. Die IDs bleiben dauerhaft;
+die sichtbaren Bezeichnungen und Grenzen stammen aus derselben zentralen Definition.
+Intervalle verwenden
 `{ value, unit }` mit ganzen Zahlen und `minute`, `hour`, `day`, `week`, `month`
 oder `year`; die optionale Vorlaufzeit `earlyBy` darf null sein oder muss kürzer
 als das Intervall sein. Alte Exportregeln mit `intervalMinutes` und
@@ -177,16 +190,22 @@ als das Intervall sein. Alte Exportregeln mit `intervalMinutes` und
 ein ungültiger Monatstag wird auf den letzten Tag des Zielmonats geklemmt.
 
 Die Shell wählt alternative Gründe, keine UND-Bedingung: passender Ort vor fälligem
-Intervall vor Tageszeit vor gespeicherter Nutzung. Ein Intervall beginnt erst nach
-`recordUse()`. Die Vorlaufzeit bedeutet „früher anzeigen“, nicht ein symmetrisches
-„±“: 1 Stunde mit 15 Minuten Vorlauf wird ab Minute 45 fällig. Vor Fälligkeit kann
-„zuletzt verwendet“ den Helper weiterhin unter „Jetzt“ zeigen. Die Anzeige wird beim Rendern des Dashboards
-ausgewertet. Bei sichtbarer Startseite und tatsächlich vorhandenen Ortsverknüpfungen
-aktualisiert ein gemeinsamer Geolocation-Observer die Ortsgründe. Navigation und
-Wechsel in den Hintergrund stoppen ihn; Rückkehr fragt eine frische Position ab.
-Ortungsfehler entfernen Ortsgründe. Kein Polling, keine Benachrichtigungen oder
-Hintergrundprüfung. Der gewählte Radius gilt ohne Genauigkeitsaufschlag für die
-gemeldete Position; Kategorien ändern das Matching nicht.
+Intervall vor Tageszeit. Ein Intervall beginnt erst nach `recordUse()`; ohne erfolgreiche
+Nutzung wird es nicht fällig und bleibt danach bis zur nächsten erfolgreichen Handlung
+fällig. Die Vorlaufzeit bedeutet „früher anzeigen“, nicht ein symmetrisches „±“:
+1 Stunde mit 15 Minuten Vorlauf wird ab Minute 45 fällig. Eine Nutzung ohne aktuell
+passende Regel erzeugt keinen eigenen „Jetzt“-Kandidaten.
+
+Die Anzeige wird beim Rendern des Dashboards ausgewertet. Sichere Zeit- und
+Intervallgründe erscheinen, ohne auf Geolocation zu warten. Bei sichtbarer Startseite
+und tatsächlich vorhandenen Ortsverknüpfungen ergänzen eine frische Positionsabfrage
+und der gemeinsame Geolocation-Observer die Ortsgründe. Navigation und Wechsel in den
+Hintergrund stoppen Observer und Zeit-Timeout; Rückkehr wertet lokale Gründe sofort aus
+und fragt anschließend eine frische Position ab. Ein einzelner Timeout wartet auf die
+nächste relevante Tageszeit- oder Intervallgrenze und plant sich danach neu. Ortungsfehler
+entfernen ausschließlich Ortsgründe. Kein Polling, keine Benachrichtigungen oder
+Hintergrundprüfung. Der gewählte Radius gilt ohne Genauigkeitsaufschlag für die gemeldete
+Position; Kategorien ändern das Matching nicht.
 Ohne Standortfreigabe bleiben andere Gründe und „Alle Helfer“ nutzbar.
 Das ist unabhängig von den bestehenden Vordergrundprüfungen für PWA-Updates.
 

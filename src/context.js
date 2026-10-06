@@ -1,13 +1,66 @@
-export function timeBucket(date = new Date()) {
-  const hour = date.getHours();
-  if (hour < 11) return 'morning';
-  if (hour < 15) return 'midday';
-  if (hour < 19) return 'evening';
-  return 'night';
+import { intervalAfterLabel, intervalDueAt } from './intervals.js';
+
+export const TIME_BUCKETS = Object.freeze([
+  Object.freeze({ id: 'morning', label: 'morgens', startHour: 5, endHour: 11 }),
+  Object.freeze({ id: 'midday', label: 'mittags', startHour: 11, endHour: 15 }),
+  Object.freeze({ id: 'evening', label: 'abends', startHour: 15, endHour: 22 }),
+  Object.freeze({ id: 'night', label: 'nachts', startHour: 22, endHour: 5 })
+]);
+
+export const TIME_BUCKET_IDS = Object.freeze(TIME_BUCKETS.map(bucket => bucket.id));
+
+function timeDefinition(id) {
+  return TIME_BUCKETS.find(bucket => bucket.id === id);
 }
 
-export function timeBucketLabel(bucket) {
-  return ({ morning: 'morgens', midday: 'mittags', evening: 'abends', night: 'nachts' })[bucket] || bucket;
+export function timeBucket(date = new Date()) {
+  const hour = date.getHours();
+  return TIME_BUCKETS.find(bucket => bucket.startHour < bucket.endHour
+    ? hour >= bucket.startHour && hour < bucket.endHour
+    : hour >= bucket.startHour || hour < bucket.endHour)?.id;
+}
+
+export function timeBucketLabel(id, { capitalize = false } = {}) {
+  const bucket = timeDefinition(id);
+  if (!bucket) return id;
+  const label = capitalize ? bucket.label[0].toLocaleUpperCase('de') + bucket.label.slice(1) : bucket.label;
+  return `${label} · ${String(bucket.startHour).padStart(2, '0')}–${String(bucket.endHour).padStart(2, '0')} Uhr`;
+}
+
+export function nextTimeBoundary(date = new Date()) {
+  const now = date.getTime();
+  const candidates = [];
+  for (const dayOffset of [0, 1]) {
+    for (const bucket of TIME_BUCKETS) {
+      const boundary = new Date(date.getFullYear(), date.getMonth(), date.getDate() + dayOffset, bucket.startHour);
+      if (boundary.getTime() > now) candidates.push(boundary.getTime());
+    }
+  }
+  return Math.min(...candidates);
+}
+
+function ruleIntervalDueAt(rule, lastUsedAt) {
+  if (!rule.interval || !lastUsedAt) return null;
+  if (rule.legacyIntervalMinutes !== null && rule.legacyIntervalMinutes !== undefined) {
+    return lastUsedAt + Math.max(0, rule.legacyIntervalMinutes - (rule.legacyToleranceMinutes || 0)) * 60000;
+  }
+  return intervalDueAt(lastUsedAt, rule.interval, rule.earlyBy);
+}
+
+export function evaluateHelperContext(rule, activePlaces, lastUsedAt, date = new Date()) {
+  const now = date.getTime();
+  const dueAt = ruleIntervalDueAt(rule, lastUsedAt);
+  const matchedPlace = activePlaces.find(place => rule.placeIds.includes(place.id));
+  let match = null;
+  if (matchedPlace) {
+    match = { reason: matchedPlace.name || 'Ort', rank: 400, launchPlace: { id: matchedPlace.id, name: matchedPlace.name } };
+  } else if (dueAt !== null && now >= dueAt) {
+    match = { reason: `wieder im Blick · nach ${intervalAfterLabel(rule.interval)}`, rank: 300 };
+  } else {
+    const bucket = timeBucket(date);
+    if (rule.timeBuckets.includes(bucket)) match = { reason: timeBucketLabel(bucket), rank: 200 };
+  }
+  return { match, nextIntervalAt: dueAt !== null && dueAt > now ? dueAt : null };
 }
 
 export function distanceMeters(a, b) {

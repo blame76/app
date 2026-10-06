@@ -128,10 +128,11 @@ async (page) => {
 
     await settings();
     check(await app.locator('input[name="guidance"]').isChecked(), 'Helper settings offer enabled guidance by default');
-    check(await app.locator('fieldset').filter({ has: app.getByText('Ort', { exact: true }) }).count() > 0 && await app.locator('input[name="time"]').count() === 4 && await app.locator('input[name="intervalValue"]').count() === 1, 'Pain uses the shared location, time and interval settings');
+    check(await app.locator('fieldset').filter({ has: app.getByText('An einem Ort', { exact: true }) }).count() > 0 && await app.locator('input[name="time"]').count() === 4 && await app.locator('input[name="intervalValue"]').count() === 1, 'Pain uses the shared location, time and interval settings');
     check(await app.locator('select[name="trackingWindow"]').inputValue() === 'always', 'Unlimited retention is the explicit default');
     await app.locator('input[name="favorite"]').check();
-    await app.locator('input[name="time"][value="morning"]').check();
+    const currentBucket = await app.evaluate(async () => (await import('/src/context.js')).timeBucket());
+    await app.locator(`input[name="time"][value="${currentBucket}"]`).check();
     await app.locator('input[name="intervalValue"]').fill('1');
     await app.locator('select[name="intervalUnit"]').selectOption('hour');
     await app.locator('.interval-early-option summary').click();
@@ -139,7 +140,7 @@ async (page) => {
     await app.locator('select[name="earlyByUnit"]').selectOption('minute');
     await saveRule();
     const rule = await savedRule();
-    check(rule.favorite && rule.timeBuckets.includes('morning')
+    check(rule.favorite && rule.timeBuckets.includes(currentBucket)
       && rule.interval.value === 1 && rule.interval.unit === 'hour'
       && rule.earlyBy.value === 15 && rule.earlyBy.unit === 'minute', 'Favorite and user-defined context rules persist');
     await app.locator('#backButton').click();

@@ -90,7 +90,7 @@ export function renderNoteContext(root, note, places, actions, { capture = false
   const prefix = capture ? 'quickNote' : 'note';
   const section = element('div', undefined, 'note-context');
   if (capture) {
-    const heading = element('h2', 'Wann wieder zeigen?', 'note-context-question');
+    const heading = element('h2', `Wann soll ${noteLabel(note) === 'Geschenkidee' ? 'diese Geschenkidee' : 'diese Notiz'} wieder auftauchen?`, 'note-context-question');
     heading.id = 'noteFollowupTitle';
     heading.tabIndex = -1;
     section.append(heading);
@@ -110,7 +110,7 @@ export function renderNoteContext(root, note, places, actions, { capture = false
   }
   const choices = element('div', undefined, 'note-context-choices');
   choices.append(button('Ort', `${prefix}ChoosePlace`, () => actions.choose('placeIds'), 'secondary'), button('Tageszeit', `${prefix}ChooseTime`, () => actions.choose('timeBuckets'), 'secondary'));
-  section.append(choices, button('Fertig', `${prefix}ContextDone`, actions.done));
+  section.append(choices, element('p', 'Eine passende Bedingung reicht.', 'muted'), button('Fertig', `${prefix}ContextDone`, actions.done));
   root.append(section);
 }
 
@@ -119,11 +119,11 @@ export function renderNoteContextPicker(root, note, places, kind, cancel, { capt
   const context = noteContext(note);
   const options = kind === 'placeIds'
     ? [...places.map(place => ({ id: place.id, label: place.name })), ...context.placeIds.filter(id => !places.some(place => place.id === id)).map(id => ({ id, label: 'Ort nicht mehr gespeichert' }))]
-    : TIME_BUCKETS.map(id => ({ id, label: timeBucketLabel(id) }));
+    : TIME_BUCKETS.map(id => ({ id, label: timeBucketLabel(id, { capitalize: true }) }));
   const form = element('form', undefined, 'stack note-context-picker');
   form.id = `${prefix}ContextForm`;
   const fieldset = element('fieldset');
-  fieldset.append(element('legend', kind === 'placeIds' ? 'Ort' : 'Tageszeit', 'note-eyebrow'));
+  fieldset.append(element('legend', kind === 'placeIds' ? 'An einem Ort' : 'Zu einer Tageszeit', 'note-eyebrow'));
   if (!options.length) fieldset.append(element('p', 'Noch kein Ort gespeichert.', 'muted'));
   for (const option of options) {
     const label = element('label', undefined, 'note-context-option');

@@ -178,6 +178,7 @@ main { max-width: var(--content-width); margin: 0 auto; padding: 0 var(--gutter)
 .toggle-row input { width: 24px; min-height: 24px; height: 24px; margin: 0; }
 #helperSettingsForm { gap: 1.5rem; }
 #helperSettingsForm > .toggle-row + .toggle-row { margin-top: -1.5rem; }
+#helperSettingsForm .settings-question { margin: .5rem 0 0; max-width: 28ch; font-family: var(--display-font); font-size: 1.5rem; font-weight: 400; line-height: 1.25; }
 #helperSettingsForm fieldset > legend { margin-bottom: .75rem; }
 #helperSettingsForm .interval-early-option > summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; }
 #helperSettingsForm > p { max-width: 52ch; font-size: .875rem; margin: -.75rem 0 .5rem; }

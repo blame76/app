@@ -56,12 +56,12 @@ async (page) => {
       await db.put('settings', { id: 'usage:used', lastUsedAt: Date.now() - 60000 });
     });
     await app.reload();
-    await app.waitForSelector('#nowRows [data-helper="used"]');
-    check((await app.locator('#nowRows [data-helper]').evaluateAll(elements => elements.map(element => element.dataset.helper))).join(',') === 'place,interval,time,used', 'Place, interval, time and usage keep their existing priority');
+    await app.waitForSelector('#nowRows [data-helper="place"]');
+    check((await app.locator('#nowRows [data-helper]').evaluateAll(elements => elements.map(element => element.dataset.helper))).join(',') === 'place,interval,time', 'Place, interval and time keep their existing priority without a usage fallback');
     check(await app.locator('#nowRows [data-helper="place"] span').textContent() === 'Waterfront', 'Location reason names the matched stored place');
-    check(await app.locator('#nowRows [data-helper="interval"] span').textContent() === 'Intervall · 60 Min.', 'Interval reason stays factual while the existing tolerance makes it due');
+    check(await app.locator('#nowRows [data-helper="interval"] span').textContent() === 'wieder im Blick · nach 1 Stunde', 'Interval reason explains when the helper returns while preserving the existing tolerance');
     check(await app.locator('#nowRows [data-helper="time"] span').textContent() === await app.evaluate(async () => { const ctx = await import('/src/context.js'); return ctx.timeBucketLabel(ctx.timeBucket()); }), 'Time reason still names the current time bucket');
-    check(await app.locator('#nowRows [data-helper="used"] span').textContent() === 'zuletzt verwendet', 'Usage reason describes recorded use');
+    check(await app.locator('#nowRows [data-helper="used"]').count() === 0, 'Recorded use alone never creates a Jetzt candidate');
     check(await app.evaluate(() => window.geoCalls === 1 && window.geoOptions.maximumAge === 0), 'Context uses one fresh location query to avoid stale place matches');
     check(await app.locator('#nowRows [data-helper="place"]').evaluate(element => {
       const box = element.getBoundingClientRect();

@@ -44,7 +44,7 @@ test('Context can be added, replaced and removed independently without touching 
   assert.equal(changeNoteContext({ ...legacy, updatedAt: 20 }, { placeIds: ['office'] }).updatedAt, 20);
 });
 
-test('Now uses explicit place OR time, prioritizes places, then creation date and caps in the shell', () => {
+test('Now uses explicit place OR time and prioritizes places, then creation date', () => {
   const places = [{ id: 'office', name: 'Büro', lat: 50, lon: 8, radius: 250 }];
   const active = matchingPlaces({ lat: 50, lon: 8, accuracy: 10 }, places);
   const values = [
@@ -70,7 +70,7 @@ test('Notes share all central time buckets and safely label deleted places', () 
   const hours = [8, 12, 17, 22];
   assert.deepEqual(hours.map(hour => timeBucket(new Date(2026, 9, 3, hour))), TIME_BUCKETS);
   const value = note('context', 1, { placeIds: ['missing', 'office'], timeBuckets: TIME_BUCKETS });
-  assert.deepEqual(noteLinks(value, [{ id: 'office', name: '<img src=x>' }]).map(link => link.label), ['Ort nicht mehr gespeichert', '<img src=x>', 'morgens', 'mittags', 'abends', 'nachts']);
+  assert.deepEqual(noteLinks(value, [{ id: 'office', name: '<img src=x>' }]).map(link => link.label), ['Ort nicht mehr gespeichert', '<img src=x>', 'morgens · 05–11 Uhr', 'mittags · 11–15 Uhr', 'abends · 15–22 Uhr', 'nachts · 22–05 Uhr']);
 });
 
 test('Import accepts old and new notes unchanged; optional fields are validated before any write', () => {
