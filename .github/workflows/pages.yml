@@ -5,11 +5,6 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -23,9 +18,11 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
+
       - name: Test
         run: |
           npm test
@@ -33,14 +30,17 @@ jobs:
           node --check sw.js
           node --check bin/build-pages
           git diff --check
+
       - name: Build Pages
         run: bin/build-pages
+
       - name: Update generated pages snapshot
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
           parent=$(git ls-remote origin refs/heads/pages | cut -f1)
           parents=()
           if [ -n "$parent" ]; then
@@ -48,16 +48,20 @@ jobs:
             parent=$(git rev-parse FETCH_HEAD)
             parents=(-p "$parent")
           fi
+
           export GIT_INDEX_FILE="$RUNNER_TEMP/pages-index"
           rm -f "$GIT_INDEX_FILE"
+
           git --work-tree="$GITHUB_WORKSPACE/dist" add --all
           tree=$(git write-tree)
+
           if [ -n "$parent" ] && [ "$tree" = "$(git rev-parse "$parent^{tree}")" ]; then
             echo 'Pages snapshot unchanged.'
           else
             commit=$(git commit-tree "$tree" "${parents[@]}" -m "deploy: $GITHUB_SHA")
             git push origin "$commit:refs/heads/pages"
           fi
+
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: dist
@@ -74,6 +78,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
