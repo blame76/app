@@ -52,7 +52,7 @@ test('Only configured current reasons match; recorded use is never its own fallb
   assert.equal(evaluateHelperContext(rule, home, 0, new Date(2026, 9, 8, 10)).match, null);
 });
 
-test('Place OR interval OR time keeps one reason in place-first priority', () => {
+test('Place OR interval OR time keeps place-first priority and explains every current match', () => {
   const usedAt = new Date(2026, 9, 1, 10).getTime();
   const rule = {
     placeIds: ['gym'],
@@ -63,9 +63,21 @@ test('Place OR interval OR time keeps one reason in place-first priority', () =>
     legacyToleranceMinutes: null
   };
   const date = new Date(2026, 9, 6, 18);
-  assert.equal(evaluateHelperContext(rule, [{ id: 'gym', name: 'Gym' }], usedAt, date).match.reason, 'Gym');
-  assert.equal(evaluateHelperContext(rule, [], usedAt, date).match.reason, 'wieder im Blick · nach 1 Tag');
-  assert.equal(evaluateHelperContext({ ...rule, interval: null }, [], usedAt, date).match.reason, 'abends · 15–22 Uhr');
+
+  const all = evaluateHelperContext(rule, [{ id: 'gym', name: 'Gym' }], usedAt, date).match;
+  assert.equal(all.reason, 'Gym');
+  assert.equal(all.rank, 400);
+  assert.equal(all.why, 'Gym · Intervall 1 Tag · abends (15–22 Uhr)');
+
+  const intervalAndTime = evaluateHelperContext(rule, [], usedAt, date).match;
+  assert.equal(intervalAndTime.reason, 'wieder im Blick · nach 1 Tag');
+  assert.equal(intervalAndTime.rank, 300);
+  assert.equal(intervalAndTime.why, 'Intervall 1 Tag · abends (15–22 Uhr)');
+
+  const timeOnly = evaluateHelperContext({ ...rule, interval: null }, [], usedAt, date).match;
+  assert.equal(timeOnly.reason, 'abends · 15–22 Uhr');
+  assert.equal(timeOnly.why, timeOnly.reason);
+
   assert.equal(evaluateHelperContext({ ...rule, interval: null }, [{ id: 'deleted', name: 'Gelöscht' }], usedAt, date).match.reason, 'abends · 15–22 Uhr');
 });
 
