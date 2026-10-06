@@ -1,9 +1,9 @@
 import { HELPERS } from './helpers/registry.js';
 import { validateRegistry, helperDefaults } from './helpers/contract.js';
 import { list, get, put, remove, clearAll, exportAll, importAll, makeId, pruneEntries } from './db.js';
-import { getPosition, watchPosition, matchingPlaces, timeBucket, timeBucketLabel } from './context.js';
+import { evaluateHelperContext, getPosition, watchPosition, matchingPlaces, nextTimeBoundary, timeBucket, timeBucketLabel } from './context.js';
 import { TIME_BUCKETS, PLACE_CATEGORIES, validateRule } from './schema.js';
-import { fromLegacyMinutes, INTERVAL_UNITS, intervalDueAt, intervalLabel, intervalUnitLabel } from './intervals.js';
+import { fromLegacyMinutes, INTERVAL_UNITS, intervalLabel, intervalUnitLabel } from './intervals.js';
 import { RETENTION_WINDOWS } from './retention.js';
 import { renderNotes, renderPeople, renderPerson } from './read-views.js';
 import { createNavigation } from './navigation.js';
@@ -24,6 +24,9 @@ let helperController = null;
 let viewVersion = 0;
 let dashboardVersion = 0;
 let stopLocationWatch = null;
+let contextTimer = null;
+let dashboardPosition = null;
+let locationRequested = false;
 
 let composerVersion = 0;
 let installPrompt = null;
@@ -31,9 +34,13 @@ let composerReturnFocus = null;
 const navigation = createNavigation({ title: 'Startseite', open: goHome });
 let helperBackAction = null;
 
-function pauseLocationContext() {
+function pauseDashboardContext() {
   stopLocationWatch?.();
   stopLocationWatch = null;
+  clearTimeout(contextTimer);
+  contextTimer = null;
+  dashboardPosition = null;
+  locationRequested = false;
   dashboardVersion++;
 }
 
@@ -105,6 +112,7 @@ async function visibleHelpers() {
 
 async function recordUse(helperId) {
   await put('settings', { id: `usage:${helperId}`, lastUsedAt: Date.now() });
+  if (dashboardVisible()) refreshNow();
 }
 
 function reportError(error, message = 'Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen.') {
@@ -182,7 +190,7 @@ function updateBackLabel() {
 }
 
 function showView(name, title, open, options = {}, section = name) {
-  pauseLocationContext();
+  pauseDashboardContext();
   $('#noteDeleteDialog').close();
   navigation.enter({ title: title || 'Startseite', open }, { ...options, returnFocus: returnFocusTarget() });
   viewVersion++;
@@ -318,19 +326,22 @@ async function openHelperSettings(id, options = {}) {
   const places = await list('places');
   if (version !== viewVersion) return;
   const contexts = helper.contexts || [];
+  const hasContexts = contexts.length > 0;
   root.innerHTML = `
     <form id="helperSettingsForm" class="stack">
       <label class="toggle-row"><span><strong>Favorit</strong><small>In „Favoriten“ anzeigen.</small></span><input name="favorite" type="checkbox" ${rule.favorite ? 'checked' : ''}></label>
       <label class="toggle-row"><span><strong>Sichtbar</strong><small>In „Alle Helfer“ anzeigen.</small></span><input name="visible" type="checkbox" ${rule.visible ? 'checked' : ''}></label>
-      ${contexts.includes('place') ? `<fieldset><legend>Ort</legend>${places.length ? places.map(place => `<label class="check-row"><input type="checkbox" name="place" value="${escapeHtml(place.id)}" ${rule.placeIds.includes(place.id) ? 'checked' : ''}> ${escapeHtml(place.name)}</label>`).join('') : '<p class="muted">Noch kein Ort gespeichert.</p>'}</fieldset>` : ''}
-      ${contexts.includes('time') ? `<fieldset><legend>Tageszeit</legend>${TIME_BUCKETS.map(bucket => `<label class="check-row"><input type="checkbox" name="time" value="${bucket}" ${rule.timeBuckets.includes(bucket) ? 'checked' : ''}> ${timeBucketLabel(bucket)}</label>`).join('')}</fieldset>` : ''}
-      ${contexts.includes('interval') ? `<fieldset><legend>Intervall</legend><div class="form-grid two">
-        <label>Erinnern nach<input name="intervalValue" type="number" min="1" max="1000" step="1" inputmode="numeric" value="${escapeHtml(rule.interval?.value ?? '')}"></label>
+      ${hasContexts ? '<h2 class="settings-question">Wann soll dieser Helfer unter „Jetzt“ erscheinen?</h2>' : ''}
+      ${contexts.includes('place') ? `<fieldset><legend>An einem Ort</legend>${places.length ? places.map(place => `<label class="check-row"><input type="checkbox" name="place" value="${escapeHtml(place.id)}" ${rule.placeIds.includes(place.id) ? 'checked' : ''}> ${escapeHtml(place.name)}</label>`).join('') : '<p class="muted">Noch kein Ort gespeichert.</p>'}</fieldset>` : ''}
+      ${contexts.includes('time') ? `<fieldset><legend>Zu einer Tageszeit</legend>${TIME_BUCKETS.map(bucket => `<label class="check-row"><input type="checkbox" name="time" value="${bucket}" ${rule.timeBuckets.includes(bucket) ? 'checked' : ''}> ${timeBucketLabel(bucket, { capitalize: true })}</label>`).join('')}</fieldset>` : ''}
+      ${contexts.includes('interval') ? `<fieldset><legend>Nach erfolgreicher Nutzung wieder zeigen</legend><div class="form-grid two">
+        <label>Zeitraum<input name="intervalValue" type="number" min="1" max="1000" step="1" inputmode="numeric" value="${escapeHtml(rule.interval?.value ?? '')}"></label>
         <label>Einheit<select name="intervalUnit">${INTERVAL_UNITS.map(unit => `<option value="${unit}" ${rule.interval?.unit === unit ? 'selected' : ''}>${intervalUnitLabel(unit, rule.interval?.value)}</option>`).join('')}</select></label>
-      </div><details class="interval-early-option"><summary>Weitere Optionen</summary><p class="muted">Der Helper kann bis zu diesem Zeitraum früher erscheinen.</p><div class="form-grid two">
-        <label>Früher anzeigen<input name="earlyByValue" type="number" min="0" max="1000" step="1" inputmode="numeric" value="${escapeHtml(rule.earlyBy?.value ?? '')}"></label>
+      </div><details class="interval-early-option"><summary>Weitere Optionen</summary><p class="muted">Der Helfer kann schon um diesen Zeitraum früher erscheinen.</p><div class="form-grid two">
+        <label>Schon früher<input name="earlyByValue" type="number" min="0" max="1000" step="1" inputmode="numeric" value="${escapeHtml(rule.earlyBy?.value ?? '')}"></label>
         <label>Einheit<select name="earlyByUnit">${INTERVAL_UNITS.map(unit => `<option value="${unit}" ${rule.earlyBy?.unit === unit ? 'selected' : ''}>${intervalUnitLabel(unit, rule.earlyBy?.value)}</option>`).join('')}</select></label>
       </div></details></fieldset>` : ''}
+      ${hasContexts ? '<p class="muted">Eine passende Bedingung reicht.</p>' : ''}
       ${helper.retention ? `<label>Aufbewahrung<select name="trackingWindow">${RETENTION_WINDOWS.map(window => `<option value="${window}" ${rule.trackingWindow === window ? 'selected' : ''}>${({ '7d': '7 Tage', '30d': '30 Tage', '365d': '365 Tage', always: 'Unbegrenzt' })[window]}</option>`).join('')}</select></label><p class="muted">Bei begrenzter Dauer werden ältere Einträge gelöscht – bei einer Verkürzung schon beim Speichern. Einstellungen bleiben erhalten.</p>` : ''}
       ${helper.guidance ? `<label class="toggle-row"><span><strong>Hinweise anzeigen</strong><small>Kurze Erklärungen beim Dokumentieren anzeigen.</small></span><input name="guidance" type="checkbox" ${rule.guidance ? 'checked' : ''}></label>` : ''}
       <button type="submit">Speichern</button>
@@ -338,6 +349,7 @@ async function openHelperSettings(id, options = {}) {
   for (const [valueName, unitName] of [['intervalValue', 'intervalUnit'], ['earlyByValue', 'earlyByUnit']]) {
     const valueInput = $('#helperSettingsForm').elements.namedItem(valueName);
     const unitSelect = $('#helperSettingsForm').elements.namedItem(unitName);
+    if (!valueInput || !unitSelect) continue;
     const updateLabels = () => {
       const value = Number(valueInput.value);
       for (const option of unitSelect.options) option.textContent = intervalUnitLabel(option.value, value);
@@ -366,6 +378,7 @@ async function openHelperSettings(id, options = {}) {
     }
     await put('helperRules', nextRule);
     toast('Einstellungen gespeichert.');
+    if (dashboardVisible()) refreshNow();
   });
 }
 
@@ -374,33 +387,29 @@ function tile(helper, reason, launchPlace) {
   return `<button class="helper-tile" type="button" data-helper="${escapeHtml(helper.id)}"${placeData}><strong>${escapeHtml(helper.label)}</strong>${reason ? `<span>${escapeHtml(reason)}</span>` : ''}</button>`;
 }
 
-async function dashboardCandidates(visible, position) {
+async function dashboardCandidates(visible, position = null, date = new Date()) {
   const [places, entries, people] = await Promise.all([list('places'), list('entries', { prune: false }), list('people')]);
   const hasPlaceRules = visible.some(({ rule }) => rule.placeIds.some(id => places.some(place => place.id === id)))
     || entries.some(entry => isNote(entry) && noteContext(entry).placeIds.some(id => places.some(place => place.id === id)));
-  let activePlaces = [];
-  if (hasPlaceRules && dashboardVisible()) {
-    try { activePlaces = matchingPlaces(position === undefined ? await getPosition() : position, places); } catch { activePlaces = []; }
-  }
-  const placeIds = new Set(activePlaces.map(place => place.id));
-  const bucket = timeBucket();
-  const now = Date.now();
+  const activePlaces = matchingPlaces(position, places);
+  const bucket = timeBucket(date);
   const items = [];
+  let nextIntervalAt = null;
   for (const { helper, rule } of visible) {
     const usedAt = await lastUsed(helper.id);
-    let reason = '';
-    let rank = 0;
-    const matchedPlace = activePlaces.find(place => rule.placeIds.includes(place.id));
-    if (matchedPlace) { reason = matchedPlace.name || 'Ort'; rank = 400; }
-    else if (rule.interval && usedAt && (rule.legacyIntervalMinutes !== null
-      ? now >= usedAt + Math.max(0, rule.legacyIntervalMinutes - (rule.legacyToleranceMinutes || 0)) * 60000
-      : now >= intervalDueAt(usedAt, rule.interval, rule.earlyBy))) { reason = `Intervall · ${intervalLabel(rule.interval)}`; rank = 300; }
-    else if (rule.timeBuckets.includes(bucket)) { reason = timeBucketLabel(bucket); rank = 200; }
-    else if (usedAt) { reason = 'zuletzt verwendet'; rank = 100 + Math.max(0, 30 - Math.floor((now - usedAt) / 3600000)); }
-    if (reason) items.push({ helper, reason, rank, usedAt, ...(matchedPlace ? { launchPlace: { id: matchedPlace.id, name: matchedPlace.name } } : {}) });
+    const state = evaluateHelperContext(rule, activePlaces, usedAt, date);
+    if (state.nextIntervalAt !== null && (nextIntervalAt === null || state.nextIntervalAt < nextIntervalAt)) nextIntervalAt = state.nextIntervalAt;
+    if (state.match) items.push({ helper, usedAt, ...state.match });
   }
   items.push(...relevantNotes(entries, activePlaces, bucket).map(item => ({ ...item, person: people.find(person => person.id === item.note.personId) })));
-  return { hasPlaceRules, items: items.sort((a, b) => b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.helper.id).localeCompare(b.note?.id || b.helper.id)) };
+  const hasTimeRules = visible.some(({ rule }) => rule.timeBuckets.length)
+    || entries.some(entry => isNote(entry) && noteContext(entry).timeBuckets.length);
+  const nextRefreshAt = Math.min(nextIntervalAt ?? Infinity, hasTimeRules ? nextTimeBoundary(date) : Infinity);
+  return {
+    hasPlaceRules,
+    nextRefreshAt: Number.isFinite(nextRefreshAt) ? nextRefreshAt : null,
+    items: items.sort((a, b) => b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.helper.id).localeCompare(b.note?.id || b.helper.id))
+  };
 }
 
 function noteTile(note, reason, person) {
@@ -408,26 +417,53 @@ function noteTile(note, reason, person) {
   return `<button class="note-tile" type="button" data-note="${escapeHtml(note.id)}"><span class="note-tile-heading"><span class="note-eyebrow">${label}</span>${note.type === 'person-note' ? `<span class="note-person-name">${escapeHtml(person?.name || 'Person nicht mehr gespeichert')}</span>` : ''}</span><strong class="${noteTextClass(note.text)}">${escapeHtml(note.text)}</strong><span class="note-tile-context">${escapeHtml(reason)}</span></button>`;
 }
 
-async function renderDashboard({ position, contextOnly = false } = {}) {
+const MAX_TIMEOUT_DELAY = 2147483647;
+
+function scheduleContextRefresh(nextAt) {
+  clearTimeout(contextTimer);
+  contextTimer = null;
+  if (!dashboardVisible() || nextAt === null) return;
+  const delay = Math.min(MAX_TIMEOUT_DELAY, Math.max(1, nextAt - Date.now()));
+  contextTimer = setTimeout(() => {
+    contextTimer = null;
+    if (dashboardVisible()) renderDashboard({ contextOnly: true }).catch(reportError);
+  }, delay);
+}
+
+function updateDashboardPosition(position) {
+  if (!dashboardVisible()) return;
+  dashboardPosition = position;
+  renderDashboard({ position, contextOnly: true }).catch(reportError);
+}
+
+async function renderDashboard({ position = dashboardPosition, contextOnly = false } = {}) {
   const version = ++dashboardVersion;
   const visible = await visibleHelpers();
   if (version !== dashboardVersion) return;
   const favorites = visible.filter(({ rule }) => rule.favorite).map(({ helper }) => helper).sort((a, b) => a.label.localeCompare(b.label, 'de'));
-  const { items: candidates, hasPlaceRules } = await dashboardCandidates(visible, position);
+  const { items: candidates, hasPlaceRules, nextRefreshAt } = await dashboardCandidates(visible, position);
   if (version !== dashboardVersion) return;
 
   const rows = $('#nowRows');
-  const html = candidates.slice(0, 9).map(({ helper, note, reason, person, launchPlace }) => note ? noteTile(note, reason, person) : tile(helper, reason, launchPlace)).join('');
+  const html = candidates.map(({ helper, note, reason, person, launchPlace }) => note ? noteTile(note, reason, person) : tile(helper, reason, launchPlace)).join('');
   if (rows.innerHTML !== html) {
     const focused = rows.contains(document.activeElement) ? returnFocusTarget() : null;
     rows.innerHTML = html;
     if (focused) restoreFocus(focused);
   }
-  if (!hasPlaceRules || !dashboardVisible()) { stopLocationWatch?.(); stopLocationWatch = null; }
+  scheduleContextRefresh(nextRefreshAt);
+  if (!hasPlaceRules || !dashboardVisible()) {
+    stopLocationWatch?.();
+    stopLocationWatch = null;
+    dashboardPosition = null;
+    locationRequested = false;
+  }
   else if (!stopLocationWatch) {
-    stopLocationWatch = watchPosition(next => {
-      if (dashboardVisible()) renderDashboard({ position: next, contextOnly: true }).catch(reportError);
-    });
+    stopLocationWatch = watchPosition(updateDashboardPosition);
+  }
+  if (hasPlaceRules && dashboardVisible() && !locationRequested) {
+    locationRequested = true;
+    getPosition({ maximumAge: 0 }).then(updateDashboardPosition).catch(() => {});
   }
   if (contextOnly) return;
   $('#favoriteTiles').innerHTML = favorites.length ? favorites.map(helper => tile(helper, '')).join('') : '';
@@ -469,7 +505,7 @@ async function renderSettings() {
   if (version !== viewVersion) return;
   $('#rulesList').innerHTML = rules.length ? rules.map(rule => {
     const interval = rule.interval || (rule.intervalMinutes ? fromLegacyMinutes(rule.intervalMinutes) : null);
-    return `<div class="list-item"><span><strong>${escapeHtml(helperById(rule.id)?.label || rule.id)}</strong><small>${escapeHtml([rule.favorite ? 'Favorit' : '', rule.placeIds?.length ? `${rule.placeIds.length} ${rule.placeIds.length === 1 ? 'Ort' : 'Orte'}` : '', rule.timeBuckets?.length ? rule.timeBuckets.map(timeBucketLabel).join(', ') : '', interval ? `Intervall · ${intervalLabel(interval)}` : ''].filter(Boolean).join(' · ') || 'Keine Verknüpfung')}</small></span></div>`;
+    return `<div class="list-item"><span><strong>${escapeHtml(helperById(rule.id)?.label || rule.id)}</strong><small>${escapeHtml([rule.favorite ? 'Favorit' : '', rule.placeIds?.length ? `${rule.placeIds.length} ${rule.placeIds.length === 1 ? 'Ort' : 'Orte'}` : '', rule.timeBuckets?.length ? rule.timeBuckets.map(timeBucketLabel).join(', ') : '', interval ? `Nach Nutzung: ${intervalLabel(interval)}` : ''].filter(Boolean).join(' · ') || 'Keine Verknüpfung')}</small></span></div>`;
   }).join('') : '<p class="muted">Noch keine Verknüpfungen.</p>';
 
   const places = await list('places');
@@ -644,7 +680,7 @@ function contextActions(root, note, current, actions, capture = false) {
 }
 
 async function openNoteContext(id, kind = null, options = {}) {
-  const title = kind ? (kind === 'placeIds' ? 'Ort' : 'Tageszeit') : 'Wann wieder zeigen?';
+  const title = kind ? (kind === 'placeIds' ? 'Ort' : 'Tageszeit') : 'Wann soll diese Notiz wieder auftauchen?';
   await openNoteScreen(id, title, () => openNoteContext(id, kind, { replace: true }), options, (root, note, places, current) => {
     if (!kind) {
       contextActions(root, note, current, {
@@ -919,11 +955,11 @@ function bindEvents() {
   $('#locationExplanation').textContent = LOCATION_EXPLANATION;
   $('#radiusExplanation').textContent = RADIUS_EXPLANATION;
   document.addEventListener('visibilitychange', () => {
-    pauseLocationContext();
+    pauseDashboardContext();
     if (dashboardVisible()) refreshNow();
     else $('#nowRows').replaceChildren();
   });
-  window.addEventListener('pagehide', pauseLocationContext);
+  window.addEventListener('pagehide', pauseDashboardContext);
   window.addEventListener('pageshow', event => { if (event.persisted && dashboardVisible()) refreshNow(); });
   $('#themeChoice').addEventListener('change', async event => {
     const value = event.target.value;
