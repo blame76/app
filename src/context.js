@@ -1,48 +1,66 @@
 import { intervalAfterLabel, intervalDueAt, intervalLabel } from './intervals.js';
+import { DEFAULT_TIME_WINDOWS, DEFAULT_TIME_WINDOW_IDS, findTimeWindow, timeWindowLabel } from './time-windows.js';
 
-export const TIME_BUCKETS = Object.freeze([
-  Object.freeze({ id: 'morning', label: 'morgens', startHour: 5, endHour: 11 }),
-  Object.freeze({ id: 'midday', label: 'mittags', startHour: 11, endHour: 15 }),
-  Object.freeze({ id: 'evening', label: 'abends', startHour: 15, endHour: 22 }),
-  Object.freeze({ id: 'night', label: 'nachts', startHour: 22, endHour: 5 })
-]);
+export const TIME_BUCKETS = Object.freeze(DEFAULT_TIME_WINDOWS.map(window => Object.freeze({
+  id: window.id,
+  label: window.label,
+  startHour: window.startMinute / 60,
+  endHour: window.endMinute / 60
+})));
 
-export const TIME_BUCKET_IDS = Object.freeze(TIME_BUCKETS.map(bucket => bucket.id));
+export const TIME_BUCKET_IDS = DEFAULT_TIME_WINDOW_IDS;
 
-function timeDefinition(id) {
-  return TIME_BUCKETS.find(bucket => bucket.id === id);
+function minuteOfDay(date) {
+  return date.getHours() * 60 + date.getMinutes();
+}
+
+function matchesTimeWindow(window, minute) {
+  return window.startMinute < window.endMinute
+    ? minute >= window.startMinute && minute < window.endMinute
+    : minute >= window.startMinute || minute < window.endMinute;
+}
+
+export function matchingTimeWindows(date = new Date(), timeWindows = DEFAULT_TIME_WINDOWS) {
+  const minute = minuteOfDay(date);
+  return timeWindows.filter(window => matchesTimeWindow(window, minute));
 }
 
 export function timeBucket(date = new Date()) {
-  const hour = date.getHours();
-  return TIME_BUCKETS.find(bucket => bucket.startHour < bucket.endHour
-    ? hour >= bucket.startHour && hour < bucket.endHour
-    : hour >= bucket.startHour || hour < bucket.endHour)?.id;
+  return matchingTimeWindows(date, DEFAULT_TIME_WINDOWS)[0]?.id;
 }
 
-export function timeBucketLabel(id, { capitalize = false } = {}) {
-  const bucket = timeDefinition(id);
-  if (!bucket) return id;
-  const label = capitalize ? bucket.label[0].toLocaleUpperCase('de') + bucket.label.slice(1) : bucket.label;
-  return `${label} · ${String(bucket.startHour).padStart(2, '0')}–${String(bucket.endHour).padStart(2, '0')} Uhr`;
+export function timeBucketLabel(id, { capitalize = false, timeWindows = DEFAULT_TIME_WINDOWS } = {}) {
+  const window = findTimeWindow(id, timeWindows);
+  return window ? timeWindowLabel(window, { capitalize }) : id;
 }
 
-function compactTimeBucketLabel(id) {
-  const bucket = timeDefinition(id);
-  if (!bucket) return id;
-  return `${bucket.label} (${String(bucket.startHour).padStart(2, '0')}–${String(bucket.endHour).padStart(2, '0')} Uhr)`;
+function compactTimeBucketLabel(id, timeWindows) {
+  const window = findTimeWindow(id, timeWindows);
+  return window ? timeWindowLabel(window, { compact: true }) : id;
 }
 
-export function nextTimeBoundary(date = new Date()) {
+function boundaryOn(date, dayOffset, minute) {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate() + dayOffset,
+    Math.floor(minute / 60),
+    minute % 60
+  ).getTime();
+}
+
+export function nextTimeBoundary(date = new Date(), timeWindows = DEFAULT_TIME_WINDOWS) {
   const now = date.getTime();
   const candidates = [];
   for (const dayOffset of [0, 1]) {
-    for (const bucket of TIME_BUCKETS) {
-      const boundary = new Date(date.getFullYear(), date.getMonth(), date.getDate() + dayOffset, bucket.startHour);
-      if (boundary.getTime() > now) candidates.push(boundary.getTime());
+    for (const window of timeWindows) {
+      for (const minute of [window.startMinute, window.endMinute]) {
+        const boundary = boundaryOn(date, dayOffset, minute);
+        if (boundary > now) candidates.push(boundary);
+      }
     }
   }
-  return Math.min(...candidates);
+  return candidates.length ? Math.min(...candidates) : null;
 }
 
 function ruleIntervalDueAt(rule, lastUsedAt) {
@@ -53,10 +71,9 @@ function ruleIntervalDueAt(rule, lastUsedAt) {
   return intervalDueAt(lastUsedAt, rule.interval, rule.earlyBy);
 }
 
-export function evaluateHelperContext(rule, activePlaces, lastUsedAt, date = new Date()) {
+export function evaluateHelperContext(rule, activePlaces, lastUsedAt, date = new Date(), timeWindows = DEFAULT_TIME_WINDOWS) {
   const now = date.getTime();
   const dueAt = ruleIntervalDueAt(rule, lastUsedAt);
-  const bucket = timeBucket(date);
   const matches = [];
   const matchedPlace = activePlaces.find(place => rule.placeIds.includes(place.id));
 
@@ -75,10 +92,10 @@ export function evaluateHelperContext(rule, activePlaces, lastUsedAt, date = new
       rank: 300
     });
   }
-  if (rule.timeBuckets.includes(bucket)) {
+  for (const window of matchingTimeWindows(date, timeWindows).filter(window => rule.timeBuckets.includes(window.id))) {
     matches.push({
-      reason: timeBucketLabel(bucket),
-      why: compactTimeBucketLabel(bucket),
+      reason: timeBucketLabel(window.id, { timeWindows }),
+      why: compactTimeBucketLabel(window.id, timeWindows),
       rank: 200
     });
   }

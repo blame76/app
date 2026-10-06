@@ -115,6 +115,24 @@
         </details>
 
         <details class="settings-block">
+          <summary>Zeitfenster</summary>
+          <div class="settings-content stack">
+            <p class="muted">Die vier Standard-Zeitfenster bleiben erhalten. Eigene Zeitfenster dürfen sich überlappen und über Mitternacht laufen.</p>
+            <div id="defaultTimeWindows" class="list"></div>
+            <form id="timeWindowCreateForm" class="stack">
+              <h3>Eigenes Zeitfenster</h3>
+              <label>Name<input name="label" maxlength="60" placeholder="z. B. Zweites Frühstück" required></label>
+              <div class="form-grid two">
+                <label>Von<input name="start" type="time" required></label>
+                <label>Bis<input name="end" type="time" required></label>
+              </div>
+              <button type="submit" class="secondary">Zeitfenster hinzufügen</button>
+            </form>
+            <div id="timeWindowsList" class="list"></div>
+          </div>
+        </details>
+
+        <details class="settings-block">
           <summary>Helfer</summary>
           <div class="settings-content">
             <p class="muted">Ausblenden löscht keine Daten.</p>
