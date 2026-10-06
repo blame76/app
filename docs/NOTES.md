@@ -26,8 +26,8 @@ entfernbare Verknüpfung („Ort nicht mehr gespeichert“), erzeugen aber kein 
 
 ## Lebenszyklus und Kontext
 
-Quick Capture speichert und wartet auf den Commit, bevor „Gespeichert / Wann wieder
-zeigen?“ erscheint. „Fertig“ beendet sofort; Orte und Tageszeiten sind freiwillig.
+Quick Capture speichert und wartet auf den Commit, bevor „Gespeichert / Wann soll
+diese Notiz wieder auftauchen?“ erscheint. „Fertig“ beendet sofort; Orte und Tageszeiten sind freiwillig.
 Fehler beim Kontext verlieren die bereits gespeicherte Notiz nicht. Derselbe
 Kontexteditor ist später aus der Detailansicht verfügbar. Die Erfassung und spätere
 Kontextansichten verwenden eigene Element-IDs, auch wenn beide zugleich geöffnet sind.
@@ -45,7 +45,8 @@ weder Text noch Zeitstempel und aktualisieren „Jetzt“.
 Die Semantik ist ausdrücklich **Ort ODER Tageszeit**. Ein Ortsmatch hat Rang 400,
 ein Tageszeitmatch Rang 200; innerhalb desselben Rangs zählt die ursprüngliche
 Erstellungszeit, neueste zuerst, bei Gleichstand die ID. Die bestehenden Helper-Ränge
-bleiben erhalten. „Jetzt“ begrenzt Helper und Notizen gemeinsam auf neun Einträge.
+bleiben erhalten. „Jetzt“ zeigt alle aktuell passenden Helper und Notizen; relevante
+Einträge werden nicht still begrenzt.
 Ohne passenden expliziten Kontext erscheint keine Notiz. Standortfehler verhindern
 keinen Tageszeitmatch. Es gibt keine zweite Standortabfrage pro Dashboardauswertung.
 
@@ -103,7 +104,7 @@ Browserfunktionen in isolierten Chromium-Kontexten mit echter IndexedDB:
 | `helpers-offline-check.js` | 17 |
 
 Das Notes-Gate prüft alte Notizen, Commit vor Follow-up, beide Kontextarten,
-Textbearbeitung/Cancel/Fehler, OR-Matching/Priorisierung/Limit, bestätigtes Löschen und
+Textbearbeitung/Cancel/Fehler, OR-Matching/Priorisierung/vollständige Liste, bestätigtes Löschen und
 Fehler/Retry, Parent-Navigation/Fokus, Export/Import, sichere Textdarstellung,
 320/390/1280 CSS px, 200 % Text und Reduced Motion in Light/Dark.
 Das Offline-Gate verwendet den tatsächlichen Modul-Service-Worker und prüft zusätzlich

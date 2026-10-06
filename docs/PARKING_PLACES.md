@@ -12,7 +12,8 @@ Freizeit oder Sonstiges. Die Ortsliste zeigt ausschließlich belegte Kategorien 
 „Ohne Kategorie“. Kategorie und Radius können auch bei bestehenden Orten geändert
 werden. Regeln verknüpfen weiterhin konkrete Place-IDs, niemals Kategorien.
 
-Radiusauswahl: Genau · 20 Meter, 50 Meter, 100 Meter, 250 Meter. Der bisherige Default
+Radiusauswahl: 20 Meter · sehr eng, 50 Meter · eng, 100 Meter · nah,
+250 Meter · Umgebung. Der bisherige Default
 250 Meter bleibt bestehen. Bestehende andere Radien bleiben als Auswahl erhalten.
 Das Matching verwendet die gemeldete Entfernung ohne bisherigen Genauigkeitsaufschlag.
 Ein Radius ist keine Garantie für eine entsprechend genaue Geräteortung, insbesondere

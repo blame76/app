@@ -11,6 +11,13 @@ mit einer kleinen Cache-/Event-Umgebung aus; es gibt keine Tests, die null Helpe
 Auch Fachmodelle und isolierte Pages-Builds sind enthalten (`tests/*.mjs`).
 Die `.js`-Browserdateien werden von `npm test` nicht ausgeführt.
 
+`context-core-browser-check.js` prüft den zentralen „Jetzt“-Lebenszyklus mit
+kontrollierter lokaler Zeit und Geolocation: sichere Inhalte bei langsamer oder
+verweigerter Ortung, Betreten/Verlassen, automatische Tageszeit- und Intervallgrenzen,
+Pause/Rückkehr im Vordergrund, ODER-Semantik, fehlende Contexts, gelöschte Orts-IDs und
+mehr als neun gleichzeitige Treffer. Die Ortung ist simuliert; ein echter Street-Test
+bleibt zusätzlich erforderlich.
+
 ## Browser
 
 `browser-check.js` ist eine Playwright-Funktion für einen extern bereitgestellten Browser,
@@ -152,8 +159,8 @@ Kein Worker-Mock in diesem Gate.
 Metadatenfehler, relativen Zeittext, lokalen Kalendertag, Retention und Fachvalidierung
 vor Import. `drink-browser-check.js` verwendet den echten Helper und IndexedDB mit
 kontrollierter Testzeit in `Europe/Berlin`: kein Intervall ohne erste Nutzung,
-„zuletzt verwendet“ unmittelbar nach Nutzung und bis 44:59,999 Minuten,
-Intervallgrund ab Minute 45 bei 1 Stunde mit 15 Minuten Vorlauf; nach Änderung
+kein Recent-Fallback unmittelbar nach Nutzung und bis 44:59,999 Minuten,
+verständlicher Intervallgrund ab Minute 45 bei 1 Stunde mit 15 Minuten Vorlauf; nach Änderung
 auf 90 Minuten ab Minute 75.
 Keine Echtzeit-Wartezeit und keine geänderte Engine. Außerdem: Tastatur, Fokus,
 keine Toast-Dopplung, heutige Historie ohne Löschung älterer Ereignisse, Fehler/Retry,
@@ -204,7 +211,7 @@ Zusätzlich: `TZ=Europe/Berlin node --test tests/notes.mjs`.
 
 `notes-browser-check.js` prüft den vollständigen Lebenszyklus mit echter IndexedDB
 in Light/Dark, einschließlich Save/Cancel, Commit-Reihenfolge, Kontextfehler ohne
-Notizverlust, beiden Kontextarten, Matching und Dashboard-Limit, Modal-Löschen/Retry,
+Notizverlust, beiden Kontextarten, Matching und vollständiger Dashboard-Liste, Modal-Löschen/Retry,
 Parent-Navigation/Fokus, Import/Export und langen Texten bei 320 CSS px/200 % Text.
 Der gemeinsame Offline-Gate prüft auch Bearbeiten, Kontext, Wiederfinden und Löschen
 mit dem echten Worker. Details und ausgeführte Gates: [`docs/NOTES.md`](../docs/NOTES.md).

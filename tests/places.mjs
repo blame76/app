@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { groupPlaces, PLACE_RADII } from '../src/places.js';
+import { groupPlaces, PLACE_RADII, radiusLabel } from '../src/places.js';
 import { PLACE_CATEGORIES, validateRecord, validateImport, STORES } from '../src/schema.js';
 import { matchingPlaces, distanceMeters, watchPosition } from '../src/context.js';
 import { relevantNotes } from '../src/notes.js';
@@ -19,6 +19,9 @@ test('Groups omit empty categories, sort names, and keep uncategorized places', 
   const groups = groupPlaces([old, { ...old, id: 'b', name: 'B', category: 'Einkaufen' }, { ...old, id: 'a', name: 'A', category: 'Einkaufen' }]);
   assert.deepEqual(groups.map(group => group.label), ['Einkaufen', 'Ohne Kategorie']);
   assert.deepEqual(groups[0].places.map(place => place.id), ['a', 'b']);
+});
+test('Radius labels describe scope without promising accuracy', () => {
+  assert.deepEqual(PLACE_RADII.map(radiusLabel), ['20 Meter · sehr eng', '50 Meter · eng', '100 Meter · nah', '250 Meter · Umgebung']);
 });
 test('Every radius uses measured distance without silently adding accuracy; exit hides and reentry shows notes', () => {
   for (const radius of PLACE_RADII) {

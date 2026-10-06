@@ -16,6 +16,14 @@ const INTERVAL_UNIT_SINGULAR = {
   month: 'Monat',
   year: 'Jahr'
 };
+const INTERVAL_UNIT_AFTER_PLURAL = {
+  minute: 'Minuten',
+  hour: 'Stunden',
+  day: 'Tagen',
+  week: 'Wochen',
+  month: 'Monaten',
+  year: 'Jahren'
+};
 
 const MINUTES_PER_UNIT = { minute: 1, hour: 60, day: 1440, week: 10080, month: 43200, year: 525600 };
 const LEGACY_UNITS = ['week', 'day', 'hour', 'minute'];
@@ -91,6 +99,12 @@ export function intervalDueAt(lastUsedAt, interval, earlyBy = null) {
 export function intervalLabel(interval) {
   if (interval == null) return '';
   const unit = intervalUnitLabel(interval.unit, interval.value);
+  return `${interval.value} ${unit}`;
+}
+
+export function intervalAfterLabel(interval) {
+  if (interval == null) return '';
+  const unit = interval.value === 1 ? INTERVAL_UNIT_SINGULAR[interval.unit] : INTERVAL_UNIT_AFTER_PLURAL[interval.unit];
   return `${interval.value} ${unit}`;
 }
 

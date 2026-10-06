@@ -139,7 +139,7 @@ async (page) => {
       await app.getByRole('button', { name: 'Supermarkt entfernen', exact: true }).click(); await ready();
       await app.waitForFunction(async () => !(await (await import('/src/db.js')).get('entries', 'legacy')).context.placeIds.length);
       assert((await stored('legacy')).context.timeBuckets.join() === 'evening', 'unlinking place retains the independent time context');
-      await app.getByRole('button', { name: 'abends entfernen', exact: true }).click();
+      await app.getByRole('button', { name: 'abends · 15–22 Uhr entfernen', exact: true }).click();
       await app.waitForFunction(async () => !(await (await import('/src/db.js')).get('entries', 'legacy')).context.timeBuckets.length); await ready();
       assert((await stored('legacy')).createdAt === legacy.createdAt && (await stored('legacy')).updatedAt === edited.updatedAt && (await stored('legacy')).text === edited.text, 'unlinking both contexts retains text and both timestamps');
       await link('placeIds', ['office']); await link('timeBuckets', ['midday']);
@@ -207,8 +207,8 @@ async (page) => {
         for (const helper of ['pain', 'drink', 'discount']) await db.put('helperRules', { id: helper, visible: false });
         for (let index = 0; index < 12; index++) await db.put('entries', { id: `cap-${index}`, type: 'note', text: `Gedanke ${index}`, createdAt: Date.now() + index, context: { timeBuckets: ['midday'] } });
       });
-      await menu(); await back(); await app.waitForFunction(() => document.querySelectorAll('#nowRows [data-note]').length === 9);
-      assert((await app.locator('#nowRows [data-note]').evaluateAll(nodes => nodes.map(node => node.dataset.note))).join() === 'cap-11,cap-10,cap-9,cap-8,cap-7,cap-6,cap-5,cap-4,cap-3', 'Now works without visible helpers, newest first, with the existing total cap of nine');
+      await menu(); await back(); await app.waitForFunction(() => document.querySelectorAll('#nowRows [data-note^="cap-"]').length === 12);
+      assert((await app.locator('#nowRows [data-note^="cap-"]').evaluateAll(nodes => nodes.map(node => node.dataset.note))).join() === 'cap-11,cap-10,cap-9,cap-8,cap-7,cap-6,cap-5,cap-4,cap-3,cap-2,cap-1,cap-0', 'Now works without visible helpers, newest first, without silently truncating relevant notes');
 
       await open('cap-11'); await app.locator('#noteDelete').click();
       assert(await app.locator('#noteDeleteDialog').isVisible() && !!(await stored('cap-11')) && await app.locator('#noteDeleteCancel').evaluate(node => node === document.activeElement), 'delete requires a semantic modal and focuses Cancel');

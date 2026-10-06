@@ -80,7 +80,7 @@ async (page) => {
       await app.getByRole('button', { name: 'Bei Mama entfernen', exact: true }).click();
       await app.waitForFunction(async () => !(await (await import('/src/db.js')).get('entries', 'old')).context.placeIds.length); await ready();
       check((await stored('old')).context.timeBuckets.join() === 'evening', 'removing a place keeps the independent evening context');
-      await app.getByRole('button', { name: 'abends entfernen', exact: true }).click();
+      await app.getByRole('button', { name: 'abends · 15–22 Uhr entfernen', exact: true }).click();
       await app.waitForFunction(async () => !(await (await import('/src/db.js')).get('entries', 'old')).context.timeBuckets.length); await ready();
       check((await stored('old')).text === edited.text && (await stored('old')).updatedAt === edited.updatedAt, 'unlinking everything retains content and timestamps');
       await links('placeIds', ['mama-home']); await links('timeBuckets', ['evening']); await back();
@@ -88,14 +88,14 @@ async (page) => {
       check((await stored('old')).context.placeIds.join() === 'mama-home' && (await stored('old')).context.timeBuckets.join() === 'evening', 'later editing preserves person-note context');
       await shot('detail'); await back();
       check(await app.locator('#readHost [data-note="old"]').evaluate(node => node === document.activeElement), 'detail Back restores Mama and focuses the selected entry');
-      await shot('person'); await home(); await app.waitForSelector('#nowRows [data-note="old"]');
+      await shot('person'); await home(); await app.waitForFunction(() => document.querySelector('#nowRows [data-note="old"] .note-tile-context')?.textContent === 'Bei Mama');
       check(await app.locator('#nowRows [data-note="old"] .note-person-name').textContent() === 'Mama' && await app.locator('#nowRows [data-note="old"] .note-tile-context').textContent() === 'Bei Mama', 'a glance at Now shows Mama, her question and the matching place');
       const beforeOpen = JSON.stringify(await stored('old')); await open('old'); await back();
       check(JSON.stringify(await stored('old')) === beforeOpen && await app.locator('#view-dashboard').isVisible(), 'Now opening changes no data and Back returns to dashboard');
       await app.reload(); await app.waitForSelector('#nowRows [data-note="old"]');
       check(await app.evaluate(() => window.personGeoCalls === 1), 'person-only place context uses one existing shell geolocation query');
       await app.evaluate(() => { window.personGeoFail = true; }); await people(); await back();
-      await app.waitForFunction(() => document.querySelector('#nowRows [data-note="old"] .note-tile-context')?.textContent === 'abends');
+      await app.waitForFunction(() => document.querySelector('#nowRows [data-note="old"] .note-tile-context')?.textContent === 'abends · 15–22 Uhr');
       check(await app.locator('#nowRows [data-note="old"]').count() === 1, 'evening still matches when location is denied');
       await app.evaluate(() => { window.personNow = Date.parse('2026-10-04T09:00:00+02:00'); }); await people(); await back();
       await app.waitForFunction(() => !document.querySelector('#nowRows [data-note="old"]'));

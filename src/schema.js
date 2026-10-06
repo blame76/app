@@ -1,8 +1,9 @@
 import { validateIntervalPair } from './intervals.js';
+import { TIME_BUCKET_IDS } from './context.js';
 
 // Shared validation for settings, imports and helper declarations. No HTML belongs here.
 export const STORES = ['entries', 'people', 'places', 'helperRules', 'settings'];
-export const TIME_BUCKETS = ['morning', 'midday', 'evening', 'night'];
+export const TIME_BUCKETS = TIME_BUCKET_IDS;
 export const CONTEXT_TYPES = ['place', 'time', 'interval'];
 
 function requireValue(condition, message) {
