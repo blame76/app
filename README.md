@@ -25,7 +25,7 @@ Die Shell bietet nur:
 - Fokusansicht: Helfer ersetzt den gesamten Contentbereich; Dashboard und Menü sind dann unsichtbar
 - Zurück führt eine Ebene zurück: Einstellungen → Helper, Unteransicht → Parent, Helper → Dashboard
 - lokale Daten in IndexedDB
-- Ort / Tageszeit / Intervall / Favorit / zuletzt verwendet als gemeinsame Kontextbasis
+- Ort / frei benennbare Zeitfenster / Intervall / Favorit / zuletzt verwendet als gemeinsame Kontextbasis
 - Import / Export / Daten löschen
 - Datenschutz / Impressum / App-Info
 - PWA / Offline-Shell mit versioniertem Cache
@@ -88,7 +88,7 @@ Die gemeinsame Shell ist bereits vorbereitet für:
 Standort wird erst abgefragt, wenn ein sichtbarer Helfer eine Ortsverknüpfung besitzt,
 eine Notiz mit einem vorhandenen Ort verknüpft ist oder der Nutzer bei „Ort hinzufügen“
 bewusst „Hier“ wählt. Alternativ kann ein Ort ohne Standortabfrage über Koordinaten angelegt werden.
-Notizen verwenden dasselbe Ortsmatching und dieselben Tageszeiten. Kein Hintergrund-Geofencing.
+Notizen verwenden dasselbe Ortsmatching und dieselben Zeitfenster. Die Standards morgens, mittags, abends und nachts bleiben kompatibel; zusätzliche lokale Zeitfenster können frei benannt werden, sich überlappen und über Mitternacht laufen. Kein Hintergrund-Geofencing.
 
 ## Core-Footer
 
