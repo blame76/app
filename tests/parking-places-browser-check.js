@@ -10,6 +10,7 @@ async (page) => {
     const check = (ok, label) => { if (!ok) throw Error(`${theme}: ${label}`); results.push(`${theme}: ${label}`); };
     const entries = () => app.evaluate(async () => (await import('/src/db.js')).list('entries', { prune: false }));
     const stored = () => app.evaluate(async () => (await import('/src/db.js')).get('entries', 'parking-position'));
+    let manualPlaceId;
     async function openParking() {
       await app.locator('.home-accordion').last().evaluate(node => { node.open = true; });
       await app.locator('#allHelperList [data-helper="parking"]').click();
@@ -102,12 +103,40 @@ async (page) => {
         const db = await import('/src/db.js');
         await db.put('places', { id: 'old', name: 'Alter Ort', lat: 50, lon: 8, radius: 75, createdAt: 1 });
       });
+      const beforePlaceGeo = await app.evaluate(() => window.geoCalls);
       await app.locator('[data-composer="place"]').click();
+      check(await app.evaluate(before => window.geoCalls === before, beforePlaceGeo), 'Opening Ort hinzufügen does not locate before a source is chosen');
+      check(await app.locator('#placeForm button[type="submit"]').isDisabled(), 'Place save waits for an explicit position source');
+      await app.locator('#placeForm [name="positionSource"][value="current"]').check();
+      await app.waitForFunction(before => window.geoCalls === before + 1 && !document.querySelector('#placeForm button[type="submit"]').disabled, beforePlaceGeo);
       await app.locator('#placeForm [name="name"]').fill('Buchhandlung');
       await app.locator('#placeForm [name="category"]').selectOption('Einkaufen');
       await app.locator('#placeForm [name="radius"]').selectOption('20');
-      await app.locator('#placeForm button').click();
+      await app.locator('#placeForm button[type="submit"]').click();
       await app.waitForSelector('#quickComposer', { state: 'hidden' });
+
+      const beforeManualGeo = await app.evaluate(() => window.geoCalls);
+      await app.locator('[data-composer="place"]').click();
+      await app.locator('#placeForm [name="positionSource"][value="manual"]').check();
+      await app.locator('#placeForm [name="name"]').fill('Manueller Ort');
+      await app.locator('#placeForm [name="radius"]').selectOption('20');
+      await app.locator('#placeForm [name="coordinates"]').fill('91, 8');
+      check(await app.locator('#placeForm button[type="submit"]').isDisabled()
+        && (await app.locator('#placeCoordinateStatus').textContent()).includes('nicht erkannt'), 'Invalid manual coordinates remain local and cannot be saved');
+      await app.locator('#placeCoordinateHelp summary').click();
+      check((await app.locator('#placeCoordinateHelp').textContent()).includes('Google Maps')
+        && (await app.locator('#placeCoordinateHelp').textContent()).includes('Apple Karten'), 'Inline help explains where coordinates can be copied');
+      await app.locator('#placeForm [name="coordinates"]').fill('50.000000, 8.000000');
+      await app.waitForFunction(() => !document.querySelector('#placeForm button[type="submit"]').disabled);
+      await app.locator('#placeForm button[type="submit"]').click();
+      await app.waitForSelector('#quickComposer', { state: 'hidden' });
+      manualPlaceId = await app.evaluate(async () => (await (await import('/src/db.js')).list('places')).find(place => place.name === 'Manueller Ort')?.id);
+      check(!!manualPlaceId && await app.evaluate(before => window.geoCalls === before, beforeManualGeo), 'Manual place stores through the existing place model without geolocation');
+      check(await app.evaluate(async id => {
+        const place = await (await import('/src/db.js')).get('places', id);
+        return place?.lat === 50 && place?.lon === 8 && place?.radius === 20;
+      }, manualPlaceId), 'Manual coordinates persist unchanged in the existing place schema');
+
       await settings();
       check((await app.locator('#placesList h3').allTextContents()).join('|') === 'Einkaufen|Ohne Kategorie', 'Only occupied categories render; legacy place remains uncategorized');
       check(await app.locator('[data-place-form="old"] [name="radius"]').inputValue() === '75', 'Legacy custom radius is preserved');
@@ -115,17 +144,19 @@ async (page) => {
       await app.locator('[data-place-form="old"] [name="category"]').selectOption('Freizeit');
       await app.locator('[data-place-form="old"] button[type="submit"]').click();
       await app.waitForFunction(() => document.querySelector('#placesList').textContent.includes('Ort gespeichert.'));
-      check((await app.locator('#placesList h3').allTextContents()).join('|') === 'Einkaufen|Freizeit', 'Existing place radius/category can be changed and regrouped');
+      check((await app.locator('#placesList h3').allTextContents()).join('|') === 'Einkaufen|Freizeit|Ohne Kategorie', 'Existing place radius/category can be changed and regrouped without hiding the manual uncategorized place');
       await app.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
       check(await app.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Grouped places fit 320px with 200% text');
       await app.evaluate(() => { document.documentElement.style.fontSize = ''; });
       await app.locator('#backButton').click();
-      await app.evaluate(async () => {
+      await app.evaluate(async id => {
         const db = await import('/src/db.js');
         const { timeBucket } = await import('/src/context.js');
-        await db.put('entries', { id: 'location-note', type: 'note', text: 'Nur hier', createdAt: 1, context: { placeIds: ['old'] } });
-        await db.put('entries', { id: 'time-note', type: 'note', text: 'Auch zur Tageszeit', createdAt: 2, context: { placeIds: ['old'], timeBuckets: [timeBucket()] } });
-      });
+        await db.put('entries', { id: 'location-note', type: 'note', text: 'Nur hier', createdAt: 1, context: { placeIds: [id] } });
+        await db.put('entries', { id: 'time-note', type: 'note', text: 'Auch zur Tageszeit', createdAt: 2, context: { placeIds: [id], timeBuckets: [timeBucket()] } });
+        window.geo.latitude = 50;
+        window.geo.longitude = 8;
+      }, manualPlaceId);
       await app.reload();
       await app.waitForSelector('#nowRows [data-note="location-note"]');
       await app.waitForFunction(() => window.watchCalls === 1);
