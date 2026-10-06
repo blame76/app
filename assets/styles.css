@@ -149,6 +149,7 @@ main { max-width: var(--content-width); margin: 0 auto; padding: 0 var(--gutter)
 #nowRows .helper-tile { background: var(--surface-paper); }
 .helper-tile strong { padding-top: 1rem; font-family: var(--display-font); font-size: 1.625rem; font-weight: 400; letter-spacing: -.025em; line-height: 1.2; overflow-wrap: anywhere; }
 .helper-tile span { color: var(--text-muted); font-size: .875rem; line-height: 1.4; overflow-wrap: anywhere; }
+#nowRows .helper-tile .tile-reason::before { content: 'Warum jetzt?'; display: block; margin-bottom: .3rem; color: var(--text-primary); font-size: .6875rem; font-weight: 600; letter-spacing: .06em; line-height: 1.2; text-transform: uppercase; }
 .helper-toolbar { display: grid; grid-template-columns: minmax(0,1fr) minmax(150px,.55fr); gap: .75rem; }
 .helper-list { display: grid; }
 .helper-list-item { width: 100%; min-height: 76px; border: 0; border-radius: 0; background: transparent; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; gap: 1rem; text-align: left; padding: 1rem .25rem; }

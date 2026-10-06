@@ -94,7 +94,7 @@ async (page) => {
     await app.evaluate(() => window.geoWatchSuccess({ coords: { latitude: 50, longitude: 8, accuracy: 20 } }));
     await app.waitForSelector('#nowRows [data-helper="place"]');
     check(await app.locator('#nowRows [data-helper="place"] span').textContent() === 'Supermarkt'
-      && await app.locator('#nowRows [data-helper="or-rule"] span').textContent() === 'Supermarkt', 'Entering a place adds place-only and OR candidates with one place reason');
+      && await app.locator('#nowRows [data-helper="or-rule"] span').textContent() === 'Supermarkt · mittags (11–15 Uhr)', 'Entering a place explains every matching OR reason while place keeps priority');
     await app.evaluate(() => window.geoWatchSuccess({ coords: { latitude: 51, longitude: 9, accuracy: 20 } }));
     await app.waitForFunction(() => !document.querySelector('#nowRows [data-helper="place"]') && !document.querySelector('#nowRows [data-helper="or-rule"]'));
     check(true, 'Leaving a place removes candidates without reinitializing the app');
