@@ -37,7 +37,7 @@ Geprüft werden:
 - Ausblenden in Jetzt, Favoriten und Alle Helfer; Wiederherstellung sichtbarer Favoriten.
 - Öffnen versus `recordUse()`; Fokusansicht und Cleanup beim Navigieren.
 - Veralteter asynchroner Mount, abgebrochenes Signal und abgewiesene alte API.
-- Abgelehnte Toleranz ohne Veränderung des gespeicherten Werts.
+- Abgelehnte frühere Anzeige ohne Veränderung des gespeicherten Werts; alte Minutenregeln werden lesbar dargestellt.
 - Ortsformular während ausstehender Ortung; keine Navigation/Query-Übertragung.
 - Composer schließen/wechseln, bevor Ortung zurückkommt.
 - Echte IndexedDB: unveränderter Bestand bei Validierungsfehler, Rollback bei simuliertem
@@ -130,9 +130,20 @@ Der Helper selbst fragt keinen Standort ab; Ortung ist im Test kontrolliert simu
 `helpers-offline-check.js` prüft den tatsächlichen Modul-Service-Worker und sämtliche
 registrierten Module/Assets in einem frischen Kontext. Nach Abschalten des Netzwerks:
 Rabatt berechnen, Trinken dokumentieren und beide nach Reload wiederherstellen;
-Schmerz speichern und wiederherstellen; Parken und „Warte auf“ speichern und offline
-wieder öffnen. Ein fälliger „Warte auf“-Eintrag bleibt auch nach Öffnen und Zurück aktiv.
-Fremde Caches bleiben erhalten.
+Schmerz speichern und wiederherstellen; Training offline starten, abschließen,
+wiederholen, nach Reload fortsetzen und beenden; Parken und „Warte auf“ speichern
+und offline wieder öffnen. Ein fälliger „Warte auf“-Eintrag bleibt auch nach Öffnen
+und Zurück aktiv. Fremde Caches bleiben erhalten.
+
+## Training
+
+`training.mjs` prüft Session- und Aktivitätsschema, alle drei Messarten,
+ortsgenaue Referenzen, Aktivitätsfallback, Wiederholen ohne alte Ergebnisse,
+Formatierung, Importvalidierung und Abschluss/`recordUse()` einschließlich
+Fehlerfällen. `training-browser-check.js` prüft die Home- und Gym-Flows mit
+echtem IndexedDB: Dashboard-Ortssnapshot, mehrere Aktivitätstypen, Wiederholen,
+Heute/Letztes-Mal-Vergleich, Reload einer aktiven Session, Tastaturfokus,
+320 CSS px und keine externen Requests. Der Helper fragt selbst keinen Standort ab.
 Kein Worker-Mock in diesem Gate.
 
 ## Trinken und Intervallgrenzen
@@ -142,13 +153,18 @@ Metadatenfehler, relativen Zeittext, lokalen Kalendertag, Retention und Fachvali
 vor Import. `drink-browser-check.js` verwendet den echten Helper und IndexedDB mit
 kontrollierter Testzeit in `Europe/Berlin`: kein Intervall ohne erste Nutzung,
 „zuletzt verwendet“ unmittelbar nach Nutzung und bis 44:59,999 Minuten,
-Intervallgrund ab Minute 45 bei 60/15; nach Änderung auf 90/15 ab Minute 75.
+Intervallgrund ab Minute 45 bei 1 Stunde mit 15 Minuten Vorlauf; nach Änderung
+auf 90 Minuten ab Minute 75.
 Keine Echtzeit-Wartezeit und keine geänderte Engine. Außerdem: Tastatur, Fokus,
 keine Toast-Dopplung, heutige Historie ohne Löschung älterer Ereignisse, Fehler/Retry,
 Metadatenfehler ohne Doppeleintrag, Mehrfachklick, Retention, Ausblenden,
 320 CSS px, 200 % Text und Reduced Motion. Eigene Standortabfragen/externe Requests
 werden ausgeschlossen. `TZ=Europe/Berlin node --test tests/drink.mjs` prüft die
 Tagesgrenzen auch mit Berliner Sommerzeit in Node.
+
+`intervals.mjs` prüft verständliche Einheiten, lesbare Singular-/Pluralformen,
+Kompatibilität mit alten Minutenwerten, Vorlauf und Kalenderarithmetik für
+Monate/Jahre einschließlich Monatsende, Schaltjahr und Sommerzeit.
 
 ## Warte auf
 

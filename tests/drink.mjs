@@ -14,7 +14,7 @@ test('Drink is visible with only interval context, 60/15 defaults and unlimited 
   assert.equal(helper.label, 'Trinken');
   assert.equal(helper.category, 'Wohlbefinden');
   assert.deepEqual(helper.contexts, ['interval']);
-  assert.deepEqual(helperDefaults(helper), { id: 'drink', visible: true, favorite: false, placeIds: [], timeBuckets: [], intervalMinutes: 60, toleranceMinutes: 15, trackingWindow: 'always' });
+  assert.deepEqual(helperDefaults(helper), { id: 'drink', visible: true, favorite: false, placeIds: [], timeBuckets: [], interval: { value: 1, unit: 'hour' }, earlyBy: { value: 15, unit: 'minute' }, trackingWindow: 'always' });
 });
 test('Drink event stores only its identity/version and automatic identical timestamps', () => {
   const before = Date.now();

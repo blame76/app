@@ -58,11 +58,18 @@ async (page) => {
     await app.waitForSelector('#helperSettingsForm');
     check(await app.evaluate(() => window.fixtureSignal.aborted && window.cleanupCount === 1), 'Opening settings aborts and cleans up helper');
     check(await app.locator('[name="trackingWindow"]').count() === 0, 'No ineffective retention setting');
-    await app.locator('input[name="interval"]').fill('60');
-    await app.locator('input[name="tolerance"]').fill('60');
+    check(await app.locator('input[name="intervalValue"]').inputValue() === '1'
+      && await app.locator('select[name="intervalUnit"]').inputValue() === 'hour'
+      && await app.locator('input[name="earlyByValue"]').inputValue() === '15'
+      && await app.locator('select[name="earlyByUnit"]').inputValue() === 'minute', 'Legacy minute rules display in readable units without changing their stored format');
+    await app.locator('.interval-early-option summary').click();
+    await app.locator('input[name="intervalValue"]').fill('1');
+    await app.locator('select[name="intervalUnit"]').selectOption('hour');
+    await app.locator('input[name="earlyByValue"]').fill('60');
+    await app.locator('select[name="earlyByUnit"]').selectOption('minute');
     await app.locator('#helperSettingsForm button[type="submit"]').click();
     await app.waitForFunction(() => document.querySelector('#toast').textContent.includes('kleiner'));
-    check(await app.evaluate(async () => (await (await import('/src/db.js')).get('helperRules', 'example')).toleranceMinutes) === 15, 'Invalid tolerance is rejected without saving');
+    check(await app.evaluate(async () => (await (await import('/src/db.js')).get('helperRules', 'example')).toleranceMinutes) === 15, 'Invalid earlier-display duration is rejected without saving');
     await app.locator('#backButton').click();
     await app.waitForFunction(() => document.querySelector('#helperHost').textContent === 'Fachinhalt');
     check(await app.locator('#helperHost').textContent() === 'Fachinhalt', 'Settings Back restores the same helper');

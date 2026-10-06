@@ -13,7 +13,7 @@ test('Discount is visible and supports only place, without time, interval or ret
   assert.equal(helper.label, 'Rabatt');
   assert.equal(helper.category, 'Einkaufen');
   assert.deepEqual(helper.contexts, ['place']);
-  assert.deepEqual(helperDefaults(helper), { id: 'discount', visible: true, favorite: false, placeIds: [], timeBuckets: [], intervalMinutes: null, toleranceMinutes: null });
+  assert.deepEqual(helperDefaults(helper), { id: 'discount', visible: true, favorite: false, placeIds: [], timeBuckets: [], interval: null, earlyBy: null });
   assert.equal(helper.retention, undefined);
 });
 test('75 / 30 gives 52.50 and 22.50 savings for comma, point and integer input', () => {

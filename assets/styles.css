@@ -179,6 +179,7 @@ main { max-width: var(--content-width); margin: 0 auto; padding: 0 var(--gutter)
 #helperSettingsForm { gap: 1.5rem; }
 #helperSettingsForm > .toggle-row + .toggle-row { margin-top: -1.5rem; }
 #helperSettingsForm fieldset > legend { margin-bottom: .75rem; }
+#helperSettingsForm .interval-early-option > summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; }
 #helperSettingsForm > p { max-width: 52ch; font-size: .875rem; margin: -.75rem 0 .5rem; }
 .danger { background: var(--color-danger); border-color: var(--color-danger); }
 .danger-text { color: var(--color-danger) !important; }

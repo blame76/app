@@ -3,6 +3,7 @@ import { validateRegistry, helperDefaults } from './helpers/contract.js';
 import { list, get, put, remove, clearAll, exportAll, importAll, makeId, pruneEntries } from './db.js';
 import { getPosition, watchPosition, matchingPlaces, timeBucket, timeBucketLabel } from './context.js';
 import { TIME_BUCKETS, PLACE_CATEGORIES, validateRule } from './schema.js';
+import { fromLegacyMinutes, INTERVAL_UNITS, intervalDueAt, intervalLabel, intervalUnitLabel } from './intervals.js';
 import { RETENTION_WINDOWS } from './retention.js';
 import { renderNotes, renderPeople, renderPerson } from './read-views.js';
 import { createNavigation } from './navigation.js';
@@ -70,14 +71,26 @@ function helperById(id) { return helpers.find(helper => helper.id === id); }
 
 async function getRule(helper) {
   const saved = await get('helperRules', helper.id);
-  const rule = validateRule({ ...helperDefaults(helper), ...(saved || {}), id: helper.id });
   const contexts = helper.contexts || [];
+  const persisted = { ...(saved || {}) };
+  const legacyMinutes = !Object.hasOwn(persisted, 'interval') && Object.hasOwn(persisted, 'intervalMinutes')
+    ? { interval: persisted.intervalMinutes, tolerance: persisted.toleranceMinutes }
+    : null;
+  if (legacyMinutes) {
+    persisted.interval = fromLegacyMinutes(persisted.intervalMinutes);
+    persisted.earlyBy = fromLegacyMinutes(persisted.toleranceMinutes, { allowZero: true });
+    delete persisted.intervalMinutes;
+    delete persisted.toleranceMinutes;
+  }
+  const rule = validateRule({ ...helperDefaults(helper), ...persisted, id: helper.id });
   return {
     ...rule,
     placeIds: contexts.includes('place') ? rule.placeIds : [],
     timeBuckets: contexts.includes('time') ? rule.timeBuckets : [],
-    intervalMinutes: contexts.includes('interval') ? rule.intervalMinutes : null,
-    toleranceMinutes: contexts.includes('interval') ? rule.toleranceMinutes : null
+    interval: contexts.includes('interval') ? rule.interval : null,
+    earlyBy: contexts.includes('interval') ? rule.earlyBy : null,
+    legacyIntervalMinutes: legacyMinutes?.interval ?? null,
+    legacyToleranceMinutes: legacyMinutes?.tolerance ?? null
   };
 }
 
@@ -227,7 +240,7 @@ function closeMenu() {
 async function openHelper(id, options = {}) {
   const helper = helperById(id);
   if (!helper) return;
-  showView('helper', helper.label, () => openHelper(id, { replace: true }), options);
+  showView('helper', helper.label, () => openHelper(id, { replace: true, launchContext: options.launchContext }), options);
   const version = viewVersion;
   const controller = new AbortController();
   helperController = controller;
@@ -250,6 +263,7 @@ async function openHelper(id, options = {}) {
     const cleanup = await helper.mount({
       root,
       signal: controller.signal,
+      launchContext: options.launchContext ?? null,
       api: {
         recordUse: requireCurrent(() => recordUse(id)),
         getPosition: requireCurrent(() => getPosition({ maximumAge: 0 })),
@@ -310,28 +324,44 @@ async function openHelperSettings(id, options = {}) {
       <label class="toggle-row"><span><strong>Sichtbar</strong><small>In „Alle Helfer“ anzeigen.</small></span><input name="visible" type="checkbox" ${rule.visible ? 'checked' : ''}></label>
       ${contexts.includes('place') ? `<fieldset><legend>Ort</legend>${places.length ? places.map(place => `<label class="check-row"><input type="checkbox" name="place" value="${escapeHtml(place.id)}" ${rule.placeIds.includes(place.id) ? 'checked' : ''}> ${escapeHtml(place.name)}</label>`).join('') : '<p class="muted">Noch kein Ort gespeichert.</p>'}</fieldset>` : ''}
       ${contexts.includes('time') ? `<fieldset><legend>Tageszeit</legend>${TIME_BUCKETS.map(bucket => `<label class="check-row"><input type="checkbox" name="time" value="${bucket}" ${rule.timeBuckets.includes(bucket) ? 'checked' : ''}> ${timeBucketLabel(bucket)}</label>`).join('')}</fieldset>` : ''}
-      ${contexts.includes('interval') ? `<fieldset><legend>Intervall</legend><div class="form-grid two"><label>Minuten<input name="interval" type="number" min="1" inputmode="numeric" value="${escapeHtml(rule.intervalMinutes ?? '')}"></label><label>Toleranz ± Minuten<input name="tolerance" type="number" min="0" inputmode="numeric" value="${escapeHtml(rule.toleranceMinutes ?? '')}"></label></div></fieldset>` : ''}
+      ${contexts.includes('interval') ? `<fieldset><legend>Intervall</legend><div class="form-grid two">
+        <label>Erinnern nach<input name="intervalValue" type="number" min="1" max="1000" step="1" inputmode="numeric" value="${escapeHtml(rule.interval?.value ?? '')}"></label>
+        <label>Einheit<select name="intervalUnit">${INTERVAL_UNITS.map(unit => `<option value="${unit}" ${rule.interval?.unit === unit ? 'selected' : ''}>${intervalUnitLabel(unit, rule.interval?.value)}</option>`).join('')}</select></label>
+      </div><details class="interval-early-option"><summary>Weitere Optionen</summary><p class="muted">Der Helper kann bis zu diesem Zeitraum früher erscheinen.</p><div class="form-grid two">
+        <label>Früher anzeigen<input name="earlyByValue" type="number" min="0" max="1000" step="1" inputmode="numeric" value="${escapeHtml(rule.earlyBy?.value ?? '')}"></label>
+        <label>Einheit<select name="earlyByUnit">${INTERVAL_UNITS.map(unit => `<option value="${unit}" ${rule.earlyBy?.unit === unit ? 'selected' : ''}>${intervalUnitLabel(unit, rule.earlyBy?.value)}</option>`).join('')}</select></label>
+      </div></details></fieldset>` : ''}
       ${helper.retention ? `<label>Aufbewahrung<select name="trackingWindow">${RETENTION_WINDOWS.map(window => `<option value="${window}" ${rule.trackingWindow === window ? 'selected' : ''}>${({ '7d': '7 Tage', '30d': '30 Tage', '365d': '365 Tage', always: 'Unbegrenzt' })[window]}</option>`).join('')}</select></label><p class="muted">Bei begrenzter Dauer werden ältere Einträge gelöscht – bei einer Verkürzung schon beim Speichern. Einstellungen bleiben erhalten.</p>` : ''}
       ${helper.guidance ? `<label class="toggle-row"><span><strong>Hinweise anzeigen</strong><small>Kurze Erklärungen beim Dokumentieren anzeigen.</small></span><input name="guidance" type="checkbox" ${rule.guidance ? 'checked' : ''}></label>` : ''}
       <button type="submit">Speichern</button>
     </form>`;
+  for (const [valueName, unitName] of [['intervalValue', 'intervalUnit'], ['earlyByValue', 'earlyByUnit']]) {
+    const valueInput = $('#helperSettingsForm').elements.namedItem(valueName);
+    const unitSelect = $('#helperSettingsForm').elements.namedItem(unitName);
+    const updateLabels = () => {
+      const value = Number(valueInput.value);
+      for (const option of unitSelect.options) option.textContent = intervalUnitLabel(option.value, value);
+    };
+    valueInput.addEventListener('input', updateLabels);
+  }
   bindSubmit($('#helperSettingsForm'), async form => {
     let nextRule;
     try {
+      const { legacyIntervalMinutes, legacyToleranceMinutes, ...storedRule } = rule;
       nextRule = validateRule({
-        ...rule,
+        ...storedRule,
         id,
         favorite: form.has('favorite'),
         visible: form.has('visible'),
         placeIds: form.getAll('place'),
         timeBuckets: form.getAll('time'),
-        intervalMinutes: form.get('interval') ? Number(form.get('interval')) : null,
-        toleranceMinutes: form.get('tolerance') ? Number(form.get('tolerance')) : null,
+        interval: form.get('intervalValue') ? { value: Number(form.get('intervalValue')), unit: form.get('intervalUnit') } : null,
+        earlyBy: form.get('intervalValue') && form.get('earlyByValue') ? { value: Number(form.get('earlyByValue')), unit: form.get('earlyByUnit') } : null,
         ...(helper.retention ? { trackingWindow: form.get('trackingWindow') } : {}),
         ...(helper.guidance ? { guidance: form.has('guidance') } : {})
       });
     } catch {
-      toast('Bitte Intervall und Toleranz prüfen. Das Intervall muss mindestens eine Minute betragen. Die Toleranz muss nichtnegativ und kleiner als das Intervall sein.');
+      toast('Bitte Intervall und frühere Anzeige prüfen. Werte müssen ganze Zahlen sein; die frühere Anzeige muss kleiner als das Intervall sein.');
       return;
     }
     await put('helperRules', nextRule);
@@ -339,8 +369,9 @@ async function openHelperSettings(id, options = {}) {
   });
 }
 
-function tile(helper, reason) {
-  return `<button class="helper-tile" type="button" data-helper="${escapeHtml(helper.id)}"><strong>${escapeHtml(helper.label)}</strong>${reason ? `<span>${escapeHtml(reason)}</span>` : ''}</button>`;
+function tile(helper, reason, launchPlace) {
+  const placeData = launchPlace ? ` data-place-id="${escapeHtml(launchPlace.id)}" data-place-name="${escapeHtml(launchPlace.name)}"` : '';
+  return `<button class="helper-tile" type="button" data-helper="${escapeHtml(helper.id)}"${placeData}><strong>${escapeHtml(helper.label)}</strong>${reason ? `<span>${escapeHtml(reason)}</span>` : ''}</button>`;
 }
 
 async function dashboardCandidates(visible, position) {
@@ -359,11 +390,14 @@ async function dashboardCandidates(visible, position) {
     const usedAt = await lastUsed(helper.id);
     let reason = '';
     let rank = 0;
-    if (rule.placeIds.some(id => placeIds.has(id))) { reason = activePlaces.find(place => rule.placeIds.includes(place.id))?.name || 'Ort'; rank = 400; }
-    else if (rule.intervalMinutes && usedAt && now >= usedAt + Math.max(0, rule.intervalMinutes - (rule.toleranceMinutes || 0)) * 60000) { reason = `Intervall · ${rule.intervalMinutes} Min.`; rank = 300; }
+    const matchedPlace = activePlaces.find(place => rule.placeIds.includes(place.id));
+    if (matchedPlace) { reason = matchedPlace.name || 'Ort'; rank = 400; }
+    else if (rule.interval && usedAt && (rule.legacyIntervalMinutes !== null
+      ? now >= usedAt + Math.max(0, rule.legacyIntervalMinutes - (rule.legacyToleranceMinutes || 0)) * 60000
+      : now >= intervalDueAt(usedAt, rule.interval, rule.earlyBy))) { reason = `Intervall · ${intervalLabel(rule.interval)}`; rank = 300; }
     else if (rule.timeBuckets.includes(bucket)) { reason = timeBucketLabel(bucket); rank = 200; }
     else if (usedAt) { reason = 'zuletzt verwendet'; rank = 100 + Math.max(0, 30 - Math.floor((now - usedAt) / 3600000)); }
-    if (reason) items.push({ helper, reason, rank, usedAt });
+    if (reason) items.push({ helper, reason, rank, usedAt, ...(matchedPlace ? { launchPlace: { id: matchedPlace.id, name: matchedPlace.name } } : {}) });
   }
   items.push(...relevantNotes(entries, activePlaces, bucket).map(item => ({ ...item, person: people.find(person => person.id === item.note.personId) })));
   return { hasPlaceRules, items: items.sort((a, b) => b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.helper.id).localeCompare(b.note?.id || b.helper.id)) };
@@ -383,7 +417,7 @@ async function renderDashboard({ position, contextOnly = false } = {}) {
   if (version !== dashboardVersion) return;
 
   const rows = $('#nowRows');
-  const html = candidates.slice(0, 9).map(({ helper, note, reason, person }) => note ? noteTile(note, reason, person) : tile(helper, reason)).join('');
+  const html = candidates.slice(0, 9).map(({ helper, note, reason, person, launchPlace }) => note ? noteTile(note, reason, person) : tile(helper, reason, launchPlace)).join('');
   if (rows.innerHTML !== html) {
     const focused = rows.contains(document.activeElement) ? returnFocusTarget() : null;
     rows.innerHTML = html;
@@ -433,7 +467,10 @@ async function renderSettings() {
   const version = viewVersion;
   const rules = await list('helperRules');
   if (version !== viewVersion) return;
-  $('#rulesList').innerHTML = rules.length ? rules.map(rule => `<div class="list-item"><span><strong>${escapeHtml(helperById(rule.id)?.label || rule.id)}</strong><small>${escapeHtml([rule.favorite ? 'Favorit' : '', rule.placeIds?.length ? `${rule.placeIds.length} ${rule.placeIds.length === 1 ? 'Ort' : 'Orte'}` : '', rule.timeBuckets?.length ? rule.timeBuckets.map(timeBucketLabel).join(', ') : '', rule.intervalMinutes ? `${rule.intervalMinutes} Min.` : ''].filter(Boolean).join(' · ') || 'Keine Verknüpfung')}</small></span></div>`).join('') : '<p class="muted">Noch keine Verknüpfungen.</p>';
+  $('#rulesList').innerHTML = rules.length ? rules.map(rule => {
+    const interval = rule.interval || (rule.intervalMinutes ? fromLegacyMinutes(rule.intervalMinutes) : null);
+    return `<div class="list-item"><span><strong>${escapeHtml(helperById(rule.id)?.label || rule.id)}</strong><small>${escapeHtml([rule.favorite ? 'Favorit' : '', rule.placeIds?.length ? `${rule.placeIds.length} ${rule.placeIds.length === 1 ? 'Ort' : 'Orte'}` : '', rule.timeBuckets?.length ? rule.timeBuckets.map(timeBucketLabel).join(', ') : '', interval ? `Intervall · ${intervalLabel(interval)}` : ''].filter(Boolean).join(' · ') || 'Keine Verknüpfung')}</small></span></div>`;
+  }).join('') : '<p class="muted">Noch keine Verknüpfungen.</p>';
 
   const places = await list('places');
   if (version !== viewVersion) return;
@@ -911,7 +948,13 @@ function bindEvents() {
   document.addEventListener('submit', event => { if (event.target.matches('form')) event.preventDefault(); }, true);
   document.addEventListener('click', guarded(async event => {
     const helperButton = event.target.closest('[data-helper]');
-    if (helperButton) { await openHelper(helperButton.dataset.helper); return; }
+    if (helperButton) {
+      const placeId = helperButton.dataset.placeId;
+      const placeName = helperButton.dataset.placeName;
+      const options = placeId && placeName ? { launchContext: { place: { id: placeId, name: placeName } } } : {};
+      await openHelper(helperButton.dataset.helper, options);
+      return;
+    }
     const noteButton = event.target.closest('[data-note]');
     if (noteButton) { await openNote(noteButton.dataset.note); return; }
     const composerButton = event.target.closest('[data-composer]');
