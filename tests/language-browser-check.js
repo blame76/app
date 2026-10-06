@@ -95,17 +95,23 @@ async (page) => {
     await tileText('Enlarged long names and reasons stay inside their own tile');
     await enlargedText.evaluate(element => element.remove());
 
+    const placeGeoBefore = await app.evaluate(() => window.geoCalls);
     await app.locator('[data-composer="place"]').click();
-    await app.waitForFunction(() => document.querySelector('#placeStatus').textContent.startsWith('Standort bereit. Gemeldete Genauigkeit:'));
-    check(await app.evaluate(() => window.geoOptions.maximumAge === 0), 'Place composer keeps its fresh location query');
-    await app.locator('#placeForm input').fill('Neuer Ort');
-    await app.locator('#placeForm button').click();
+    check(await app.evaluate(before => window.geoCalls === before, placeGeoBefore), 'Place composer does not locate before an explicit source choice');
+    await app.locator('#placeForm [name="positionSource"][value="current"]').check();
+    await app.waitForFunction(before => window.geoCalls === before + 1 && document.querySelector('#placeStatus').textContent.startsWith('Standort bereit. Gemeldete Genauigkeit:'), placeGeoBefore);
+    check(await app.evaluate(() => window.geoOptions.maximumAge === 0), 'Current-position choice keeps its fresh location query');
+    await app.locator('#placeForm [name="name"]').fill('Neuer Ort');
+    await app.locator('#placeForm button[type="submit"]').click();
     await feedback('Ort gespeichert.');
     check(await app.evaluate(async () => (await (await import('/src/db.js')).list('places')).some(place => place.name === 'Neuer Ort' && place.lat === 50 && place.lon === 8 && place.radius === 250)), 'Place success corresponds to stored coordinates and name');
     await app.evaluate(() => { window.geoFail = true; });
     await app.locator('[data-composer="place"]').click();
+    await app.locator('#placeForm [name="positionSource"][value="current"]').check();
     await app.waitForFunction(() => document.querySelector('#placeStatus').textContent.includes('Standort nicht verfügbar.'));
-    check(!(await app.locator('#placeStatus').textContent()).includes('INTERNAL') && await app.locator('#placeForm button').isDisabled(), 'Location failure gives a usable message and keeps save disabled');
+    check(!(await app.locator('#placeStatus').textContent()).includes('INTERNAL') && await app.locator('#placeForm button[type="submit"]').isDisabled(), 'Location failure gives a usable message and keeps save disabled');
+    await app.locator('#placeForm [name="positionSource"][value="manual"]').check();
+    check(!(await app.locator('#placeManualPosition').isHidden()) && await app.locator('#placeCurrentPosition').isHidden(), 'Manual choice remains available after a location failure');
     await app.locator('#quickComposerClose').click();
 
     await app.locator('[data-composer="note"]').click();

@@ -144,7 +144,7 @@ async (page) => {
       await app.locator('[data-place-form="old"] [name="category"]').selectOption('Freizeit');
       await app.locator('[data-place-form="old"] button[type="submit"]').click();
       await app.waitForFunction(() => document.querySelector('#placesList').textContent.includes('Ort gespeichert.'));
-      check((await app.locator('#placesList h3').allTextContents()).join('|') === 'Einkaufen|Freizeit', 'Existing place radius/category can be changed and regrouped');
+      check((await app.locator('#placesList h3').allTextContents()).join('|') === 'Einkaufen|Freizeit|Ohne Kategorie', 'Existing place radius/category can be changed and regrouped without hiding the manual uncategorized place');
       await app.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
       check(await app.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Grouped places fit 320px with 200% text');
       await app.evaluate(() => { document.documentElement.style.fontSize = ''; });
