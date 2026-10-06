@@ -1,3 +1,5 @@
+import { validateIntervalPair } from './intervals.js';
+
 // Shared validation for settings, imports and helper declarations. No HTML belongs here.
 export const STORES = ['entries', 'people', 'places', 'helperRules', 'settings'];
 export const TIME_BUCKETS = ['morning', 'midday', 'evening', 'night'];
@@ -28,7 +30,13 @@ export function validateRule(rule) {
   }
   requireValue(rule.placeIds === undefined || strings(rule.placeIds), 'Ungültige Ortsverknüpfungen.');
   requireValue(rule.timeBuckets === undefined || (strings(rule.timeBuckets) && rule.timeBuckets.every(bucket => TIME_BUCKETS.includes(bucket))), 'Ungültige Tageszeiten.');
-  validateInterval(rule.intervalMinutes ?? null, rule.toleranceMinutes ?? null);
+  const hasStructuredInterval = Object.hasOwn(rule, 'interval') || Object.hasOwn(rule, 'earlyBy');
+  if (hasStructuredInterval) {
+    validateIntervalPair(rule.interval ?? null, rule.earlyBy ?? null);
+    requireValue(rule.intervalMinutes === undefined && rule.toleranceMinutes === undefined, 'Minutenwerte und strukturierte Intervalle dürfen nicht gemischt werden.');
+  } else {
+    validateInterval(rule.intervalMinutes ?? null, rule.toleranceMinutes ?? null);
+  }
   // Preserve older exports; registered helpers validate the retention windows they support.
   requireValue(rule.trackingWindow === undefined || ['1d', '7d', '30d', '365d', 'always'].includes(rule.trackingWindow), 'Ungültige Trackingdauer.');
   return rule;

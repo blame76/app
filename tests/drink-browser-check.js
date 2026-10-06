@@ -75,7 +75,7 @@ async (page) => {
     await app.evaluate(() => { IDBObjectStore.prototype.put = window.originalPut; });
     const usedAt = await usage();
     await app.locator('#backButton').click();
-    for (const [elapsed, expected] of [[0, 'zuletzt verwendet'], [45 * 60000 - 1, 'zuletzt verwendet'], [45 * 60000, 'Intervall · 60 Min.'], [60 * 60000, 'Intervall · 60 Min.']]) {
+    for (const [elapsed, expected] of [[0, 'zuletzt verwendet'], [45 * 60000 - 1, 'zuletzt verwendet'], [45 * 60000, 'Intervall · 1 Stunde'], [60 * 60000, 'Intervall · 1 Stunde']]) {
       await reason(usedAt + elapsed, expected);
       check(await app.locator('#nowRows [data-helper="drink"] span').textContent() === expected, `Default interval at ${elapsed} ms: ${expected}`);
     }
@@ -83,13 +83,17 @@ async (page) => {
     await app.locator('#helperSettingsButton').click();
     await app.waitForSelector('#helperSettingsForm');
     check(await app.locator('input[name="place"], input[name="time"], input[name="guidance"]').count() === 0 && await app.locator('[name="trackingWindow"]').inputValue() === 'always', 'Drink settings expose interval and unlimited retention, without unrelated capabilities');
-    check(await app.locator('input[name="interval"]').inputValue() === '60' && await app.locator('input[name="tolerance"]').inputValue() === '15', 'Shared settings show the declared 60/15 defaults');
-    await app.locator('input[name="interval"]').fill('90');
+    check(await app.locator('input[name="intervalValue"]').inputValue() === '1'
+      && await app.locator('select[name="intervalUnit"]').inputValue() === 'hour'
+      && await app.locator('input[name="earlyByValue"]').inputValue() === '15'
+      && await app.locator('select[name="earlyByUnit"]').inputValue() === 'minute', 'Shared settings show readable interval and earlier-display units');
+    await app.locator('input[name="intervalValue"]').fill('90');
+    await app.locator('select[name="intervalUnit"]').selectOption('minute');
     await saveSettings();
     await app.locator('#backButton').click();
     await app.waitForSelector('#drinkRecord');
     await app.locator('#backButton').click();
-    for (const [elapsed, expected] of [[60 * 60000, 'zuletzt verwendet'], [75 * 60000 - 1, 'zuletzt verwendet'], [75 * 60000, 'Intervall · 90 Min.']]) {
+    for (const [elapsed, expected] of [[60 * 60000, 'zuletzt verwendet'], [75 * 60000 - 1, 'zuletzt verwendet'], [75 * 60000, 'Intervall · 90 Minuten']]) {
       await reason(usedAt + elapsed, expected);
       check(await app.locator('#nowRows [data-helper="drink"] span').textContent() === expected, `Changed interval at ${elapsed} ms: ${expected}`);
     }
@@ -161,7 +165,9 @@ async (page) => {
       const db = await import('/src/db.js');
       const entries = await db.list('entries');
       const rule = await db.get('helperRules', 'drink');
-      return entries.some(entry => entry.id === 'pain-kept') && entries.some(entry => entry.id === 'note-kept') && rule.intervalMinutes === 90 && rule.toleranceMinutes === 15 && rule.favorite && rule.trackingWindow === '7d';
+      return entries.some(entry => entry.id === 'pain-kept') && entries.some(entry => entry.id === 'note-kept')
+        && rule.interval.value === 90 && rule.interval.unit === 'minute'
+        && rule.earlyBy.value === 15 && rule.earlyBy.unit === 'minute' && rule.favorite && rule.trackingWindow === '7d';
     }), 'Drink retention preserves pain, core data, favorite and interval settings');
     const retained = JSON.stringify(await data());
     await app.locator('input[name="visible"]').uncheck();

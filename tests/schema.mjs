@@ -16,8 +16,8 @@ test('Helper declares supported contexts and validated defaults', () => {
   const declaration = { ...helper(), contexts: ['time', 'interval'], defaults: { timeBuckets: ['morning'], intervalMinutes: 60, toleranceMinutes: 15 } };
   validateRegistry([declaration]);
   const defaults = helperDefaults(declaration);
-  assert.equal(defaults.intervalMinutes, 60);
-  assert.equal(defaults.toleranceMinutes, 15);
+  assert.deepEqual(defaults.interval, { value: 1, unit: 'hour' });
+  assert.deepEqual(defaults.earlyBy, { value: 15, unit: 'minute' });
   assert.deepEqual(defaults.timeBuckets, ['morning']);
   assert.equal(defaults.visible, true);
   assert.equal(helperDefaults({ ...helper(), defaultVisible: false }).visible, false);
@@ -33,6 +33,21 @@ test('Invalid interval and tolerance values are rejected in settings and imports
   }
   validateInterval(60, 15);
   validateInterval(null, null);
+});
+test('Structured interval units validate in helper defaults and exports', () => {
+  const declaration = { ...helper(), contexts: ['interval'], defaults: { interval: { value: 1, unit: 'year' }, earlyBy: { value: 2, unit: 'week' } } };
+  assert.deepEqual(helperDefaults(declaration).interval, { value: 1, unit: 'year' });
+  const data = payload();
+  data.stores.helperRules = [{ id: 'example', interval: { value: 1, unit: 'month' }, earlyBy: { value: 2, unit: 'day' } }];
+  assert.deepEqual(validateImport(data).helperRules[0].interval, { value: 1, unit: 'month' });
+  for (const interval of [{ value: 0, unit: 'day' }, { value: 2.5, unit: 'week' }, { value: 1, unit: 'decade' }, { value: 1001, unit: 'year' }]) {
+    const invalid = payload();
+    invalid.stores.helperRules = [{ id: 'example', interval }];
+    assert.throws(() => validateImport(invalid));
+  }
+  const tooEarly = payload();
+  tooEarly.stores.helperRules = [{ id: 'example', interval: { value: 1, unit: 'day' }, earlyBy: { value: 24, unit: 'hour' } }];
+  assert.throws(() => validateImport(tooEarly));
 });
 test('Guidance is opt-in, defaults on and preserves false in existing exports', () => {
   assert.equal(helperDefaults(helper()).guidance, undefined);

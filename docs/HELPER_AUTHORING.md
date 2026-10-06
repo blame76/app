@@ -71,8 +71,11 @@ kein zusätzliches JSON-Schema nötig. `npm test` prüft auch die echte Registry
 
 ## Fokus und Lebenszyklus
 
-`mount({ root, api, signal })` darf synchron oder asynchron sein und eine synchrone
-Cleanup-Funktion zurückgeben. Der Helper besitzt nur seinen Contentbereich:
+`mount({ root, api, signal, launchContext })` darf synchron oder asynchron sein und eine synchrone
+Cleanup-Funktion zurückgeben. `launchContext` ist optional und enthält ausschließlich
+einen Snapshot eines bereits von der Shell aufgelösten Kontexts, zum Beispiel
+`{ place: { id, name } }`; direkte Aufrufe können `null` erhalten. Er ist read-only,
+keine Abfrage- oder Live-Context-API. Der Helper besitzt nur seinen Contentbereich:
 keine eigene globale Navigation, kein Dashboard, keine anderen Helper. Header,
 Zurück und Footer gehören zur Shell.
 
@@ -158,22 +161,26 @@ Die tatsächlich unterstützte Default-Syntax:
 contexts: ['time', 'interval'],
 defaults: {
   timeBuckets: ['morning'],
-  intervalMinutes: 60,
-  toleranceMinutes: 15
+  interval: { value: 1, unit: 'hour' },
+  earlyBy: { value: 15, unit: 'minute' }
 }
 ```
 
 Alle Felder sind optional und brauchen ihre deklarierte Kontextart; Ortsdefaults
 gibt es nicht. Zeitwerte: `morning` 00–11, `midday` 11–15, `evening` 15–19,
-`night` 19–24, lokale Gerätezeit, Endgrenzen exklusiv. Intervall: `null` oder
-endlich ab 1 Minute; Toleranz: `null` oder mindestens 0 und kleiner als das Intervall.
+`night` 19–24, lokale Gerätezeit, Endgrenzen exklusiv. Intervalle verwenden
+`{ value, unit }` mit ganzen Zahlen und `minute`, `hour`, `day`, `week`, `month`
+oder `year`; die optionale Vorlaufzeit `earlyBy` darf null sein oder muss kürzer
+als das Intervall sein. Alte Exportregeln mit `intervalMinutes` und
+`toleranceMinutes` bleiben lesbar und werden beim Öffnen in verständliche Einheiten
+überführt. Tage/Wochen sowie Monate/Jahre verwenden lokale Kalenderarithmetik;
+ein ungültiger Monatstag wird auf den letzten Tag des Zielmonats geklemmt.
 
 Die Shell wählt alternative Gründe, keine UND-Bedingung: passender Ort vor fälligem
 Intervall vor Tageszeit vor gespeicherter Nutzung. Ein Intervall beginnt erst nach
-`recordUse()`. Fälligkeit ist `lastUsedAt + (intervalMinutes - (toleranceMinutes || 0)) * 60000`;
-60/15 wird ab Minute 45 fällig und bleibt es bei Verspätung. Das „±“ im Einstellungslabel bezeichnet
-keine symmetrische Zeitspanne. Vor Fälligkeit kann „zuletzt verwendet“ den Helper
-weiterhin unter „Jetzt“ zeigen. Die Anzeige wird beim Rendern des Dashboards
+`recordUse()`. Die Vorlaufzeit bedeutet „früher anzeigen“, nicht ein symmetrisches
+„±“: 1 Stunde mit 15 Minuten Vorlauf wird ab Minute 45 fällig. Vor Fälligkeit kann
+„zuletzt verwendet“ den Helper weiterhin unter „Jetzt“ zeigen. Die Anzeige wird beim Rendern des Dashboards
 ausgewertet. Bei sichtbarer Startseite und tatsächlich vorhandenen Ortsverknüpfungen
 aktualisiert ein gemeinsamer Geolocation-Observer die Ortsgründe. Navigation und
 Wechsel in den Hintergrund stoppen ihn; Rückkehr fragt eine frische Position ab.

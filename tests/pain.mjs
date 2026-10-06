@@ -15,7 +15,7 @@ test('Pain is registered, visible and has optional contexts with no medical defa
   validateRegistry(HELPERS);
   assert.ok(pain);
   assert.deepEqual(pain.contexts, ['place', 'time', 'interval']);
-  assert.deepEqual(helperDefaults(pain), { id: 'pain', visible: true, favorite: false, placeIds: [], timeBuckets: [], intervalMinutes: null, toleranceMinutes: null, trackingWindow: 'always', guidance: true });
+  assert.deepEqual(helperDefaults(pain), { id: 'pain', visible: true, favorite: false, placeIds: [], timeBuckets: [], interval: null, earlyBy: null, trackingWindow: 'always', guidance: true });
   assert.equal(typeof pain.validateEntry, 'function');
 });
 test('Minimum event requires one named area, a value 1–10 and automatic recording time', () => {
