@@ -35,8 +35,16 @@ test('Calendar months and years clamp an unavailable target day to month end', (
 });
 
 test('Calendar days preserve local wall time across daylight-saving changes', () => {
-  const beforeSpringChange = new Date(2026, 2, 28, 9).getTime();
-  const nextDay = new Date(2026, 2, 29, 9).getTime();
-  assert.equal(intervalDueAt(beforeSpringChange, { value: 1, unit: 'day' }), nextDay);
-  assert.equal(nextDay - beforeSpringChange, 23 * 3600000);
+  const originalTimezone = process.env.TZ;
+  process.env.TZ = 'Europe/Berlin';
+  try {
+    assert.equal(Intl.DateTimeFormat().resolvedOptions().timeZone, 'Europe/Berlin');
+    const beforeSpringChange = new Date(2026, 2, 28, 9).getTime();
+    const nextDay = new Date(2026, 2, 29, 9).getTime();
+    assert.equal(intervalDueAt(beforeSpringChange, { value: 1, unit: 'day' }), nextDay);
+    assert.equal(nextDay - beforeSpringChange, 23 * 3600000);
+  } finally {
+    if (originalTimezone === undefined) delete process.env.TZ;
+    else process.env.TZ = originalTimezone;
+  }
 });
