@@ -51,6 +51,22 @@ export default {
   defaults: { interval: { value: 3, unit: 'day' }, earlyBy: { value: 12, unit: 'hour' } },
   retention: { defaultWindow: 'always' },
   validateEntry: validateTrainingEntry,
+  nowCard({ entries, now, context }) {
+    const active = entries.filter(entry => entry.status === 'active').sort((a, b) => b.startedAt - a.startedAt)[0];
+    if (active) return {
+      active: true, primary: 'Training läuft',
+      secondary: `seit ${dateLabel(active.startedAt)}`, density: 'compact'
+    };
+    const last = latestSession(entries);
+    const tomorrow = new Date(now);
+    tomorrow.setHours(24, 0, 0, 0);
+    return {
+      active: false,
+      primary: last ? `Letztes Training ${elapsed(last.endedAt, now)}` : 'Noch kein Training dokumentiert',
+      density: 'standard',
+      ...(last && context?.match ? { nextChangeAt: tomorrow.getTime() } : {})
+    };
+  },
   offlineAssets: ['./src/helpers/training/model.js', './src/helpers/training/styles.css'],
   async mount({ root, api, signal, launchContext }) {
     const place = contextPlace(launchContext);

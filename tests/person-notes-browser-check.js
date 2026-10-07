@@ -88,20 +88,20 @@ async (page) => {
       check((await stored('old')).context.placeIds.join() === 'mama-home' && (await stored('old')).context.timeBuckets.join() === 'evening', 'later editing preserves person-note context');
       await shot('detail'); await back();
       check(await app.locator('#readHost [data-note="old"]').evaluate(node => node === document.activeElement), 'detail Back restores Mama and focuses the selected entry');
-      await shot('person'); await home(); await app.waitForFunction(() => document.querySelector('#nowRows [data-note="old"] .note-tile-context')?.textContent === 'Bei Mama');
-      check(await app.locator('#nowRows [data-note="old"] .note-person-name').textContent() === 'Mama' && await app.locator('#nowRows [data-note="old"] .note-tile-context').textContent() === 'Bei Mama', 'a glance at Now shows Mama, her question and the matching place');
+      await shot('person'); await home(); await app.waitForFunction(() => document.querySelector('#nowRows [data-note="old"] .now-indicator')?.textContent === 'Bei Mama');
+      check(await app.locator('#nowRows [data-note="old"] .note-person-name').textContent() === 'Mama' && await app.locator('#nowRows [data-note="old"] .now-indicator').textContent() === 'Bei Mama', 'a glance at Now shows Mama, her question and the matching place');
       const beforeOpen = JSON.stringify(await stored('old')); await open('old'); await back();
       check(JSON.stringify(await stored('old')) === beforeOpen && await app.locator('#view-dashboard').isVisible(), 'Now opening changes no data and Back returns to dashboard');
       await app.reload(); await app.waitForSelector('#nowRows [data-note="old"]');
       check(await app.evaluate(() => window.personGeoCalls === 1), 'person-only place context uses one existing shell geolocation query');
       await app.evaluate(() => { window.personGeoFail = true; }); await people(); await back();
-      await app.waitForFunction(() => document.querySelector('#nowRows [data-note="old"] .note-tile-context')?.textContent === 'abends · 15–22 Uhr');
+      await app.waitForFunction(() => document.querySelector('#nowRows [data-note="old"] .now-indicator')?.textContent === 'abends · 15–22 Uhr');
       check(await app.locator('#nowRows [data-note="old"]').count() === 1, 'evening still matches when location is denied');
       await app.evaluate(() => { window.personNow = Date.parse('2026-10-04T09:00:00+02:00'); }); await people(); await back();
       await app.waitForFunction(() => !document.querySelector('#nowRows [data-note="old"]'));
       check(await app.locator('#nowRows [data-note="old"]').count() === 0, 'no place or time match hides the person note');
       await app.evaluate(() => { window.personGeoFail = false; }); await people(); await back(); await app.waitForSelector('#nowRows [data-note="old"]');
-      check(await app.locator('#nowRows [data-note="old"] .note-tile-context').textContent() === 'Bei Mama', 'being at Mama matches independently of time');
+      check(await app.locator('#nowRows [data-note="old"] .now-indicator').textContent() === 'Bei Mama', 'being at Mama matches independently of time');
       await shot('now');
 
       await app.locator('[data-composer="person"]').click(); await app.locator('#personForm select').selectOption('mama'); await app.locator('#personForm textarea').fill('Was brauchst du vom Markt?');

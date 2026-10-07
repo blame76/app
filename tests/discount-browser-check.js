@@ -135,7 +135,7 @@ async (page) => {
     await app.locator('#backButton').click();
     await app.waitForSelector('#discountForm');
     await app.locator('#backButton').click();
-    await app.waitForFunction(() => document.querySelector('#nowRows [data-helper="discount"] span')?.textContent === 'Einkaufszentrum');
+    await app.waitForFunction(() => document.querySelector('#nowRows [data-helper="discount"] .now-indicator')?.textContent === 'Einkaufszentrum');
     check(await app.evaluate(() => window.geoCalls === 1), 'Linked place uses the existing dashboard location query and stored name');
     await app.getByText('Favoriten', { exact: true }).click();
     check(await app.locator('#favoriteTiles [data-helper="discount"]').isVisible(), 'Discount favorite uses the existing shell');

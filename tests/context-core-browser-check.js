@@ -74,15 +74,15 @@ async (page) => {
     await app.waitForSelector('#nowRows [data-helper="midday-0"]');
 
     check(await app.locator('#nowRows [data-helper]').count() === 11, 'More than nine relevant candidates are rendered without truncation');
-    check(await app.locator('#nowRows [data-helper="or-rule"] span').textContent() === 'mittags · 11–15 Uhr', 'A non-location OR reason is available while geolocation is pending');
+    check(await app.locator('#nowRows [data-helper="or-rule"] .now-indicator').textContent() === 'mittags · 11–15 Uhr', 'A non-location OR reason is available while geolocation is pending');
     check(await app.locator('#nowRows [data-helper="recent-only"], #nowRows [data-helper="no-context"], #nowRows [data-helper="deleted-place"]').count() === 0, 'Recent use, no context and a deleted place ID create no Jetzt candidate');
     check(await app.evaluate(() => window.geoCurrentCalls === 1 && window.geoWatchCalls === 1 && window.geoCurrentOptions.maximumAge === 0 && window.geoWatchOptions.maximumAge === 0), 'Foreground location starts fresh without delaying safe content');
 
     await app.waitForSelector('#nowRows [data-helper="evening"]', { timeout: 5000 });
     await app.waitForSelector('#nowRows [data-helper="interval"]', { timeout: 5000 });
     check(await app.locator('#nowRows [data-helper="midday-0"]').count() === 0, 'Open dashboard updates itself when the local time bucket changes');
-    check(await app.locator('#nowRows [data-helper="evening"] span').textContent() === 'abends · 15–22 Uhr', 'Time boundary uses the visible canonical range');
-    check(await app.locator('#nowRows [data-helper="interval"] span').textContent() === 'wieder im Blick · nach 60 Minuten', 'Open dashboard updates itself when an interval becomes due');
+    check(await app.locator('#nowRows [data-helper="evening"] .now-indicator').textContent() === 'abends · 15–22 Uhr', 'Time boundary uses the visible canonical range');
+    check(await app.locator('#nowRows [data-helper="interval"] .now-indicator').textContent() === 'Intervall', 'Open dashboard updates itself when an interval becomes due');
 
     await app.evaluate(() => {
       window.geoCurrentFailure({ message: 'denied' });
@@ -93,8 +93,8 @@ async (page) => {
 
     await app.evaluate(() => window.geoWatchSuccess({ coords: { latitude: 50, longitude: 8, accuracy: 20 } }));
     await app.waitForSelector('#nowRows [data-helper="place"]');
-    check(await app.locator('#nowRows [data-helper="place"] span').textContent() === 'Supermarkt'
-      && await app.locator('#nowRows [data-helper="or-rule"] span').textContent() === 'Supermarkt', 'Entering a place after midday ended shows only the still-active place reason');
+    check(await app.locator('#nowRows [data-helper="place"] .now-indicator').textContent() === 'Supermarkt'
+      && await app.locator('#nowRows [data-helper="or-rule"] .now-indicator').textContent() === 'Supermarkt', 'Entering a place after midday ended shows only the still-active place reason');
     await app.evaluate(() => window.geoWatchSuccess({ coords: { latitude: 51, longitude: 9, accuracy: 20 } }));
     await app.waitForFunction(() => !document.querySelector('#nowRows [data-helper="place"]') && !document.querySelector('#nowRows [data-helper="or-rule"]'));
     check(true, 'Leaving a place removes candidates without reinitializing the app');
@@ -112,7 +112,7 @@ async (page) => {
       document.dispatchEvent(new Event('visibilitychange'));
     });
     await app.waitForSelector('#nowRows [data-helper="background"]');
-    check(await app.locator('#nowRows [data-helper="background"] span').textContent() === 'wieder im Blick · nach 1 Minute', 'Returning to the foreground recomputes local reasons immediately');
+    check(await app.locator('#nowRows [data-helper="background"] .now-indicator').textContent() === 'Intervall', 'Returning to the foreground recomputes local reasons immediately');
     check(await app.evaluate(value => window.geoCurrentCalls > value.current && window.geoWatchCalls > value.watch, beforeBackground), 'Foreground return starts a fresh location request and observer');
 
     await app.locator('.home-accordion').last().evaluate(element => { element.open = true; });

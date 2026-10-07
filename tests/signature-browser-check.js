@@ -87,7 +87,7 @@ async (page) => {
     for (const width of [390,1280,320,768]) {
       await app.setViewportSize({width,height:width===390?844:960}); await home();
       await inspect(`${width}/dashboard`); await shot('dashboard');
-      check(await app.locator('.home-accordion > summary').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize)<parseFloat(getComputedStyle(document.querySelector('#nowRows .note-tile strong')).fontSize)), `${width}: navigation heading stays quieter than the thought`);
+      check(await app.locator('#nowRows .note-tile .now-heading').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize)<parseFloat(getComputedStyle(document.querySelector('#nowRows .note-tile .now-primary')).fontSize)), `${width}: card heading stays quieter than the thought`);
       check(await app.locator('.app-header').evaluate(el=>['rgba(0, 0, 0, 0)','rgb(23, 23, 22)'].includes(getComputedStyle(el).backgroundColor)), `${width}: no dominant header color area`);
       await open('pain','#painAreaForm');await app.locator('input[name="bodyArea"][value="Rücken"]').check();await app.locator('#painAreaForm button[type="submit"]').click();
       await app.locator('input[name="intensity"][value="4"]').check();

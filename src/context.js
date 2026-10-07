@@ -79,6 +79,7 @@ export function evaluateHelperContext(rule, activePlaces, lastUsedAt, date = new
 
   if (matchedPlace) {
     matches.push({
+      type: 'place',
       reason: matchedPlace.name || 'Ort',
       why: matchedPlace.name || 'Ort',
       rank: 400,
@@ -88,6 +89,7 @@ export function evaluateHelperContext(rule, activePlaces, lastUsedAt, date = new
   if (dueAt !== null && now >= dueAt) {
     matches.push({
       reason: `wieder im Blick · nach ${intervalAfterLabel(rule.interval)}`,
+      type: 'interval',
       why: `Intervall ${intervalLabel(rule.interval)}`,
       rank: 300
     });
@@ -95,6 +97,7 @@ export function evaluateHelperContext(rule, activePlaces, lastUsedAt, date = new
   for (const window of matchingTimeWindows(date, timeWindows).filter(window => rule.timeBuckets.includes(window.id))) {
     matches.push({
       reason: timeBucketLabel(window.id, { timeWindows }),
+      type: 'time',
       why: compactTimeBucketLabel(window.id, timeWindows),
       rank: 200
     });

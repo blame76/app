@@ -65,7 +65,7 @@ Keine DOM-Arbeit beim Modulimport: Auch Node und der Service Worker importieren 
 Pflicht: nichtleere Strings `id`, `label`, `category` und Funktion `mount`;
 `id` ist ein eindeutiger Slug aus Kleinbuchstaben/Ziffern mit einzelnen Bindestrichen.
 Optional: `defaultVisible` (boolean), `contexts`, `defaults`, `offlineAssets`,
-`validateEntry` (Funktion), `guidance: true`, `retention: { defaultWindow }`.
+`validateEntry` (Funktion), `nowCard` (Funktion), `guidance: true`, `retention: { defaultWindow }`.
 Die Details folgen unten. Der ausführbare Contract ist die maschinelle Prüfung,
 kein zusätzliches JSON-Schema nötig. `npm test` prüft auch die echte Registry.
 
@@ -113,6 +113,7 @@ History-Einträge; Reload startet auf der Startseite. Es gibt keinen URL-Router.
 | `await api.recordUse()` | Zeitpunkt einer erfolgreichen Fachhandlung speichern | Öffnen, Tippen, ungültige Eingabe oder fehlgeschlagenes Speichern |
 | `await api.getGuidance()` | gespeicherte boolesche Hinweiseinstellung lesen | Navigation oder Fachzustand |
 | `await api.setGuidance(boolean)` | bei `guidance: true` Hinweiseinstellung unter Erhalt anderer Regeln ändern | Tutorial-Fortschritt, eigene Settings-Seite |
+| `await api.disableContext('interval')` | nach expliziter Nutzeraktion das deklarierte eigene Intervall samt Vorlauf ausschalten; Promise endet nach Commit | andere Kontextarten, fremde Regeln oder allgemeine Regelmutation |
 | `api.openSettings()` | zu den gemeinsamen Einstellungen dieses Helpers wechseln | eigene Intervall-/Orts-/Favoritenverwaltung |
 | `api.setBackAction(action, title)` | interne Parent-Ansicht registrieren; `null` auf oberster Ebene | eigene globale Zurück-Buttons oder fachliche Aktionen beim Rücksprung |
 | `api.goBack()` | denselben Rücksprung wie der globale Zurück-Button ausführen | Speichern oder `recordUse()` |
@@ -124,6 +125,11 @@ History-Einträge; Reload startet auf der Startseite. Es gibt keinen URL-Router.
 `openSettings()`, `goBack()` und `goHome()` stoßen geschützte Shell-Navigation an;
 sie liefern kein Promise, auf dessen Abschluss ein Helper warten könnte.
 Es gibt keine Mount-API für Context-Abfragen oder Export.
+`disableContext()` akzeptiert nur `interval` und nur bei entsprechender Deklaration.
+Die Shell erhält alle anderen Einstellungen, Fachdaten und Nutzungsmetadaten; sie
+normalisiert dabei alte Minutenregeln. Ein gezielter atomarer Schreibvorgang berührt
+ausschließlich `helperRules`, ohne beim Opt-out die Retention-Bereinigung auszuführen. Die Aktion zählt nicht als `recordUse()`.
+Trinken nutzt dies für „Nicht mehr unter Jetzt erinnern“ und kehrt nach Commit zurück.
 `getPosition()` und `deleteEntry()` ergänzen die API für den konkreten Parken-Kernnutzen:
 eine ausdrücklich angeforderte aktuelle Position und das Entfernen des aktiven Zustands. Browser-DOM-APIs innerhalb des eigenen Roots und reine gemeinsame
 Utilities wie `createNavigation()` sind verwendbar; DB-/Shell-Interna nicht umgehen.
@@ -152,13 +158,13 @@ keine Notification Engine, kein Empfehlungssystem und keine KI.
 
 Für den Context-Kern gelten sieben Produktregeln:
 
-1. „Jetzt“ zeigt definierte aktuelle Anlässe, keine Nutzungsvermutungen.
+1. „Jetzt“ zeigt definierte aktuelle Anlässe oder noch offene Fachzustände, keine Nutzungsvermutungen.
 2. Eine passende konfigurierte Bedingung reicht; Contexts sind ODER-verknüpft.
 3. Ein Intervall beginnt ausschließlich nach einer erfolgreichen Fachhandlung mit `recordUse()`.
 4. Zeitfenster müssen vor der Auswahl verständlich sein.
-5. Eine sichtbare Kachel nennt genau einen wahren, verständlichen Grund.
+5. Die Karte stellt Fachinhalt vor den kompakten Indikator des primären Contexts; ein aktiver Fachzustand wird zusätzlich kenntlich gemacht.
 6. Ortung bleibt eine Vordergrundfunktion und darf sichere Inhalte nicht blockieren.
-7. Ohne aktuellen Anlass erscheint ein Inhalt nicht unter „Jetzt“.
+7. Ohne passenden Context oder aktiven Fachzustand erscheint ein Inhalt nicht unter „Jetzt“.
 
 Nur sinnvolle Arten in `contexts` deklarieren: Rabatt → `['place']`, Trinken →
 `['interval']`, Pain → `['place', 'time', 'interval']`. Ohne Angabe keine Kontextregeln.
@@ -208,6 +214,53 @@ Hintergrundprüfung. Der gewählte Radius gilt ohne Genauigkeitsaufschlag für d
 Position; Kategorien ändern das Matching nicht.
 Ohne Standortfreigabe bleiben andere Gründe und „Alle Helfer“ nutzbar.
 Das ist unabhängig von den bestehenden Vordergrundprüfungen für PWA-Updates.
+Now-Projektionen eingeblendeter Helper können eine nächste Inhalts- oder
+Fälligkeitsgrenze zum selben Timeout beitragen, auch bei noch nicht aktiver Karte. Es gibt keinen zusätzlichen Polling- oder Hintergrundtimer.
+
+## Optionale reine Projektion für „Jetzt“
+
+`nowCard({ entries, now, lastUsedAt, interval, context })` ist synchron und ohne DOM,
+DB-Zugriffe oder Seiteneffekte. `entries` enthält ausschließlich bereits geladene
+eigene Entries. Die Shell übergibt eine tief eingefrorene Kopie des Inputs;
+`now` ist ein Millisekundenzeitpunkt, `context` der bereits berechnete Context-State.
+Dies ist keine neue Live-Context-API. Der Helper prüft weder Ort noch Zeitfenster
+oder Context-Verknüpfungen selbst.
+
+Die Rückgabe hat ein erforderliches boolesches `active` und nur diese optionalen Felder:
+
+| Feld | Bedeutung |
+| --- | --- |
+| `primary`, `secondary` | nichtleere Strings als fachliche Kerninformation und Ergänzung; die Shell rendert sie sicher als Text |
+| `badge: { value, label }` | nichtleere Strings für sichtbaren Wert und zugängliche Beschreibung |
+| `tone` | `normal` oder `attention`; keine medizinische Bewertung |
+| `density` | `compact` oder `standard`; eine mobile Spalte, auf breiteren Viewports ein bzw. zwei Grid-Spalten ohne Umordnung |
+| `nextChangeAt` | optionaler gültiger Millisekundenzeitpunkt der nächsten Inhalts- oder Relevanzänderung; zukünftige Grenzen werden auch bei `active: false` geplant, solange der Helper nicht ausgeblendet ist |
+
+`validateNowCard()` prüft die Rückgabe bei jeder Projektion. Ohne `nowCard` funktioniert
+ein Helper weiterhin als normale Context-Karte. `active: true` hält einen sichtbaren
+Helper unabhängig von Contexts unter Jetzt. **Active ist kein Context-Typ**: keine
+Active-Regeln, keine Active-Einstellungen. Ausgeblendete Helper bleiben ausgeblendet.
+Die Shell kombiniert `context.match || nowCard.active`, sortiert aktive Zustände zuerst
+und erhält darunter das bisherige stabile Context-Ranking. Keine maximale Kartenanzahl.
+
+Geeignet sind aktive Zustände und kurze fachliche Zusammenfassungen. Ungeeignet sind
+eigenes Dashboard-HTML, Fremddaten, Recommendation Scores, Navigation und Seiteneffekte.
+Außenrahmen, Fokus, Grid, Typografie, Badge und Context-Indikatoren gehören der Shell.
+Contextuelle Core-Notizen verwenden dieselbe Kartenfamilie mit ihrem vollständigen Text.
+
+Parken projiziert den vorhandenen `parking-position`-Entry. Schmerz betrachtet das
+jüngste Ereignis je normalisiertem Körperbereich gemäß bestehender Verlaufssortierung;
+`observation` ist offen, `resolved` beendet. Training bleibt bei aktiver Session sichtbar
+und zeigt sonst den Abstand zum letzten abgeschlossenen Training.
+Warte auf wird aktiv, sobald mindestens ein offener Eintrag sein lokales
+Wiedervorlagedatum erreicht hat. Zukünftige Termine liefern `nextChangeAt`, damit
+die Karte bei geöffneter Startseite am passenden lokalen Tagesbeginn erscheint.
+Reine Textaktualisierungen unsichtbarer Karten benötigen keinen Timer; Trinken und
+Training liefern solche Grenzen daher nur bei bereits passendem Context-Snapshot.
+Trinken ist nie dauerhaft aktiv: Es zählt volle konfigurierte Minuten-/Stundenintervalle
+seit dem jüngsten `recordedAt`, unabhängig von `earlyBy` und `lastUsedAt`. Kalenderintervalle
+werden ohne Gelegenheitenzähler dargestellt. `earlyBy` steuert allein die frühere
+Context-Sichtbarkeit. Die Copy beschreibt Dokumentationen, nicht tatsächlichen Konsum.
 
 ## Daten, Validierung und Aufbewahrung
 

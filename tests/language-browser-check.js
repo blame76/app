@@ -58,16 +58,16 @@ async (page) => {
     await app.reload();
     await app.waitForSelector('#nowRows [data-helper="place"]');
     check((await app.locator('#nowRows [data-helper]').evaluateAll(elements => elements.map(element => element.dataset.helper))).join(',') === 'place,interval,time', 'Place, interval and time keep their existing priority without a usage fallback');
-    check(await app.locator('#nowRows [data-helper="place"] span').textContent() === 'Waterfront', 'Location reason names the matched stored place');
-    check(await app.locator('#nowRows [data-helper="interval"] span').textContent() === 'wieder im Blick · nach 1 Stunde', 'Interval reason explains when the helper returns while preserving the existing tolerance');
-    check(await app.locator('#nowRows [data-helper="time"] span').textContent() === await app.evaluate(async () => { const ctx = await import('/src/context.js'); return ctx.timeBucketLabel(ctx.timeBucket()); }), 'Time reason still names the current time bucket');
+    check(await app.locator('#nowRows [data-helper="place"] .now-indicator').textContent() === 'Waterfront', 'Location reason names the matched stored place');
+    check(await app.locator('#nowRows [data-helper="interval"] .now-indicator').textContent() === 'Intervall', 'Interval reason explains when the helper returns while preserving the existing tolerance');
+    check(await app.locator('#nowRows [data-helper="time"] .now-indicator').textContent() === await app.evaluate(async () => { const ctx = await import('/src/context.js'); return ctx.timeBucketLabel(ctx.timeBucket()); }), 'Time reason still names the current time bucket');
     check(await app.locator('#nowRows [data-helper="used"]').count() === 0, 'Recorded use alone never creates a Jetzt candidate');
     check(await app.evaluate(() => window.geoCalls === 1 && window.geoOptions.maximumAge === 0), 'Context uses one fresh location query to avoid stale place matches');
     check(await app.locator('#nowRows [data-helper="place"]').evaluate(element => {
       const box = element.getBoundingClientRect();
-      return box.width < 160 && box.height / box.width < 1.6 && box.height >= 48;
-    }), 'Jetzt uses compact object proportions at 320 CSS px');
-    check(await app.locator('#nowRows [data-helper="place"]').evaluate(element => parseFloat(getComputedStyle(element.querySelector('strong')).fontSize) > parseFloat(getComputedStyle(element.querySelector('span')).fontSize)), 'Helper name takes priority over its reason');
+      return box.width > 240 && box.height >= 48 && getComputedStyle(element.parentElement).gridTemplateColumns.split(' ').length === 1;
+    }), 'Jetzt uses one readable content column at 320 CSS px');
+    check(await app.locator('#nowRows [data-helper="place"]').evaluate(element => parseFloat(getComputedStyle(element.querySelector('strong')).fontSize) > parseFloat(getComputedStyle(element.querySelector('.now-indicator')).fontSize)), 'Helper name takes priority over its reason');
     await reflow('Several helpers and a long name fit 320 CSS px');
     await tileText('Long helper names and reasons stay inside their own tile');
     await app.getByText('Favoriten', { exact: true }).click();
@@ -88,7 +88,7 @@ async (page) => {
     });
     await app.reload();
     await app.waitForSelector('#nowRows [data-helper="place"]');
-    check((await app.locator('#nowRows [data-helper="place"] span').textContent()).startsWith('<img') && await app.locator('#nowRows img').count() === 0 && !requests.some(url => url.includes('/leak')), 'Stored context names remain literal text without resource requests');
+    check((await app.locator('#nowRows [data-helper="place"] .now-indicator').textContent()).startsWith('<img') && await app.locator('#nowRows img').count() === 0 && !requests.some(url => url.includes('/leak')), 'Stored context names remain literal text without resource requests');
     await reflow('Long stored context reason fits 320 CSS px');
     const enlargedText = await app.addStyleTag({ content: ':root { font-size: 200%; }' });
     await reflow('Long helper names and reasons reflow with 200% text at 320 CSS px');

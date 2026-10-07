@@ -123,3 +123,55 @@ test('Import rejects invalid waiting entries before opening IndexedDB', () => {
     delete globalThis.indexedDB;
   }
 });
+
+test('Now card includes only reached, open entries and ends after completion or rescheduling', () => {
+  const now = new Date(2026, 9, 7, 12).getTime();
+  const due = entry('due', { text: 'Angebot der Werkstatt', waitingForText: 'Werkstatt', expectedDate: '2026-10-07' });
+  const later = entry('later', { expectedDate: '2026-10-09' });
+  const undated = entry('undated');
+  const done = completeWaitingEntry(entry('done', { expectedDate: '2026-10-06' }), 2000);
+  assert.deepEqual(helper.nowCard({ entries: [undated, done], now }), { active: false });
+  assert.equal(helper.nowCard({ entries: [], now }).active, false);
+  const card = helper.nowCard({ entries: [due, later, undated, done], now });
+  assert.equal(card.active, true);
+  assert.equal(card.primary, due.text);
+  assert.equal(card.secondary, 'Werkstatt · heute wieder im Blick');
+  assert.equal(card.nextChangeAt, new Date(2026, 9, 8).getTime());
+  assert.equal(helper.nowCard({ entries: [completeWaitingEntry(due, now)], now }).active, false);
+  assert.equal(helper.nowCard({ entries: [updateWaitingEntry(due, { text: due.text, expectedDate: '2026-10-09' })], now }).active, false);
+});
+
+test('Multiple due entries show their count and the earliest due content in stable order', () => {
+  const now = new Date(2026, 9, 7, 12).getTime();
+  const old = entry('old', { expectedDate: '2026-10-06', text: '<img src=x> Antwort' });
+  const today = entry('today', { expectedDate: '2026-10-07' });
+  const entries = Object.freeze([Object.freeze(today), Object.freeze(old)]);
+  const card = helper.nowCard({ entries, now });
+  assert.equal(card.primary, '2 Wiedervorlagen fällig');
+  assert.equal(card.secondary, old.text);
+  assert.equal(card.density, 'standard');
+  assert.equal(card.nextChangeAt, undefined);
+  assert.equal(helper.nowCard({ entries: [completeWaitingEntry(today, now), old], now }).primary, old.text);
+  assert.equal(helper.nowCard({ entries: [{ ...old, text: 'x'.repeat(300) }], now }).density, 'standard');
+});
+
+test('Upcoming entries schedule their earliest local midnight, including DST dates', () => {
+  for (const [year, month, day] of [[2026, 9, 7], [2026, 2, 29], [2026, 9, 25]]) {
+    const start = new Date(year, month, day);
+    const tomorrow = new Date(year, month, day + 1);
+    const expectedDate = localDateKey(tomorrow.getTime());
+    const upcoming = entry('future', { expectedDate });
+    const card = helper.nowCard({ entries: [upcoming], now: start.getTime() });
+    assert.equal(card.active, false);
+    assert.equal(card.nextChangeAt, tomorrow.getTime());
+    assert.equal(helper.nowCard({ entries: [upcoming], now: tomorrow.getTime() - 1 }).active, false);
+    assert.equal(helper.nowCard({ entries: [upcoming], now: tomorrow.getTime() }).active, true);
+    if (process.env.TZ === 'Europe/Berlin' && month === 2) assert.equal(card.nextChangeAt - start.getTime(), 23 * 3600000);
+    if (process.env.TZ === 'Europe/Berlin' && month === 9 && day === 25) assert.equal(card.nextChangeAt - start.getTime(), 25 * 3600000);
+  }
+  const now = new Date(2026, 9, 7, 12).getTime();
+  const future = entry('future', { expectedDate: '2026-11-01' });
+  assert.equal(helper.nowCard({ entries: [future, entry('soon', { expectedDate: '2026-10-10' })], now }).nextChangeAt, new Date(2026, 9, 10).getTime());
+  const expired = entry('old', { expectedDate: '2026-10-01' });
+  assert.equal(helper.nowCard({ entries: [expired], now }).nextChangeAt, undefined);
+});
