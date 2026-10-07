@@ -1,6 +1,6 @@
 import { HELPERS } from './helpers/registry.js';
-import { validateRegistry, helperDefaults } from './helpers/contract.js';
-import { list, get, put, remove, clearAll, exportAll, importAll, makeId, pruneEntries } from './db.js';
+import { validateRegistry, helperDefaults, projectNowCard } from './helpers/contract.js';
+import { list, get, put, remove, clearAll, exportAll, importAll, makeId, pruneEntries, disableHelperInterval } from './db.js';
 import { evaluateHelperContext, getPosition, watchPosition, matchingPlaces, matchingTimeWindows, nextTimeBoundary, timeBucketLabel } from './context.js';
 import { PLACE_CATEGORIES, validateRule } from './schema.js';
 import { fromLegacyMinutes, INTERVAL_UNITS, intervalLabel, intervalUnitLabel } from './intervals.js';
@@ -9,7 +9,6 @@ import { renderNotes, renderPeople, renderPerson } from './read-views.js';
 import { createNavigation } from './navigation.js';
 import { isNote, noteLabel, editNote, changeNoteContext, noteContext, relevantNotes } from './notes.js';
 import { renderNote, renderNoteEdit, renderNoteContext, renderNoteContextPicker } from './note-views.js';
-import { noteTextClass } from './note-presentation.js';
 import { startPwaUpdates } from './pwa-update.js';
 import { initializeTheme, saveTheme } from './theme.js';
 import { PLACE_RADII, LOCATION_EXPLANATION, RADIUS_EXPLANATION, groupPlaces, parsePlaceCoordinates, radiusLabel } from './places.js';
@@ -311,6 +310,10 @@ async function openHelper(id, options = {}) {
         }),
         listEntries: requireCurrent(async () => (await list('entries', { prune: false })).filter(entry => entry.helperId === id)),
         getGuidance: requireCurrent(async () => (await getRule(helper)).guidance !== false),
+        disableContext: requireCurrent(type => {
+          if (type !== 'interval' || !helper.contexts?.includes(type)) throw new Error('Nicht unterstützte Kontextart.');
+          return disableHelperInterval(id);
+        }),
         setGuidance: requireCurrent(async guidance => {
           if (!helper.guidance || typeof guidance !== 'boolean') throw new Error('Ungültige Hinweiseinstellung.');
           const rule = await getRule(helper);
@@ -423,26 +426,54 @@ async function dashboardCandidates(visible, position = null, date = new Date()) 
   const activeTimeIds = matchingTimeWindows(date, timeWindows).map(window => window.id);
   const items = [];
   let nextIntervalAt = null;
+  let nextCardAt = Infinity;
   for (const { helper, rule } of visible) {
     const usedAt = await lastUsed(helper.id);
     const state = evaluateHelperContext(rule, activePlaces, usedAt, date, timeWindows);
     if (state.nextIntervalAt !== null && (nextIntervalAt === null || state.nextIntervalAt < nextIntervalAt)) nextIntervalAt = state.nextIntervalAt;
-    if (state.match) items.push({ helper, usedAt, ...state.match });
+    const now = projectNowCard(helper, entries.filter(entry => entry.helperId === helper.id), {
+      now: date.getTime(), lastUsedAt: usedAt, interval: rule.interval, context: state
+    });
+    if (state.match || now.active) {
+      items.push({ helper, usedAt, rank: 0, ...state.match, now });
+      if (now.nextChangeAt > date.getTime()) nextCardAt = Math.min(nextCardAt, now.nextChangeAt);
+    }
   }
   items.push(...relevantNotes(entries, activePlaces, activeTimeIds, timeWindows).map(item => ({ ...item, person: people.find(person => person.id === item.note.personId) })));
   const hasTimeRules = visible.some(({ rule }) => rule.timeBuckets.length)
     || entries.some(entry => isNote(entry) && noteContext(entry).timeBuckets.length);
-  const nextRefreshAt = Math.min(nextIntervalAt ?? Infinity, hasTimeRules ? (nextTimeBoundary(date, timeWindows) ?? Infinity) : Infinity);
+  const nextRefreshAt = Math.min(nextCardAt, nextIntervalAt ?? Infinity, hasTimeRules ? (nextTimeBoundary(date, timeWindows) ?? Infinity) : Infinity);
   return {
     hasPlaceRules,
     nextRefreshAt: Number.isFinite(nextRefreshAt) ? nextRefreshAt : null,
-    items: items.sort((a, b) => b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.helper.id).localeCompare(b.note?.id || b.helper.id))
+    items: items.sort((a, b) => Number(!!b.now?.active) - Number(!!a.now?.active) || b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.helper.id).localeCompare(b.note?.id || b.helper.id))
   };
 }
 
-function noteTile(note, reason, person) {
-  const label = noteLabel(note);
-  return `<button class="note-tile" type="button" data-note="${escapeHtml(note.id)}"><span class="note-tile-heading"><span class="note-eyebrow">${label}</span>${note.type === 'person-note' ? `<span class="note-person-name">${escapeHtml(person?.name || 'Person nicht mehr gespeichert')}</span>` : ''}</span><strong class="${noteTextClass(note.text)}">${escapeHtml(note.text)}</strong><span class="note-tile-context">${escapeHtml(reason)}</span></button>`;
+function nowIndicator(type, label, explanation = label) {
+  const paths = {
+    place: '<path d="M12 21s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12Z"/><circle cx="12" cy="9" r="2"/>',
+    interval: '<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
+    time: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/>',
+    active: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>'
+  };
+  const name = { place: 'Ort', interval: 'Intervall', time: 'Zeitfenster', active: 'Aktiver Zustand' }[type];
+  return `<span class="now-indicator" data-context="${type}" aria-label="${escapeHtml(`${name}: ${explanation}`)}" title="${escapeHtml(explanation)}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5">${paths[type]}</svg>${escapeHtml(label)}</span>`;
+}
+
+function nowTile({ helper, note, person, now = {}, type, reason, why, launchPlace }) {
+  const density = note ? (note.text.length > 80 ? 'standard' : 'compact') : now.density || 'compact';
+  const label = note ? noteLabel(note) : helper.label;
+  const primary = note ? note.text : now.primary;
+  const placeData = launchPlace ? ` data-place-id="${escapeHtml(launchPlace.id)}" data-place-name="${escapeHtml(launchPlace.name)}"` : '';
+  const target = note ? `data-note="${escapeHtml(note.id)}"` : `data-helper="${escapeHtml(helper.id)}"${placeData}`;
+  return `<button class="now-card ${note ? 'note-tile' : 'helper-tile'}" type="button" ${target} data-density="${density}" data-tone="${now.tone || 'normal'}">
+    <strong class="now-heading${primary ? '' : ' now-fallback'}">${escapeHtml(label)}${note?.type === 'person-note' ? ` · <span class="note-person-name">${escapeHtml(person?.name || 'Person nicht mehr gespeichert')}</span>` : ''}</strong>
+    ${primary ? `<strong class="now-primary">${escapeHtml(primary)}</strong>` : ''}
+    ${now.secondary ? `<span class="now-secondary">${escapeHtml(now.secondary)}</span>` : ''}
+    ${now.badge ? `<span class="now-badge" aria-label="${escapeHtml(now.badge.label)}">${escapeHtml(now.badge.value)}</span>` : ''}
+    <span class="now-indicators">${now.active ? nowIndicator('active', 'Aktiv') : ''}${type ? nowIndicator(type, type === 'interval' ? 'Intervall' : reason, why || reason) : ''}</span>
+  </button>`;
 }
 
 const MAX_TIMEOUT_DELAY = 2147483647;
@@ -473,7 +504,7 @@ async function renderDashboard({ position = dashboardPosition, contextOnly = fal
   if (version !== dashboardVersion) return;
 
   const rows = $('#nowRows');
-  const html = candidates.map(({ helper, note, reason, why, person, launchPlace }) => note ? noteTile(note, reason, person) : tile(helper, why || reason, launchPlace)).join('');
+  const html = candidates.map(nowTile).join('');
   if (rows.innerHTML !== html) {
     const focused = rows.contains(document.activeElement) ? returnFocusTarget() : null;
     rows.innerHTML = html;

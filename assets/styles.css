@@ -149,7 +149,40 @@ main { max-width: var(--content-width); margin: 0 auto; padding: 0 var(--gutter)
 #nowRows .helper-tile { background: var(--surface-paper); }
 .helper-tile strong { padding-top: 1rem; font-family: var(--display-font); font-size: 1.625rem; font-weight: 400; letter-spacing: -.025em; line-height: 1.2; overflow-wrap: anywhere; }
 .helper-tile span { color: var(--text-muted); font-size: .875rem; line-height: 1.4; overflow-wrap: anywhere; }
-#nowRows .helper-tile .tile-reason::before { content: 'Warum jetzt?'; display: block; margin-bottom: .3rem; color: var(--text-primary); font-size: .6875rem; font-weight: 600; letter-spacing: .06em; line-height: 1.2; text-transform: uppercase; }
+/* One content surface for helper summaries and contextual notes. DOM order is grid order. */
+#nowRows { grid-template-columns: minmax(0, 1fr); align-items: start; }
+#view-dashboard #nowRows .now-card {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  grid-column: auto; align-content: start; justify-items: stretch;
+  min-width: 0; min-height: 48px; padding: 1.25rem; gap: .65rem 1rem;
+  background: var(--surface-paper); color: var(--text-primary);
+  border: 1px solid var(--border-control); border-radius: var(--radius-surface);
+  text-align: left; box-shadow: none; transition: none;
+}
+#nowRows .now-card::before, #nowRows .now-card::after { display: none; }
+#nowRows .now-heading { grid-column: 1; padding: 0; margin: 0; color: var(--text-muted); font: 600 .875rem/1.4 var(--interface-font); letter-spacing: .025em; }
+#nowRows .now-heading.now-fallback { font: 500 1.625rem/1.3 var(--display-font); color: var(--text-primary); }
+#nowRows .note-person-name { font: inherit; color: inherit; }
+#nowRows .now-primary {
+  grid-column: 1 / -1; display: block; padding: 0; margin: 0; max-width: none;
+  overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; -webkit-line-clamp: unset;
+  font: 500 1.625rem/1.3 var(--display-font); letter-spacing: -.02em;
+}
+#nowRows .now-secondary { grid-column: 1 / -1; color: var(--text-muted); font: 400 .9375rem/1.5 var(--interface-font); }
+#nowRows .now-badge {
+  grid-column: 2; grid-row: 1; align-self: start; min-width: 2rem; padding: .15rem .5rem;
+  border: 1px solid currentColor; border-radius: var(--radius-control);
+  color: var(--text-primary); font: 600 1rem/1.4 var(--interface-font); text-align: center;
+}
+#nowRows .now-indicators { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: .5rem; }
+#nowRows .now-indicator { display: inline-flex; align-items: center; gap: .35rem; color: var(--text-muted); font: 400 .8125rem/1.5 var(--interface-font); }
+#nowRows .now-indicator svg { flex: 0 0 1rem; width: 1rem; height: 1rem; }
+#view-dashboard #nowRows .now-card[data-tone="attention"] { border-inline-start: 4px solid var(--accent); }
+#view-dashboard #nowRows .now-card:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--border-control); }
+@media (min-width: 700px) {
+  #nowRows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #view-dashboard #nowRows .now-card[data-density="standard"] { grid-column: span 2; }
+}
 .helper-toolbar { display: grid; grid-template-columns: minmax(0,1fr) minmax(150px,.55fr); gap: .75rem; }
 .helper-list { display: grid; }
 .helper-list-item { width: 100%; min-height: 76px; border: 0; border-radius: 0; background: transparent; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; gap: 1rem; text-align: left; padding: 1rem .25rem; }

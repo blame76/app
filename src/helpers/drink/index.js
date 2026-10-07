@@ -1,4 +1,4 @@
-import { validateDrinkEntry, orderedEntries, todayEntries, relativeTime, saveDrink } from './model.js';
+import { validateDrinkEntry, orderedEntries, todayEntries, relativeTime, saveDrink, drinkNowCard } from './model.js';
 
 const dateTime = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' });
 const clockTime = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -9,6 +9,7 @@ export default {
   defaults: { interval: { value: 1, unit: 'hour' }, earlyBy: { value: 15, unit: 'minute' } },
   retention: { defaultWindow: 'always' },
   validateEntry: validateDrinkEntry,
+  nowCard: drinkNowCard,
   offlineAssets: ['./src/helpers/drink/model.js', './src/helpers/drink/styles.css'],
   async mount({ root, api, signal }) {
     const css = document.createElement('link');
@@ -30,7 +31,9 @@ export default {
       <section class="drink-history" aria-labelledby="drinkTodayTitle" hidden>
         <h2 id="drinkTodayTitle">Heute</h2>
         <ol></ol>
-      </section>`;
+      </section>
+      <p class="muted">0815 zeigt, was du dokumentiert hast. Verpasste Trinkgelegenheiten zählen eingestellte Zeitabstände seit der letzten Dokumentation; sie sagen nicht, ob du getrunken hast.</p>
+      <button id="drinkDisableReminder" class="quiet" type="button">Nicht mehr unter „Jetzt“ erinnern</button>`;
     root.append(host);
     const button = host.querySelector('button');
     const question = host.querySelector('#drinkQuestion');
@@ -38,6 +41,23 @@ export default {
     const time = host.querySelector('#drinkLast');
     const history = host.querySelector('.drink-history');
     let saving = false;
+    const disableReminder = host.querySelector('#drinkDisableReminder');
+    disableReminder.addEventListener('click', async () => {
+      if (saving || signal.aborted) return;
+      saving = true;
+      host.setAttribute('aria-busy', 'true');
+      button.disabled = disableReminder.disabled = true;
+      try {
+        await api.disableContext('interval');
+        if (!signal.aborted) api.goHome();
+      } catch {
+        if (!signal.aborted) api.toast('Erinnerung konnte nicht ausgeschaltet werden. Bitte erneut versuchen.');
+      } finally {
+        saving = false;
+        host.removeAttribute('aria-busy');
+        button.disabled = disableReminder.disabled = false;
+      }
+    });
     function render() {
       const latest = orderedEntries(entries)[0];
       question.hidden = !!latest;
@@ -67,6 +87,7 @@ export default {
       saving = true;
       button.setAttribute('aria-busy', 'true');
       button.disabled = true;
+      disableReminder.disabled = true;
       try {
         const { entry, usageError } = await saveDrink(api);
         if (signal.aborted) return;
@@ -79,7 +100,7 @@ export default {
         if (!signal.aborted) api.toast(error.name === 'QuotaExceededError'
           ? 'Browser-Speicher voll. Getränk konnte nicht dokumentiert werden.'
           : 'Getränk konnte nicht dokumentiert werden. Bitte erneut versuchen.');
-      } finally { saving = false; button.removeAttribute('aria-busy'); button.disabled = false; }
+      } finally { saving = false; button.removeAttribute('aria-busy'); button.disabled = disableReminder.disabled = false; }
     });
     (entries.length ? time : question).focus();
     return () => { css.remove(); };

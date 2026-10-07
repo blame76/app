@@ -362,3 +362,21 @@ Speicher- und Bearbeitungsablauf mit Reload, beiden Notizarten, Löschung ohne
 Kaskade, Import/Export, drei Themes, 320 px/200 % Text und echtem Offline-Worker aus.
 Es nutzt die kontrollierte Playwright-Uhr und isolierte Browserprofile.
 Ergebnisse, Korrektur und offene Prüflücken: [Zeitfenster-Prüfbericht](../docs/TIME_WINDOWS_TESTS.md).
+
+## Now Surface
+
+`now-surface.mjs` prüft den optionalen Datencontract, eingefrorene eigene Snapshots,
+Parkzustand, jüngstes Schmerzereignis je Bereich, aktive/abgeschlossene Trainings
+und die nominalen Trinkgrenzen einschließlich Kalender- und Import-Randfällen.
+`now-surface-browser-check.js` prüft die fünf gleichzeitigen Beispielkarten mit
+realer IndexedDB, kontrollierter Vordergrundzeit und den tatsächlichen Fachaktionen.
+Dazu gehören 320/1280 px, 200 % Text, drei Themes, gemeinsame Kartenflächen,
+AA-Kontraste, Tastaturreihenfolge/Fokus, sichere lange Texte und Fehler/Retry beim
+Abschalten des Trinkintervalls. `now-api-browser-check.js` prüft die Grenzen der
+engen `disableContext('interval')`-API einschließlich alter Mounts.
+
+Bestehende Browser-Gates verwenden die neuen Inhalts-/Indikatorselektoren. Die alten
+Erwartungen an schmale mobile Launcher und getrennte Notizkacheln wurden durch die
+angeforderte gemeinsame, einspaltige Now-Surface ersetzt. Der echte Offline-Gate
+prüft zusätzlich aktive Karten nach Reload und das Abschalten des Trinkintervalls.
+Ausgeführte Gates und offene Geräteprüfungen: [Now-Surface-Bericht](../docs/NOW_SURFACE.md).

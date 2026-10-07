@@ -57,6 +57,16 @@ export default {
   retention: { defaultWindow: 'always' },
   guidance: true,
   validateEntry: validatePainEntry,
+  nowCard({ entries }) {
+    const open = documentedAreas(entries).map(area => historyForArea(entries, area)[0])
+      .filter(entry => entry.eventType === 'observation');
+    return {
+      active: open.length > 0,
+      primary: open.length === 1 ? `${open[0].bodyArea} · ${open[0].intensity}/10`
+        : open.length ? `${open.length} Schmerzorte aktiv` : 'Kein Schmerz offen dokumentiert',
+      density: 'compact'
+    };
+  },
   offlineAssets: ['./src/helpers/pain/model.js', './src/helpers/pain/styles.css'],
   async mount({ root, api, signal }) {
     const css = document.createElement('link');

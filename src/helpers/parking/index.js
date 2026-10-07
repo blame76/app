@@ -7,6 +7,16 @@ const clockTime = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2
 export default {
   id: 'parking', label: 'Parken', category: 'Mobilität',
   validateEntry: validateParkingEntry,
+  nowCard({ entries }) {
+    const parked = entries.find(entry => entry.id === POSITION_ID);
+    if (!parked) return { active: false };
+    return {
+      active: true,
+      primary: parked.note ? `Du parkst · ${parked.note}` : 'Auto geparkt',
+      secondary: `seit ${clockTime.format(parked.createdAt)} · ${dateOnly.format(parked.createdAt)}`,
+      density: parked.note ? 'standard' : 'compact'
+    };
+  },
   offlineAssets: ['./src/helpers/parking/model.js'],
   async mount({ root, api, signal }) {
     const entries = await api.listEntries();

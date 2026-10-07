@@ -73,6 +73,8 @@ async (page) => {
     await app.locator('[data-training="repeat"]').click();
     await app.waitForSelector('.training-activity');
     await app.reload();
+    await app.waitForFunction(() => document.querySelector('#nowRows [data-helper="training"] .now-primary')?.textContent === 'Training läuft');
+    check(true, 'Active training remains on Now after an offline reload');
     await open('training', '[data-training="continue"]');
     await app.locator('[data-training="continue"]').click();
     await app.waitForSelector('#trainingActivityForm');
@@ -94,6 +96,8 @@ async (page) => {
     await app.waitForFunction(() => document.querySelector('.pain h2')?.textContent === 'Bauch · 4 gespeichert');
     await app.locator('[data-pain="done"]').click();
     await app.reload();
+    await app.waitForFunction(() => document.querySelector('#nowRows [data-helper="pain"] .now-primary')?.textContent === 'Bauch · 4/10');
+    check(true, 'Open pain remains on Now after an offline reload');
     await open('pain', '.pain-last-value');
     check((await app.locator('.pain-last-value').textContent()).includes('Bauch · 4'), 'Pain still saves and restores offline alongside the new helper');
     await app.locator('#backButton').click();
@@ -199,6 +203,8 @@ async (page) => {
     await app.locator('#parkingForm button').click();
     await app.waitForSelector('#parkingShow');
     await app.reload();
+    await app.waitForFunction(() => document.querySelector('#nowRows [data-helper="parking"] .now-primary')?.textContent === 'Du parkst · Ebene 2 · offline');
+    check(true, 'The active parking card is restored offline');
     await open('parking', '#parkingForm');
     check(await app.locator('#parkingNote').textContent() === 'Ebene 2 · offline', 'Parking saves and restores offline with real worker and controlled device location');
     await app.locator('#parkingShow').click();
@@ -207,6 +213,14 @@ async (page) => {
     await app.waitForSelector('#parkingForm textarea');
     check(await app.evaluate(async () => !(await (await import('/src/db.js')).get('entries', 'parking-position'))), 'Parking deletion commits offline');
     await app.locator('#backButton').click();
+    await app.waitForFunction(() => !document.querySelector('#nowRows [data-helper="parking"]'));
+    check(true, 'Deleted parking disappears from Now offline');
+    await open('drink', '#drinkRecord');
+    await app.locator('#drinkDisableReminder').click();
+    await app.waitForFunction(() => !document.querySelector('#view-dashboard').hidden);
+    await app.reload();
+    await app.waitForSelector('#allHelperList [data-helper="drink"]', { state: 'attached' });
+    check(await app.evaluate(async () => (await (await import('/src/db.js')).get('helperRules', 'drink')).interval === null), 'Disabling Drink reminders commits and survives offline reload');
     await open('warte-auf', '#warteAufCreateForm');
     const today = await app.evaluate(() => {
       const date = new Date();

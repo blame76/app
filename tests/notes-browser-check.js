@@ -183,8 +183,8 @@ async (page) => {
       });
       await menu(); await back();
       await app.waitForFunction(() => [...document.querySelectorAll('#nowRows [data-note]')].map(node => node.dataset.note).join() === 'now-place,now-time,now-or');
-      assert((await app.locator('#nowRows [data-note]').first().getAttribute('class')) === 'note-tile', 'notes have a separate editorial tile style');
-      assert(await app.locator('#nowRows [data-note="now-place"] .note-tile-context').textContent() === 'Büro', 'matched place is the note tile context');
+      assert(await app.locator('#nowRows [data-note]').first().evaluate(el => el.classList.contains('now-card')), 'notes share the Now card surface while retaining their entry content');
+      assert(await app.locator('#nowRows [data-note="now-place"] .now-indicator').textContent() === 'Büro', 'matched place is the note tile context');
       await shot('now');
       await app.evaluate(() => { window.notesGeoFail = true; }); await menu(); await back();
       await app.waitForFunction(() => [...document.querySelectorAll('#nowRows [data-note]')].map(node => node.dataset.note).join() === 'now-time,now-or');

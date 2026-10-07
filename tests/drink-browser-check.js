@@ -19,7 +19,7 @@ async (page) => {
   async function reason(time, expected = null) {
     await setTime(time);
     await app.locator('#brandButton').click();
-    if (expected) await app.waitForFunction(expected => document.querySelector('#nowRows [data-helper="drink"] span')?.textContent === expected, expected);
+    if (expected) await app.waitForFunction(expected => document.querySelector('#nowRows [data-helper="drink"] .now-primary')?.textContent === expected, expected);
     else await app.waitForFunction(() => !document.querySelector('#nowRows [data-helper="drink"]'));
   }
   async function saveSettings() { await app.locator('#helperSettingsForm button').click(); await app.waitForFunction(() => !document.querySelector('#helperSettingsForm').dataset.saving); }
@@ -74,9 +74,9 @@ async (page) => {
     await app.evaluate(() => { IDBObjectStore.prototype.put = window.originalPut; });
     const usedAt = await usage();
     await app.locator('#backButton').click();
-    for (const [elapsed, expected] of [[0, null], [45 * 60000 - 1, null], [45 * 60000, 'wieder im Blick · nach 1 Stunde'], [60 * 60000, 'wieder im Blick · nach 1 Stunde']]) {
+    for (const [elapsed, expected] of [[0, null], [45 * 60000 - 1, null], [45 * 60000, 'Bald wieder dran'], [60 * 60000, '1 Trinkgelegenheit verpasst']]) {
       await reason(usedAt + elapsed, expected);
-      check(expected ? await app.locator('#nowRows [data-helper="drink"] span').textContent() === expected : await app.locator('#nowRows [data-helper="drink"]').count() === 0, `Default interval at ${elapsed} ms: ${expected || 'not relevant'}`);
+      check(expected ? await app.locator('#nowRows [data-helper="drink"] .now-primary').textContent() === expected : await app.locator('#nowRows [data-helper="drink"]').count() === 0, `Default interval at ${elapsed} ms: ${expected || 'not relevant'}`);
     }
     await open();
     await app.locator('#helperSettingsButton').click();
@@ -92,9 +92,9 @@ async (page) => {
     await app.locator('#backButton').click();
     await app.waitForSelector('#drinkRecord');
     await app.locator('#backButton').click();
-    for (const [elapsed, expected] of [[60 * 60000, null], [75 * 60000 - 1, null], [75 * 60000, 'wieder im Blick · nach 90 Minuten']]) {
+    for (const [elapsed, expected] of [[60 * 60000, null], [75 * 60000 - 1, null], [75 * 60000, 'Bald wieder dran']]) {
       await reason(usedAt + elapsed, expected);
-      check(expected ? await app.locator('#nowRows [data-helper="drink"] span').textContent() === expected : await app.locator('#nowRows [data-helper="drink"]').count() === 0, `Changed interval at ${elapsed} ms: ${expected || 'not relevant'}`);
+      check(expected ? await app.locator('#nowRows [data-helper="drink"] .now-primary').textContent() === expected : await app.locator('#nowRows [data-helper="drink"]').count() === 0, `Changed interval at ${elapsed} ms: ${expected || 'not relevant'}`);
     }
     check(await usage() === usedAt, 'Changing interval and rendering context never records use');
     await app.evaluate(async usedAt => {
