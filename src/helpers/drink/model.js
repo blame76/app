@@ -1,4 +1,30 @@
+import { intervalDueAt } from '../../intervals.js';
+
 function requireValue(condition, message) { if (!condition) throw new Error(message); }
+
+export function drinkNowCard({ entries, now, interval, context }) {
+  const latest = orderedEntries(entries)[0];
+  if (!latest) return { active: false, primary: 'Noch kein Getränk dokumentiert', density: 'compact' };
+  const elapsed = Math.max(0, now - latest.recordedAt);
+  const duration = interval && ({ minute: 60000, hour: 3600000 })[interval.unit] * interval.value;
+  const missed = duration ? Math.floor(elapsed / duration) : 0;
+  let nominal = null;
+  // Valid imported dates can already be at the end of the supported date range.
+  try { nominal = interval ? intervalDueAt(latest.recordedAt, interval) : null; } catch { /* No representable next interval. */ }
+  const primary = missed ? `${missed} ${missed === 1 ? 'Trinkgelegenheit' : 'Trinkgelegenheiten'} verpasst`
+    : nominal !== null ? (now < nominal ? 'Bald wieder dran' : 'Trinken wieder dokumentieren') : 'Zuletzt dokumentiert';
+  // Schedule actual copy/count boundaries, using the shell's single foreground timer.
+  const step = elapsed < 3600000 ? 60000 : elapsed < 86400000 ? 3600000 : 86400000;
+  const nextText = latest.recordedAt + (Math.floor(elapsed / step) + 1) * step;
+  const nextCount = duration ? latest.recordedAt + (missed + 1) * duration : nominal > now ? nominal : Infinity;
+  const nextChangeAt = latest.recordedAt > now ? latest.recordedAt : Math.min(nextText, nextCount);
+  return {
+    active: false, primary, secondary: `zuletzt ${relativeTime(latest.recordedAt, now)} dokumentiert`,
+    ...(missed ? { badge: { value: String(missed), label: primary } } : {}),
+    tone: missed >= 2 ? 'attention' : 'normal', density: 'standard',
+    ...(context?.match && nextChangeAt <= 8640000000000000 ? { nextChangeAt } : {})
+  };
+}
 
 export function validateDrinkEntry(entry) {
   requireValue(entry.helperId === 'drink' && entry.entryVersion === 1, 'Unbekanntes Trinkformat.');

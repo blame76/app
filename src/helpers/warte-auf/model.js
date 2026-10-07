@@ -66,6 +66,36 @@ export function waitingGroups(entries, today = localDateKey()) {
   };
 }
 
+export function waitingNowCard({ entries, now }) {
+  const today = localDateKey(now);
+  const { due, later } = waitingGroups(entries, today);
+  let nextChangeAt;
+  if (later.length) {
+    const [year, month, day] = later[0].expectedDate.split('-').map(Number);
+    const next = new Date(now);
+    next.setHours(0, 0, 0, 0);
+    next.setFullYear(year, month - 1, day);
+    nextChangeAt = next.getTime();
+  }
+  // A single entry's "heute" copy changes at the next local midnight.
+  if (due.length === 1 && due[0].expectedDate === today) {
+    const tomorrow = new Date(now);
+    tomorrow.setHours(24, 0, 0, 0);
+    nextChangeAt = Math.min(nextChangeAt ?? Infinity, tomorrow.getTime());
+  }
+  const boundary = nextChangeAt === undefined ? {} : { nextChangeAt };
+  if (!due.length) return { active: false, ...boundary };
+  return {
+    active: true,
+    primary: due.length === 1 ? due[0].text : `${due.length} Wiedervorlagen fällig`,
+    secondary: due.length === 1
+      ? [due[0].waitingForText, waitingDateLabel(due[0].expectedDate, today)].filter(Boolean).join(' · ')
+      : due[0].text,
+    density: due.length > 1 || due[0].text.length > 80 ? 'standard' : 'compact',
+    ...boundary
+  };
+}
+
 export function waitingDateLabel(value, today = localDateKey()) {
   if (!value) return '';
   const label = dateLabel(value);

@@ -45,9 +45,9 @@ export function relevantNotes(entries, activePlaces, activeTimeIds, timeWindows 
   return entries.filter(isNote).flatMap(note => {
     const context = noteContext(note);
     const place = activePlaces.find(place => context.placeIds.includes(place.id));
-    if (place) return [{ note, reason: place.name, rank: 400 }];
+    if (place) return [{ note, reason: place.name, type: 'place', rank: 400 }];
     const matchedTime = context.timeBuckets.find(id => active.includes(id));
-    if (matchedTime) return [{ note, reason: timeBucketLabel(matchedTime, { timeWindows }), rank: 200 }];
+    if (matchedTime) return [{ note, reason: timeBucketLabel(matchedTime, { timeWindows }), type: 'time', rank: 200 }];
     return [];
   }).sort((a, b) => b.rank - a.rank || b.note.createdAt - a.note.createdAt || a.note.id.localeCompare(b.note.id));
 }

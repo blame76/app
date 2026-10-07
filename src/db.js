@@ -87,6 +87,23 @@ export function put(storeName, value) {
   return transaction(storeName, 'readwrite', tx => { tx.objectStore(storeName).put(value); });
 }
 
+// Explicit interval opt-out must not run retention or touch any entry.
+export function disableHelperInterval(id) {
+  if (!HELPERS.find(helper => helper.id === id)?.contexts?.includes('interval')) throw new Error('Nicht unterstützte Kontextart.');
+  return transaction('helperRules', 'readwrite', tx => {
+    const rules = tx.objectStore('helperRules');
+    rules.get(id).onsuccess = event => {
+      try {
+        const { intervalMinutes, toleranceMinutes, ...rule } = event.target.result || { id };
+        const value = { ...rule, interval: null, earlyBy: null };
+        validateRecord('helperRules', value);
+        validateHelperRecord('helperRules', value);
+        rules.put(value);
+      } catch { tx.abort(); }
+    };
+  });
+}
+
 export function pruneEntries(now = Date.now()) {
   return transaction(['entries', 'helperRules'], 'readwrite', tx => {
     let entries;
