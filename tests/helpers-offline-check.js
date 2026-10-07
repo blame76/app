@@ -53,6 +53,7 @@ async (page) => {
     await app.locator('#backButton').click();
     await open('training', '#trainingStart');
     await app.locator('#trainingStart').click();
+    await app.locator('[data-training="without-title"]').click();
     await app.waitForSelector('#trainingActivityForm');
     await app.locator('#trainingActivityForm input[name="name"]').fill('Yoga');
     await app.locator('#trainingActivityForm input[name="mode"][value="duration"]').check();
@@ -68,7 +69,8 @@ async (page) => {
     await app.reload();
     await open('training', '#trainingStart');
     check((await app.locator('.training-context').textContent()).includes('Letztes Training'), 'Offline reload restores the last training reference');
-    await app.locator('#trainingStart').click();
+    await app.locator('[data-training="history"]').click();
+    await app.locator('.training-quick-choices button').first().click();
     await app.waitForSelector('.training-reference');
     await app.locator('[data-training="repeat"]').click();
     await app.waitForSelector('.training-activity');
@@ -77,7 +79,7 @@ async (page) => {
     check(true, 'Active training remains on Now after an offline reload');
     await open('training', '[data-training="continue"]');
     await app.locator('[data-training="continue"]').click();
-    await app.waitForSelector('#trainingActivityForm');
+    await app.waitForSelector('.training-editor-title');
     check(await app.locator('.training-activity').count() === 1 && await app.locator('.training-today').count() === 0, 'Offline reload resumes an active repeated session without copying its old result');
     await app.locator('[data-activity-form="a1"] input[name="duration"]').fill('30');
     await app.locator('[data-activity-form="a1"] button').click();

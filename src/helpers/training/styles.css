@@ -3,6 +3,8 @@
 .training-status:empty { display: none; }
 .training h2 { margin-top: 0; }
 .training button { min-height: 48px; }
+.training summary { min-height: 48px; padding: .75rem 0; cursor: pointer; }
+.training-hint { margin: 0; color: var(--text-muted); }
 .training-context, .training-place, .training-open-note { color: var(--text-muted); }
 .training-place { margin-top: -.75rem; }
 .training-actions { display: grid; gap: .75rem; margin-top: 1.5rem; }
@@ -35,9 +37,24 @@
   width: 100%;
   min-width: 0;
 }
-.training-add-form fieldset { display: grid; gap: .25rem; }
-.training-add-form fieldset label { display: flex; align-items: center; min-height: 48px; gap: .5rem; }
-.training-add-form fieldset input { width: 20px; height: 20px; }
+.training-add-form fieldset { display: grid; gap: .75rem; min-width: 0; }
+.training-add-form legend { margin-bottom: .75rem; }
+.training-add-form .training-mode {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  gap: .75rem;
+  padding: .875rem;
+  border: 1px solid var(--text-muted);
+  border-radius: .5rem;
+  cursor: pointer;
+}
+.training-mode > span { display: grid; gap: .25rem; }
+.training-mode strong { font-weight: 500; }
+.training-mode span > span { color: var(--text-muted); font-size: .9375rem; }
+.training-mode:has(:checked) { border-color: var(--text-primary); box-shadow: inset 3px 0 var(--text-primary); }
+.training-mode:has(:focus-visible) { outline: 2px solid var(--text-primary); outline-offset: 3px; }
+.training-add-form fieldset input { flex: 0 0 20px; width: 20px; height: 20px; }
 .training-editor-title, .training-reference-heading, .training-complete-title {
   font-family: var(--display-font);
   font-size: clamp(2rem, 7vw, 3rem);
@@ -50,6 +67,16 @@
 .training-activity-heading span { color: var(--text-muted); font-size: .875rem; }
 .training-last, .training-today { margin: .25rem 0; color: var(--text-muted); font-size: .9375rem; }
 .training-last strong, .training-today strong { color: var(--text-primary); font-weight: 500; }
+.training-today { color: var(--text-primary); }
+.training-today h4 { margin: .5rem 0; font-weight: 500; }
+.training-saved-list { display: grid; gap: .5rem; list-style: none; padding: 0; margin: 0; }
+.training-saved-list li { padding: .75rem; border: 1px solid var(--border-subtle); border-left: 3px solid var(--text-muted); border-radius: .25rem; }
+.training-saved-list li:focus { outline: 2px solid var(--text-primary); outline-offset: 2px; }
+.training-title-current { font-size: 1.375rem; }
+.training-history-list { display: grid; gap: .75rem; list-style: none; padding: 0; }
+.training-history-choice { display: grid; gap: .5rem; width: 100%; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.training-history-choice strong { font-weight: 500; }
+.training-history-choice span { color: var(--text-muted); font-size: .9375rem; }
 .training-entry-form { grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); align-items: end; }
 .training-entry-form button { grid-column: 1 / -1; }
 .training-remove { justify-self: start; }

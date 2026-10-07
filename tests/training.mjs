@@ -5,7 +5,7 @@ import { helperDefaults } from '../src/helpers/contract.js';
 import {
   createTraining, finishTraining, formatActivity, formatDistance, formatDuration, formatSets,
   latestActivityReference, latestSession, latestSessionAtPlace, normalizeActivityName,
-  normalizeDisplayName, repeatStructure, sessionReference, validateTrainingEntry
+  normalizeDisplayName, recentSessionChoices, repeatStructure, sessionReference, validateTrainingEntry
 } from '../src/helpers/training/model.js';
 import { importAll } from '../src/db.js';
 import { STORES } from '../src/schema.js';
@@ -93,6 +93,31 @@ test('Activity reference prefers same place then falls back globally', () => {
   assert.equal(latestActivityReference([global, local], ' BIZEPSMASCHINE ', 'home').session.id, 'local');
   assert.equal(latestActivityReference([global], 'Bizepsmaschine', 'home').session.id, 'global');
   assert.equal(latestActivityReference([global], 'Brust-Presse', 'home'), null);
+});
+
+test('Quick repeat choices use the latest normalized title without removing older history', () => {
+  const entries = [
+    session('old', { title: 'Oberkörper', endedAt: 2000 }),
+    session('legs', { title: 'Beine', endedAt: 3000 }),
+    session('new', { title: '  OBERKÖRPER  ', endedAt: 4000 }),
+    session('cardio', { title: 'Ausdauer', endedAt: 5000 }),
+    session('untitled-old', { endedAt: 6000 }),
+    session('untitled-new', { endedAt: 7000 }),
+    { ...createTraining(8000), id: 'active', title: 'Beine' }
+  ];
+  const before = structuredClone(entries);
+  assert.deepEqual(recentSessionChoices(entries).map(entry => entry.id), ['untitled-new', 'cardio', 'new', 'legs']);
+  assert.deepEqual(entries, before);
+  assert.deepEqual(recentSessionChoices([]), []);
+});
+
+test('Known activity default uses the most recent matching mode globally and permits distinct names', () => {
+  const entries = [
+    session('old', { endedAt: 2000, activities: [distanceActivity('Rudern', 5000)] }),
+    session('new', { endedAt: 3000, activities: [{ id: 'a1', name: 'Rudern', mode: 'duration', durationSeconds: 1800, recordedAt: 2900 }] })
+  ];
+  assert.equal(latestActivityReference(entries, '  RUDERN  ').activity.mode, 'duration');
+  assert.equal(latestActivityReference(entries, 'Rudermaschine'), null);
 });
 
 test('Repeating a training retains structure but never copies completed values', () => {
