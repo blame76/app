@@ -153,6 +153,27 @@ Heute/Letztes-Mal-Vergleich, Reload einer aktiven Session, Tastaturfokus,
 320 CSS px und keine externen Requests. Der Helper fragt selbst keinen Standort ab.
 Kein Worker-Mock in diesem Gate.
 
+Für Training UX v2 außerdem: Einstieg ohne leere Historienauswahl, optionaler Name,
+einzelne gespeicherte Satzzeilen in Reihenfolge, Ergebnisfokus bei allen drei
+Erfassungsarten, Gewicht behalten/Wiederholungen leeren, Live-Rückmeldung,
+Entfernen mit Persistenzvergleich sowie Bestätigung/Abbruch bei vorhandenen Werten,
+jüngste bekannte Erfassungsart mit bewusster Änderung, Wiederholen mit sichtbarem
+und vorausgefülltem Titel, Oberkörper/Beine/Ausdauer, deduplizierte schnelle Auswahl
+und erreichbare ältere Sessions. Ein simulierter IndexedDB-Quota-Fehler prüft den
+Erhalt der Eingabe und verhindert falsches Speicherfeedback.
+
+`training-design-browser-check.js` prüft die echten Training-Ansichten in Light,
+Dark und Signature bei 320/390 CSS px und 200 % Schrift: Reflow, mindestens
+48 px hohe Bedienflächen, AA-Textkontraste und Grenzen der Auswahlflächen,
+zugängliche Radio-Gruppe, Pfeiltasten und sichtbarer Fokus, Ergebnisfokus sowie
+erreichbares Speichern bei 480 px Höhe, Reduced Motion und sichere Ausgabe
+importierter HTML-Zeichen. `helpers-offline-check.js` führt auch die neue
+Namensauswahl und Historie mit echtem Worker offline aus.
+
+Diese Chromium-Prüfungen ersetzen keinen echten Smartphone-Test: Bildschirmtastatur
+und Scrollposition unter iOS/Android, native Datalist/Bestätigungsdialoge, installierte
+PWA sowie VoiceOver/TalkBack müssen auf den Zielgeräten geprüft werden.
+
 ## Trinken und Intervallgrenzen
 
 `drink.mjs` prüft den minimalen Ereignisdatensatz, Speicherung vor `recordUse()`,

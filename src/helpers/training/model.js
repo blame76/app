@@ -114,6 +114,17 @@ export function orderedSessions(entries) {
     .sort((a, b) => b.endedAt - a.endedAt || String(b.id).localeCompare(String(a.id)));
 }
 
+// Quick repeat choices; every older session remains available in the full history.
+export function recentSessionChoices(entries) {
+  const titles = new Set();
+  return orderedSessions(entries).filter(session => {
+    const title = normalizeActivityName(session.title);
+    if (titles.has(title)) return false;
+    titles.add(title);
+    return true;
+  });
+}
+
 export function latestSession(entries) {
   return orderedSessions(entries)[0] || null;
 }
