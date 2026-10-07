@@ -73,7 +73,7 @@ test('Training is active independent of rules, otherwise summarizes the last com
   assert.equal(project(training, [active, ended]).active, true);
   assert.equal(project(training, [ended]).primary, 'Letztes Training vor 4 Tagen');
   assert.equal(project(training, [ended]).active, false);
-  assert.ok(project(training, [ended]).nextChangeAt > now);
+  assert.ok(project(training, [ended], { context: { match: { type: 'interval' } } }).nextChangeAt > now);
   const rule = helperDefaults(training);
   assert.equal(evaluateHelperContext(rule, [], now, new Date(now)).match, null);
   assert.ok(evaluateHelperContext(rule, [], endedAt, new Date(now)).match);
@@ -83,7 +83,7 @@ test('Drink counts complete nominal intervals, never earlyBy or use metadata', (
   const entry = { ...createDrink(now), id: 'drink-1' };
   const interval = { value: 1, unit: 'hour' };
   for (const [minutes, missed] of [[45, 0], [59, 0], [60, 1], [119, 1], [120, 2], [179, 2], [180, 3]]) {
-    const card = project(drink, [entry], { now: now + minutes * 60000, interval, lastUsedAt: now - 10 * 86400000 });
+    const card = project(drink, [entry], { now: now + minutes * 60000, interval, context: { match: { type: 'interval' } }, lastUsedAt: now - 10 * 86400000 });
     assert.equal(card.active, false);
     assert.equal(card.badge?.value ?? '0', String(missed), `${minutes} minutes`);
     assert.equal(card.tone, missed >= 2 ? 'attention' : 'normal');
@@ -114,4 +114,9 @@ test('Calendar intervals, future entries, absent history and disabled reminders 
   assert.equal(project(drink, [{ ...createDrink(8640000000000000), id: 'future' }], { interval: { value: 1, unit: 'hour' } }).badge, undefined);
   assert.equal(project(drink, [entry]).badge, undefined);
   assert.equal(evaluateHelperContext({ ...helperDefaults(drink), interval: null, earlyBy: null }, [], now, new Date(now + 1e9)).match, null);
+});
+
+test('Inactive Drink and Training do not schedule invisible copy updates', () => {
+  assert.equal(project(drink, [{ ...createDrink(now), id: 'drink' }], { interval: { value: 1, unit: 'hour' }, context: { match: null } }).nextChangeAt, undefined);
+  assert.equal(project(training, [{ ...createTraining(now - 60000), id: 'ended', status: 'ended', endedAt: now }], { context: { match: null } }).nextChangeAt, undefined);
 });

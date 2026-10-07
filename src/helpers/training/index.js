@@ -51,7 +51,7 @@ export default {
   defaults: { interval: { value: 3, unit: 'day' }, earlyBy: { value: 12, unit: 'hour' } },
   retention: { defaultWindow: 'always' },
   validateEntry: validateTrainingEntry,
-  nowCard({ entries, now }) {
+  nowCard({ entries, now, context }) {
     const active = entries.filter(entry => entry.status === 'active').sort((a, b) => b.startedAt - a.startedAt)[0];
     if (active) return {
       active: true, primary: 'Training läuft',
@@ -64,7 +64,7 @@ export default {
       active: false,
       primary: last ? `Letztes Training ${elapsed(last.endedAt, now)}` : 'Noch kein Training dokumentiert',
       density: 'standard',
-      ...(last ? { nextChangeAt: tomorrow.getTime() } : {})
+      ...(last && context?.match ? { nextChangeAt: tomorrow.getTime() } : {})
     };
   },
   offlineAssets: ['./src/helpers/training/model.js', './src/helpers/training/styles.css'],

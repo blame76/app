@@ -436,8 +436,9 @@ async function dashboardCandidates(visible, position = null, date = new Date()) 
     });
     if (state.match || now.active) {
       items.push({ helper, usedAt, rank: 0, ...state.match, now });
-      if (now.nextChangeAt > date.getTime()) nextCardAt = Math.min(nextCardAt, now.nextChangeAt);
     }
+    // A currently inactive projection can become relevant at its next boundary.
+    if (now.nextChangeAt > date.getTime()) nextCardAt = Math.min(nextCardAt, now.nextChangeAt);
   }
   items.push(...relevantNotes(entries, activePlaces, activeTimeIds, timeWindows).map(item => ({ ...item, person: people.find(person => person.id === item.note.personId) })));
   const hasTimeRules = visible.some(({ rule }) => rule.timeBuckets.length)

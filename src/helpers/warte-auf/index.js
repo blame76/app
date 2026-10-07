@@ -1,4 +1,4 @@
-import { completeWaitingEntry, createWaitingEntry, dateLabel, localDateKey, saveWaitingEntry, updateWaitingEntry, validateWaitingEntry, waitingDateLabel, waitingGroups } from './model.js';
+import { completeWaitingEntry, createWaitingEntry, dateLabel, localDateKey, saveWaitingEntry, updateWaitingEntry, validateWaitingEntry, waitingDateLabel, waitingGroups, waitingNowCard } from './model.js';
 
 const dateTime = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -7,6 +7,7 @@ export default {
   label: 'Warte auf',
   category: 'Alltag',
   validateEntry: validateWaitingEntry,
+  nowCard: waitingNowCard,
   offlineAssets: ['./src/helpers/warte-auf/model.js', './src/helpers/warte-auf/styles.css'],
   async mount({ root, api, signal }) {
     const css = document.createElement('link');

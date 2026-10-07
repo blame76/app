@@ -214,8 +214,8 @@ Hintergrundprüfung. Der gewählte Radius gilt ohne Genauigkeitsaufschlag für d
 Position; Kategorien ändern das Matching nicht.
 Ohne Standortfreigabe bleiben andere Gründe und „Alle Helfer“ nutzbar.
 Das ist unabhängig von den bestehenden Vordergrundprüfungen für PWA-Updates.
-Sichtbare Now-Projektionen können eine nächste Inhaltsgrenze zum selben Timeout
-beitragen. Es gibt keinen zusätzlichen Polling- oder Hintergrundtimer.
+Now-Projektionen eingeblendeter Helper können eine nächste Inhalts- oder
+Fälligkeitsgrenze zum selben Timeout beitragen, auch bei noch nicht aktiver Karte. Es gibt keinen zusätzlichen Polling- oder Hintergrundtimer.
 
 ## Optionale reine Projektion für „Jetzt“
 
@@ -234,7 +234,7 @@ Die Rückgabe hat ein erforderliches boolesches `active` und nur diese optionale
 | `badge: { value, label }` | nichtleere Strings für sichtbaren Wert und zugängliche Beschreibung |
 | `tone` | `normal` oder `attention`; keine medizinische Bewertung |
 | `density` | `compact` oder `standard`; eine mobile Spalte, auf breiteren Viewports ein bzw. zwei Grid-Spalten ohne Umordnung |
-| `nextChangeAt` | optionaler gültiger Millisekundenzeitpunkt der nächsten Inhaltsänderung; nur zukünftige Grenzen sichtbarer Karten werden geplant |
+| `nextChangeAt` | optionaler gültiger Millisekundenzeitpunkt der nächsten Inhalts- oder Relevanzänderung; zukünftige Grenzen werden auch bei `active: false` geplant, solange der Helper nicht ausgeblendet ist |
 
 `validateNowCard()` prüft die Rückgabe bei jeder Projektion. Ohne `nowCard` funktioniert
 ein Helper weiterhin als normale Context-Karte. `active: true` hält einen sichtbaren
@@ -252,6 +252,11 @@ Parken projiziert den vorhandenen `parking-position`-Entry. Schmerz betrachtet d
 jüngste Ereignis je normalisiertem Körperbereich gemäß bestehender Verlaufssortierung;
 `observation` ist offen, `resolved` beendet. Training bleibt bei aktiver Session sichtbar
 und zeigt sonst den Abstand zum letzten abgeschlossenen Training.
+Warte auf wird aktiv, sobald mindestens ein offener Eintrag sein lokales
+Wiedervorlagedatum erreicht hat. Zukünftige Termine liefern `nextChangeAt`, damit
+die Karte bei geöffneter Startseite am passenden lokalen Tagesbeginn erscheint.
+Reine Textaktualisierungen unsichtbarer Karten benötigen keinen Timer; Trinken und
+Training liefern solche Grenzen daher nur bei bereits passendem Context-Snapshot.
 Trinken ist nie dauerhaft aktiv: Es zählt volle konfigurierte Minuten-/Stundenintervalle
 seit dem jüngsten `recordedAt`, unabhängig von `earlyBy` und `lastUsedAt`. Kalenderintervalle
 werden ohne Gelegenheitenzähler dargestellt. `earlyBy` steuert allein die frühere

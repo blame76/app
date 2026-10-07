@@ -40,8 +40,8 @@ Rückgabe: erforderliches `active: boolean`; optional `primary`, `secondary`,
 Strings, erlaubte Felder, Badge, Ton, Dichte und Zeitstempel werden geprüft.
 
 `nextChangeAt` beschreibt ausschließlich die nächste Änderung des Karteninhalts.
-Die Shell berücksichtigt nur zukünftige Grenzen sichtbarer Karten in ihrem bereits
-vorhandenen Vordergrund-Timeout. Dadurch aktualisieren sich Trinkzähler und Zeittexte
+Die Shell berücksichtigt zukünftige Grenzen eingeblendeter Helper in ihrem bereits
+vorhandenen Vordergrund-Timeout, auch wenn deren Karte noch nicht aktiv ist. Dadurch aktualisieren sich Trinkzähler und Zeittexte
 auch bei geöffneter Startseite. Hintergrund, Navigation und Rückkehr behalten den
 bestehenden Context-Lebenszyklus; kein zusätzlicher Polling-Timer.
 
@@ -82,8 +82,9 @@ Ausblenden bleibt wirksam und löscht keine Daten.
 - **Notizen:** Bleiben direkt öffnende Eintragskarten. Vollständiger sicher gerenderter
   Text ist die Hauptinformation, einschließlich langer und mehrzeiliger Notizen.
 
-Helper ohne Projektion funktionieren weiter als Context-Karten: aktuell Rabatt und
-Warte auf, zusätzlich getestet mit isolierten Minimal-Helpern.
+Helper ohne Projektion funktionieren bei deklarierten, passenden Contexts weiter
+als Context-Karten: aktuell Rabatt, zusätzlich getestet mit isolierten Minimal-Helpern.
+Warte auf besitzt seit dem Nachtrag vom 7. Oktober ebenfalls eine Now-Projektion.
 
 ## Darstellung und Accessibility
 
@@ -161,3 +162,30 @@ Kein neuer Store, keine Runtime-Dependency und keine generische State-/Plugin-En
    eine aktive Session zeigt stattdessen „Training läuft“ mit Beginn.
 5. Kann ich eine relevante Notiz bereits auf dem Homescreen lesen? **Ja**,
    mit vollständigem Text in derselben Kartenfamilie.
+
+## Nachtrag: Warte auf, 7. Oktober 2026
+
+Mit Runtime-/Cacheversion `0.8.1` besitzt auch Warte auf eine reine `nowCard()`-Projektion
+im bestehenden Fachmodell. Aktiv bedeutet: mindestens ein Entry mit `status: 'waiting'`
+und `expectedDate <= lokales Heute`. Undatierte, zukünftige und erledigte Entries
+aktivieren keine Karte. Ein einzelner fälliger Entry zeigt seinen Text und seine
+Wiedervorlage, mehrere zeigen Anzahl und den ältesten fälligen Text nach bestehender
+Sortierung. Die Karte öffnet die vorhandene Helper-Liste.
+
+`nextChangeAt` liefert den nächsten lokalen Fälligkeitstermin bzw. den Tageswechsel
+für die Angabe „heute“. Die Shell plant diese Grenze nun auch bei noch inaktiver Karte,
+solange der Helper eingeblendet ist. Dafür wurde die bestehende Timer-Planung minimal
+erweitert; keine neue Kontextart, kein Hintergrundtimer und keine neue API.
+Trinken und Training liefern reine Textgrenzen nur für bereits passende Contexts,
+damit unsichtbare Karten keine unnötigen Aktualisierungen auslösen.
+
+Erneut ausgeführt: `npm test` (18 Testdateien), Berliner Zeitzonentests für
+`warte-auf.mjs` und `now-surface.mjs`, Syntaxprüfung, Pages-Build und `git diff --check`.
+Im Chromium-Browser bestanden `warte-auf-now-browser-check.js`,
+`warte-auf-browser-check.js`, `context-core-browser-check.js`,
+`now-surface-browser-check.js` und `helpers-offline-check.js` mit echtem Worker.
+Die neue Prüfung deckt erstmalige Fälligkeit bei geöffneter Startseite, mehrere
+Entries, Abschluss/Verschieben, Öffnen ohne Bestätigung, Hintergrund/Rückkehr,
+Ausblenden, Reload und sicheren langen Text bei 320 px/200 % in drei Themes ab.
+Die Node-Prüfung schließt die 23- und 25-Stunden-Tagesgrenzen in Europe/Berlin ein.
+Reale Screenreader und weitere Zielgeräte bleiben wie oben manuell zu prüfen.

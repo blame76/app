@@ -2,7 +2,7 @@ import { intervalDueAt } from '../../intervals.js';
 
 function requireValue(condition, message) { if (!condition) throw new Error(message); }
 
-export function drinkNowCard({ entries, now, interval }) {
+export function drinkNowCard({ entries, now, interval, context }) {
   const latest = orderedEntries(entries)[0];
   if (!latest) return { active: false, primary: 'Noch kein Getränk dokumentiert', density: 'compact' };
   const elapsed = Math.max(0, now - latest.recordedAt);
@@ -22,7 +22,7 @@ export function drinkNowCard({ entries, now, interval }) {
     active: false, primary, secondary: `zuletzt ${relativeTime(latest.recordedAt, now)} dokumentiert`,
     ...(missed ? { badge: { value: String(missed), label: primary } } : {}),
     tone: missed >= 2 ? 'attention' : 'normal', density: 'standard',
-    ...(nextChangeAt <= 8640000000000000 ? { nextChangeAt } : {})
+    ...(context?.match && nextChangeAt <= 8640000000000000 ? { nextChangeAt } : {})
   };
 }
 

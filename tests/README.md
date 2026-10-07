@@ -181,8 +181,12 @@ Sortierung, explizites Erledigen/Weiterwarten, Importvalidierung und Speicherung
 eine erreichte Wiedervorlage bleibt nach Öffnen und Zurück sichtbar, bis sie ausdrücklich
 erledigt oder verschoben wird. Der Helper zeigt fällige Einträge nur bei Nutzung von
 0815; er erzeugt keine Push- oder System-Notifications. Den echten Offline-Flow deckt
-`helpers-offline-check.js` ab. „Jetzt“ kann derzeit keine einzelnen Helper-Entries
-anzeigen; ein Plattformmechanismus dafür ist bewusst nicht Teil dieses Helpers.
+`helpers-offline-check.js` ab. Die `nowCard()`-Projektion zeigt unter „Jetzt“ den einzelnen fälligen Inhalt oder
+eine Zusammenfassung mehrerer fälliger Entries. `warte-auf-now-browser-check.js`
+prüft Tageswechsel ohne Reload, Öffnen ohne Bestätigung, Mehrfacheinträge, Erledigen,
+Verschieben, Hintergrund/Rückkehr, Ausblenden sowie 320 px/200 % Text in drei Themes.
+Die Modelltests prüfen zusätzlich lokale Datumsgrenzen einschließlich Sommerzeit;
+der Offline-Gate prüft die Karte und ihren Abschluss nach Offline-Reload.
 
 Die relevanten Browserdateien sind über das externe Browsertool zusätzlich zu
 `npm test` auszuführen; die Abschnitte unten beschreiben weitere Core-/Release-Gates.

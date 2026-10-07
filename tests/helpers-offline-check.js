@@ -233,6 +233,8 @@ async (page) => {
     await app.waitForSelector('.warte-auf-group h3');
     check(await app.locator('.warte-auf-group h3').first().textContent() === 'Wieder im Blick', 'A due waiting entry is relevant offline on its selected date');
     await app.reload();
+    await app.waitForFunction(() => document.querySelector('#nowRows [data-helper="warte-auf"] .now-primary')?.textContent === 'Offline-Rückmeldung');
+    check(true, 'Due waiting Now card restores offline without any context rule');
     await open('warte-auf', '#warteAufCreateForm');
     const waiting = await app.evaluate(async () => (await (await import('/src/db.js')).list('entries')).find(entry => entry.helperId === 'warte-auf'));
     check(waiting?.status === 'waiting' && waiting.expectedDate === today && await app.locator('.warte-auf-group h3').first().textContent() === 'Wieder im Blick', 'Offline reload restores a due entry without acknowledging it');
@@ -242,6 +244,12 @@ async (page) => {
     check(afterOpen?.status === 'waiting'
       && await app.locator('.warte-auf-item').filter({ hasText: 'Offline-Rückmeldung' }).count() === 1,
       'Opening and returning leaves the due state active offline');
+    await app.locator('.warte-auf-item').filter({ hasText: 'Offline-Rückmeldung' }).click();
+    await app.locator('.warte-auf-detail-actions button').filter({ hasText: 'Erledigt' }).click();
+    await app.waitForSelector('#warteAufCreateForm');
+    await app.reload();
+    await app.waitForSelector('#allHelperList [data-helper="warte-auf"]', { state: 'attached' });
+    check(await app.locator('#nowRows [data-helper="warte-auf"]').count() === 0, 'Completed waiting entry stays absent from Now after an offline reload');
     check(requests.every(url => url.startsWith('http://127.0.0.1:8080/')), 'Offline helper flows request no external resources');
     check(errors.length === 0, `No offline browser errors: ${errors.join(', ')}`);
     return results;
