@@ -96,7 +96,7 @@ button.note-delete { margin-top: 1.5rem; font-size: .875rem; color: var(--text-m
 .note-context-option input { width: 20px; min-height: 20px; height: 20px; margin: 0; }
 .note-context-option span { min-width: 0; overflow-wrap: anywhere; }
 .note-context-option:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
-.note-delete-dialog { width: min(30rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-surface); padding: clamp(1.25rem, 5vw, 2rem); background: var(--surface-paper); color: var(--text-primary); box-shadow: var(--shadow-overlay); }
+.note-delete-dialog { overflow-wrap: anywhere; width: min(30rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-surface); padding: clamp(1.25rem, 5vw, 2rem); background: var(--surface-paper); color: var(--text-primary); box-shadow: var(--shadow-overlay); }
 .note-delete-dialog::backdrop { background: rgb(0 0 0 / .4); }
 .note-delete-dialog .section-title { font-size: 1.75rem; margin-bottom: 0; }
 .note-delete-dialog p { margin: 0; }
@@ -124,3 +124,6 @@ button.note-delete { margin-top: 1.5rem; font-size: .875rem; color: var(--text-m
 @media (forced-colors: active) {
   .note-edit textarea:focus-visible { outline: 3px solid CanvasText; outline-offset: 4px; box-shadow: none; }
 }
+
+.person-actions { margin-top: 3rem; align-items: start; }
+#personDateAdd { margin-top: 1rem; }

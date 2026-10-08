@@ -1,6 +1,9 @@
+import { editPerson, personDeleteDescription } from './people.js';
+import { editPersonDate, relevantPersonDates } from './person-dates.js';
+import { renderPersonEdit, renderPersonDate, renderPersonDateEdit } from './people-views.js';
 import { HELPERS } from './helpers/registry.js';
 import { validateRegistry, helperDefaults, projectNowCard } from './helpers/contract.js';
-import { list, get, put, remove, clearAll, exportAll, importAll, makeId, pruneEntries, disableHelperInterval } from './db.js';
+import { list, get, put, remove, clearAll, exportAll, importAll, makeId, pruneEntries, disableHelperInterval, deletePerson } from './db.js';
 import { evaluateHelperContext, getPosition, watchPosition, matchingPlaces, matchingTimeWindows, nextTimeBoundary, timeBucketLabel } from './context.js';
 import { PLACE_CATEGORIES, validateRule } from './schema.js';
 import { fromLegacyMinutes, INTERVAL_UNITS, intervalLabel, intervalUnitLabel } from './intervals.js';
@@ -191,7 +194,7 @@ async function storeCustomTimeWindows(windows) {
 function returnFocusTarget() {
   const element = document.activeElement;
   if (element?.id) return `#${CSS.escape(element.id)}`;
-  for (const attribute of ['data-helper', 'data-person', 'data-note']) {
+  for (const attribute of ['data-helper', 'data-person', 'data-note', 'data-person-date']) {
     if (element?.hasAttribute(attribute)) {
       const host = element.closest('[id]');
       return `${host ? `#${CSS.escape(host.id)} ` : ''}[${attribute}="${CSS.escape(element.getAttribute(attribute))}"]`;
@@ -441,13 +444,17 @@ async function dashboardCandidates(visible, position = null, date = new Date()) 
     if (now.nextChangeAt > date.getTime()) nextCardAt = Math.min(nextCardAt, now.nextChangeAt);
   }
   items.push(...relevantNotes(entries, activePlaces, activeTimeIds, timeWindows).map(item => ({ ...item, person: people.find(person => person.id === item.note.personId) })));
+  const dates = relevantPersonDates(entries, people, date.getTime());
+  if (dates.nextChangeAt !== null) nextCardAt = Math.min(nextCardAt, dates.nextChangeAt);
+  items.push(...dates.items.map(item => ({ entry: item.entry, person: item.person, usedAt: item.entry.createdAt, rank: 0,
+    now: { primary: item.primary, secondary: item.secondary, active: true } })));
   const hasTimeRules = visible.some(({ rule }) => rule.timeBuckets.length)
     || entries.some(entry => isNote(entry) && noteContext(entry).timeBuckets.length);
   const nextRefreshAt = Math.min(nextCardAt, nextIntervalAt ?? Infinity, hasTimeRules ? (nextTimeBoundary(date, timeWindows) ?? Infinity) : Infinity);
   return {
     hasPlaceRules,
     nextRefreshAt: Number.isFinite(nextRefreshAt) ? nextRefreshAt : null,
-    items: items.sort((a, b) => Number(!!b.now?.active) - Number(!!a.now?.active) || b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.helper.id).localeCompare(b.note?.id || b.helper.id))
+    items: items.sort((a, b) => Number(!!b.now?.active) - Number(!!a.now?.active) || b.rank - a.rank || (b.note?.createdAt ?? b.usedAt) - (a.note?.createdAt ?? a.usedAt) || (a.note?.id || a.entry?.id || a.helper.id).localeCompare(b.note?.id || b.entry?.id || b.helper.id))
   };
 }
 
@@ -462,12 +469,12 @@ function nowIndicator(type, label, explanation = label) {
   return `<span class="now-indicator" data-context="${type}" aria-label="${escapeHtml(`${name}: ${explanation}`)}" title="${escapeHtml(explanation)}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5">${paths[type]}</svg>${escapeHtml(label)}</span>`;
 }
 
-function nowTile({ helper, note, person, now = {}, type, reason, why, launchPlace }) {
+function nowTile({ helper, note, entry, person, now = {}, type, reason, why, launchPlace }) {
   const density = note ? (note.text.length > 80 ? 'standard' : 'compact') : now.density || 'compact';
-  const label = note ? noteLabel(note) : helper.label;
+  const label = note ? noteLabel(note) : entry ? person.name : helper.label;
   const primary = note ? note.text : now.primary;
   const placeData = launchPlace ? ` data-place-id="${escapeHtml(launchPlace.id)}" data-place-name="${escapeHtml(launchPlace.name)}"` : '';
-  const target = note ? `data-note="${escapeHtml(note.id)}"` : `data-helper="${escapeHtml(helper.id)}"${placeData}`;
+  const target = entry ? `data-person-date="${escapeHtml(entry.id)}"` : note ? `data-note="${escapeHtml(note.id)}"` : `data-helper="${escapeHtml(helper.id)}"${placeData}`;
   return `<button class="now-card ${note ? 'note-tile' : 'helper-tile'}" type="button" ${target} data-density="${density}" data-tone="${now.tone || 'normal'}">
     <strong class="now-heading${primary ? '' : ' now-fallback'}">${escapeHtml(label)}${note?.type === 'person-note' ? ` · <span class="note-person-name">${escapeHtml(person?.name || 'Person nicht mehr gespeichert')}</span>` : ''}</strong>
     ${primary ? `<strong class="now-primary">${escapeHtml(primary)}</strong>` : ''}
@@ -795,7 +802,7 @@ async function openNoteContext(id, kind = null, options = {}) {
   });
 }
 
-function confirmNoteDelete(id, label = 'Notiz') {
+function confirmNoteDelete(id, label = 'Notiz', { description, confirmLabel = 'Löschen', removeRecord = () => remove('entries', id), afterDelete = goBack } = {}) {
   const dialog = $('#noteDeleteDialog');
   const version = viewVersion;
   const returnFocus = document.activeElement;
@@ -803,7 +810,8 @@ function confirmNoteDelete(id, label = 'Notiz') {
   const cancel = $('#noteDeleteCancel');
   const confirm = $('#noteDeleteConfirm');
   $('#noteDeleteTitle').textContent = `${label} löschen?`;
-  $('#noteDeleteDescription').textContent = `Diese ${label} wird dauerhaft von diesem Gerät gelöscht.`;
+  $('#noteDeleteDescription').textContent = description || `Diese ${label} wird dauerhaft von diesem Gerät gelöscht.`;
+  confirm.textContent = confirmLabel;
   $('#noteDeleteError').textContent = '';
   cancel.disabled = confirm.disabled = false;
   form.removeAttribute('aria-busy');
@@ -815,7 +823,7 @@ function confirmNoteDelete(id, label = 'Notiz') {
     form.setAttribute('aria-busy', 'true');
     cancel.disabled = confirm.disabled = true;
     try {
-      await remove('entries', id);
+      await removeRecord();
     } catch {
       $('#noteDeleteError').textContent = `${label} konnte nicht gelöscht werden. Bitte erneut versuchen.`;
       return;
@@ -825,7 +833,7 @@ function confirmNoteDelete(id, label = 'Notiz') {
     }
     dialog.close();
     if (version === viewVersion) {
-      guarded(async () => { await goBack(); if ($('#view-dashboard').hidden) refreshNow(); })();
+      guarded(async () => { await afterDelete(); if ($('#view-dashboard').hidden) refreshNow(); })();
     }
   };
   dialog.showModal();
@@ -890,12 +898,87 @@ async function openPerson(id, name, options = {}) {
     if (version !== viewVersion) return;
     if (!person) { await goBack(); return; }
     $('#focusTitle').textContent = person.name;
+    navigation.enter({ title: person.name, open: () => openPerson(id, person.name, { replace: true }) }, { replace: true });
     renderPerson(root, person, entries, places);
   } catch (error) {
     if (version === viewVersion) reportError(error, 'Inhalte konnten nicht geladen werden. Bitte erneut versuchen.');
   } finally {
     if (version === viewVersion) root.removeAttribute('aria-busy');
   }
+}
+
+async function openPersonEdit(id, options = {}) {
+  showView('note', 'Person bearbeiten', () => openPersonEdit(id, { replace: true }), options);
+  const version = viewVersion;
+  const root = $('#noteHost'); root.replaceChildren();
+  const person = await get('people', id);
+  if (version !== viewVersion) return;
+  if (!person) { await goBack(); return; }
+  const form = renderPersonEdit(root, person, guarded(goBack));
+  form.elements.name.focus();
+  bindSubmit(form, async data => {
+    if (!data.get('name').trim()) { contextError(root, 'Bitte einen Namen eingeben.'); form.elements.name.focus(); return; }
+    const original = await get('people', id);
+    if (version !== viewVersion) return;
+    if (!original) throw new Error('Person nicht mehr vorhanden.');
+    await put('people', editPerson(original, data.get('name')));
+    if (version === viewVersion) await goBack();
+  });
+}
+
+async function confirmPersonDelete(id) {
+  const version = viewVersion;
+  const [person, entries] = await Promise.all([get('people', id), list('entries', { prune: false })]);
+  if (version !== viewVersion || !person) return;
+  confirmNoteDelete(id, 'Person', {
+    description: personDeleteDescription(person, entries),
+    confirmLabel: 'Person und zugehörige Einträge löschen',
+    removeRecord: () => deletePerson(id), afterDelete: goBack
+  });
+}
+
+function confirmPersonDateDelete(entry, editing = false) {
+  confirmNoteDelete(entry.id, 'Wichtiges Datum', {
+    description: `${entry.label} wird dauerhaft gelöscht.`,
+    confirmLabel: 'Wichtiges Datum löschen',
+    afterDelete: async () => {
+      if (editing) navigation.back(); // Skip the detail of the deleted entry.
+      await goBack();
+    }
+  });
+}
+
+async function openPersonDate(personId, id = null, editing = false, options = {}) {
+  const title = editing ? (id ? 'Wichtiges Datum bearbeiten' : 'Was möchtest du nicht vergessen?') : 'Wichtiges Datum';
+  showView('note', title, () => openPersonDate(personId, id, editing, { replace: true }), options);
+  const version = viewVersion;
+  const root = $('#noteHost'); root.replaceChildren();
+  const [person, entry] = await Promise.all([get('people', personId), id ? get('entries', id) : Promise.resolve({ type: 'person-date', personId, recurrence: 'yearly', showBeforeDays: 7 })]);
+  if (version !== viewVersion) return;
+  if (!person || !entry || entry.type !== 'person-date' || entry.personId !== personId) { await goBack(); return; }
+  if (!editing) {
+    renderPersonDate(root, entry, person, {
+      edit: guarded(() => openPersonDate(personId, id, true)), remove: () => confirmPersonDateDelete(entry)
+    });
+    $('#focusTitle').focus(); return;
+  }
+  const form = renderPersonDateEdit(root, entry, {
+    cancel: guarded(goBack), remove: id ? () => confirmPersonDateDelete(entry, true) : null
+  });
+  form.elements.label.focus();
+  bindSubmit(form, async data => {
+    let next;
+    try {
+      next = editPersonDate({ ...entry, id: entry.id || makeId('person-date'), createdAt: entry.createdAt ?? Date.now() }, {
+        label: data.get('label'), recurrence: data.get('recurrence'), date: data.get('date'),
+        month: Number(data.get('month')), day: Number(data.get('day')), showBeforeDays: Number(data.get('showBeforeDays'))
+      });
+    } catch (error) { contextError(root, error.message); return; }
+    await put('entries', next);
+    if (version !== viewVersion) return;
+    if (id) await goBack();
+    else await openPersonDate(personId, next.id, false, { replace: true });
+  });
 }
 
 const staticViews = {
@@ -1170,6 +1253,25 @@ function bindEvents() {
       await openHelper(helperButton.dataset.helper, options);
       return;
     }
+    const dateButton = event.target.closest('[data-person-date]');
+    if (dateButton) {
+      const version = viewVersion;
+      const entry = await get('entries', dateButton.dataset.personDate);
+      if (version !== viewVersion || entry?.type !== 'person-date') return;
+      if (dateButton.closest('#nowRows')) {
+        const person = await get('people', entry.personId);
+        if (version !== viewVersion || !person) return;
+        await openPerson(person.id, person.name);
+        if ($('#readHost').dataset.personId !== person.id || $('#view-read').hidden) return;
+      }
+      await openPersonDate(entry.personId, entry.id); return;
+    }
+    const addDate = event.target.closest('[data-add-person-date]');
+    if (addDate) { await openPersonDate(addDate.dataset.addPersonDate, null, true); return; }
+    const edit = event.target.closest('[data-edit-person]');
+    if (edit) { await openPersonEdit(edit.dataset.editPerson); return; }
+    const removePerson = event.target.closest('[data-delete-person]');
+    if (removePerson) { await confirmPersonDelete(removePerson.dataset.deletePerson); return; }
     const noteButton = event.target.closest('[data-note]');
     if (noteButton) { await openNote(noteButton.dataset.note); return; }
     const composerButton = event.target.closest('[data-composer]');

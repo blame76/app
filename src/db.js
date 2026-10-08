@@ -84,6 +84,14 @@ export function put(storeName, value) {
       };
     });
   }
+  if (storeName === 'entries' && value.personId) {
+    return transaction(['people', 'entries'], 'readwrite', tx => {
+      tx.objectStore('people').get(value.personId).onsuccess = event => {
+        if (!event.target.result) { tx.abort(); return; }
+        try { tx.objectStore('entries').put(value); } catch { tx.abort(); }
+      };
+    });
+  }
   return transaction(storeName, 'readwrite', tx => { tx.objectStore(storeName).put(value); });
 }
 
@@ -121,6 +129,21 @@ export function pruneEntries(now = Date.now()) {
 
 export function remove(storeName, id) {
   return transaction(storeName, 'readwrite', tx => { tx.objectStore(storeName).delete(id); });
+}
+
+// All person-linked entries, including future types, share the person's commit.
+export function deletePerson(id) {
+  return transaction(['people', 'entries'], 'readwrite', tx => {
+    tx.objectStore('people').delete(id);
+    tx.objectStore('entries').openCursor().onsuccess = event => {
+      const cursor = event.target.result;
+      if (!cursor) return;
+      try {
+        if (cursor.value.personId === id) cursor.delete();
+        cursor.continue();
+      } catch { tx.abort(); }
+    };
+  });
 }
 
 export function clearAll() {
