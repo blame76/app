@@ -1,3 +1,4 @@
+import { renderPersonDates, renderPersonActions } from './people-views.js';
 // Shell read views: existing records only, no storage or capture logic.
 import { noteLinks } from './notes.js';
 import { noteTextClass } from './note-presentation.js';
@@ -125,7 +126,8 @@ export function renderPeople(root, people) {
 export function renderPerson(root, person, entries, places = []) {
   const references = personEntries(entries, person.id, 'reference');
   const gifts = personEntries(entries, person.id, 'gift');
-  if (!references.length && !gifts.length) { empty(root, 'Noch keine Einträge.'); return; }
+  renderPersonDates(root, person, entries);
   if (references.length) group(root, 'read-references', 'Notizen', references, places);
   if (gifts.length) group(root, 'read-gifts', 'Geschenkideen', gifts, places);
+  renderPersonActions(root, person);
 }

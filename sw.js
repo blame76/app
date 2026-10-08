@@ -1,7 +1,7 @@
 import { HELPERS } from './src/helpers/registry.js';
 
 // Bump on every release that changes the shell, registry, helpers or assets.
-const CACHE = '0815-v0.8.2';
+const CACHE = '0815-v0.9.0';
 const CACHE_PREFIX = '0815-';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './assets/styles.css', './assets/notes.css', './assets/signature.css',
@@ -9,6 +9,7 @@ const APP_SHELL = [
   './assets/fonts/OFL-CormorantGaramond.txt', './assets/fonts/OFL-GreatVibes.txt',
   './assets/icons/icon-192.png', './assets/icons/icon-512.png',
   './src/app.js', './src/db.js', './src/context.js', './src/time-windows.js', './src/intervals.js', './src/places.js', './src/schema.js', './src/retention.js',
+  './src/person-dates.js', './src/people.js', './src/people-views.js',
   './src/read-views.js', './src/navigation.js',
   './src/notes.js', './src/note-views.js', './src/note-presentation.js', './src/pwa-update.js', './src/theme.js',
   './src/helpers/registry.js', './src/helpers/contract.js',

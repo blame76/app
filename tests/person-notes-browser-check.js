@@ -57,7 +57,7 @@ async (page) => {
       });
       const original = await stored('old'), papa = JSON.stringify(await stored('papa-note')), plain = JSON.stringify(await stored('plain'));
       await mama();
-      check((await app.locator('#readHost h2').allTextContents()).join('|') === 'Notizen|Geschenkideen', 'person page has clear, separate note and gift chapters');
+      check((await app.locator('#readHost h2').allTextContents()).join('|') === 'Wichtige Daten|Notizen|Geschenkideen', 'person page has clear, separate note and gift chapters');
       check(await app.locator('#readHost [data-note]').count() === 2 && await app.locator('#readHost [data-note="old"] .read-text').textContent() === original.text, 'old notes without context remain readable and openable');
       await app.locator('#readHost [data-note="old"]').focus(); await app.keyboard.press('Enter'); await app.waitForSelector('#noteEdit'); await ready();
       check(await app.locator('.note-detail .note-person-name').textContent() === 'Mama' && await app.locator('.note-text').textContent() === original.text, 'keyboard opens the shared detail with the person and question');

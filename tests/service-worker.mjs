@@ -43,6 +43,7 @@ test('Install includes registered helper module and its additional assets', asyn
   for (const file of ['CormorantGaramond.woff2', 'GreatVibes.woff2', 'OFL-CormorantGaramond.txt', 'OFL-GreatVibes.txt']) {
     assert.ok(urls.includes(`https://example.test/app/assets/fonts/${file}`));
   }
+  for (const file of ['person-dates.js', 'people.js', 'people-views.js']) assert.ok(urls.includes(`https://example.test/app/src/${file}`));
   assert.ok(urls.includes('https://example.test/app/src/theme.js'));
   assert.ok(urls.includes('https://example.test/app/src/time-windows.js'));
   assert.ok(urls.includes('https://example.test/app/src/note-presentation.js'));

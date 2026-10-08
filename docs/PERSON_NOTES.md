@@ -102,3 +102,78 @@ Die Standortquelle ist kontrolliert simuliert, keine reale Geräteortung.
 
 Screenshots: `/tmp/0815-person-notes-{light,dark}-{now,person,detail,person-desktop}.png`.
 Echte Screenreader, Gerätezoom und weitere Browser wurden nicht geprüft.
+
+## Personen und wichtige Daten · v0.9.0
+
+Eine Person besteht aus ihrem Datensatz in `people` sowie verknüpften
+Notizen/Geschenkideen (`person-note`) und wichtigen Daten (`person-date`) in `entries`.
+„Person bearbeiten“ ändert nur den getrimmten, nichtleeren Namen; ID, `createdAt`
+und alle Einträge bleiben erhalten. „Person löschen“ verlangt eine Bestätigung mit
+aktuellen Anzahlen. Person und **alle** Einträge mit derselben `personId` werden
+atomar gelöscht, einschließlich unbekannter künftiger Typen. Ein abgebrochener
+Schreibvorgang lässt den gesamten Bestand unverändert. Personenbezogene Schreibvorgänge
+prüfen die Person in derselben Transaktion, damit ein spätes Speichern nach einer
+Löschung keine verwaisten Einträge erzeugt.
+
+Wichtige Daten besitzen `id`, `type: 'person-date'`, `personId`, einen freien `label`
+(maximal 100 Zeichen), `createdAt`, `recurrence` und `showBeforeDays` (0–365 ganze Tage).
+`once` speichert ein vollständiges lokales `date: 'YYYY-MM-DD'`; `yearly` speichert
+nur `month` und `day`, ohne bedeutungsloses Jahr oder Altersberechnung. Die jeweils
+andere Datumsdarstellung und unbekannte Felder werden abgewiesen. Der 29. Februar
+ist jährlich erlaubt und wird ausschließlich in Schaltjahren fällig.
+
+Die Personenseite bietet Anlegen, Öffnen, Bearbeiten und bestätigtes Einzellöschen.
+„Jetzt“ zeigt jede relevante Gelegenheit als eigene Karte: Person, etwa
+„Geburtstag in 7 Tagen“, und Datum. Der Vorlauf beginnt am lokalen Tagesanfang,
+der Ereignistag ist eingeschlossen; danach verschwindet die Karte, der Eintrag
+bleibt gespeichert. Die Berechnung nummeriert lokale Kalenderkomponenten statt
+verstrichene Stunden zu zählen und funktioniert über Sommerzeit- und Jahresgrenzen.
+Jährliche Daten werden für das nächste gültige Jahr berechnet, auch bei Vorlauf
+im Dezember für einen Januartermin.
+
+Eine reine Projektion trägt den Vorlaufbeginn und während der Sichtbarkeit die
+nächste lokale Mitternacht zum vorhandenen Context-Timeout bei. Dadurch wechseln
+Sichtbarkeit und Tagesangabe auch bei geöffnetem Dashboard. Keine zweite Planung,
+kein Polling, keine neuen Context-Typen. Von einer Jetzt-Karte führt Zurück:
+Datum → Person → Startseite; von der Personenübersicht bleibt diese als Parent erhalten.
+
+Exportformat 1/2 und DB-Version 2 bleiben erhalten. Neue Datumseinträge werden
+exportiert und vor Import streng geprüft, einschließlich ihrer Personenzuordnung.
+Alte Exporte bleiben gültig. Alle Abläufe bleiben lokal und offline.
+**Kein Kalender und keine allgemeinen Terminserien**, Uhrzeiten oder Benachrichtigungen.
+
+Neue Prüfdateien: `tests/person-dates.mjs` und `tests/people-dates-browser-check.js`.
+Der Browser-Gate verwendet isolierte Daten, prüft den Mitternachtstimer, Navigation,
+Bearbeitung, Tastaturbestätigung, Cascade-Rollback, Import/Export und echte Offline-
+Abläufe sowie 320 CSS px / 200 % Text in Light, Dark und Signature.
+
+Prüflauf dieser Erweiterung (Chromium, isolierte Profile):
+
+| Gate | Bestandene Checks |
+| --- | ---: |
+| `people-dates-browser-check.js` (online und wirklich offline) | 83 |
+| `person-notes-browser-check.js` | 90 |
+| `notes-browser-check.js` | 120 |
+| `read-browser-check.js` | 40 |
+| `browser-check.js` | 28 |
+| `navigation-browser-check.js` | 26 |
+| `context-core-browser-check.js` | 17 |
+| `now-surface-browser-check.js` | 84 |
+| `design-check.js` | 22 |
+| `signature-browser-check.js` | 107 |
+| `helpers-offline-check.js` | 36 |
+
+`npm test` mit Node 22.23.2: alle 19 Testdateien bestanden. Zusätzlich bestanden:
+Berliner Zeitzone für Personen-Daten, Personen-Notizen, Notizen und Leseansichten;
+Syntax aller JS-/MJS-Dateien, Worker und Buildskript; `git diff --check` und
+Pages-Build (51 Dateien). Datensatzvalidierung und Import/Export bleiben im
+unveränderten Format. Der bestehende Now-Browser-Gate wurde an den bereits auf
+`main` vorhandenen Trainingsstart angepasst; keine Änderung am Training selbst.
+
+Automatisiert geprüft sind Labels/Fieldset, Fokus nach Speichern und Löschen,
+Escape/Enter im Löschdialog, Reflow bei 320 px / 200 % Text sowie bestehende
+Kontrast- und Reduced-Motion-Gates. Personenansicht und Datumsformular wurden
+zusätzlich als Chromium-Screenshots visuell geprüft.
+Offen bleiben echte Screenreader, Geräte-/Browserzoom, Safari/Firefox und eine
+installierte PWA auf Mobilgeräten. Diese manuellen Abnahmen sind nicht durch die
+Chromium-Automation abgedeckt.

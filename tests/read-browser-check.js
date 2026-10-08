@@ -67,7 +67,12 @@ async (page) => {
         ['orphan', 'person-note', '2026-10-02T11:00:00Z', 'Keine angelegte Person', 'missing', 'gift']
       ];
       for (const [id, type, date, text, personId, kind] of entries) {
-        await db.put('entries', { id, type, text, createdAt: Date.parse(date), ...(personId ? { personId, kind } : {}) });
+        const entry = { id, type, text, createdAt: Date.parse(date), ...(personId ? { personId, kind } : {}) };
+        if (id === 'orphan') {
+          // Legacy exports remain readable; new writes cannot create orphans.
+          const payload = await db.exportAll(); payload.stores.entries.push(entry);
+          await db.importAll(payload);
+        } else await db.put('entries', entry);
       }
       const original = IDBDatabase.prototype.transaction;
       window.readWriteCalls = 0;
@@ -95,7 +100,7 @@ async (page) => {
     await ready();
     check(await app.locator('#focusTitle').textContent() === 'Anna', 'Keyboard opens the selected person');
     check(await app.locator('#main').evaluate(element => element === document.activeElement), 'Person detail focuses the main view');
-    check((await app.locator('#readHost h2').allTextContents()).join('|') === 'Notizen|Geschenkideen', 'Reference and gift semantics remain separate');
+    check((await app.locator('#readHost h2').allTextContents()).join('|') === 'Wichtige Daten|Notizen|Geschenkideen', 'Reference and gift semantics remain separate');
     check((await app.locator('#read-references + ol .read-text').allTextContents()).join('|') === 'Lieblingsparfum|Schuhgröße 39', 'Only this person’s references appear newest first');
     check((await app.locator('#read-gifts + ol .read-text').allTextContents()).join('|') === 'Ein Konzert|Buch XY', 'Only this person’s gifts appear newest first');
     check(await app.locator('#backButton').getAttribute('aria-label') === 'Zurück zu Personen', 'Back has the correct accessible destination');
@@ -104,7 +109,7 @@ async (page) => {
     check(await app.locator('#focusTitle').textContent() === 'Personen' && await app.locator('[data-person="anna"]').evaluate(element => element === document.activeElement), 'Person Back restores the people list and selected-person focus');
     await app.locator('[data-person="empty"]').click();
     await ready();
-    check(await app.locator('#readHost').textContent() === 'Noch keine Einträge.', 'Existing person without entries is preserved');
+    check(await app.locator('#personDateAdd').isVisible() && await app.locator('#personEdit').isVisible(), 'Existing person without entries is preserved');
     await app.locator('#backButton').click(); await ready();
     await home();
     check(await app.locator('#main').evaluate(element => element === document.activeElement) && await app.locator('#backButton').getAttribute('aria-label') === 'Zurück zur Startseite', 'People Back returns to dashboard and resets the destination');
@@ -186,7 +191,7 @@ async (page) => {
     await capture(null, personId, 'gift', 'Zweite Geschenkidee');
     await menu('people'); await app.locator(`[data-person="${personId}"]`).click(); await ready();
     check(await app.locator('#read-references + ol li').count() === 2 && await app.locator('#read-gifts + ol li').count() === 2, 'Person creation and reference/gift capture remain append-only');
-    check(!await app.locator('#readHost input, #readHost textarea, #readHost select, #readHost [data-remove]').count(), 'Read detail adds no edit, delete or filter controls');
+    check(!await app.locator('#readHost input, #readHost textarea, #readHost select, #readHost [data-remove]').count(), 'Person reading view keeps inputs in separate editors');
     await app.emulateMedia({ reducedMotion: 'reduce' });
     check(await app.locator('#backButton').evaluate(element => getComputedStyle(element).transitionDuration) === '0s', 'Read navigation respects Reduced Motion');
     check(!requests.some(url => url.includes('/leak')) && requests.every(url => url.startsWith('http://127.0.0.1:8080/')), 'Read views send no content or external requests');
