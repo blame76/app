@@ -1,3 +1,4 @@
+import { validatePersonDate } from './person-dates.js';
 import { validateIntervalPair } from './intervals.js';
 import { DEFAULT_TIME_WINDOW_IDS, isTimeWindowId, TIME_WINDOW_SETTING_ID, validateCustomTimeWindows } from './time-windows.js';
 
@@ -65,6 +66,7 @@ export function validateRecord(store, item) {
     for (const key of ['helperId', 'type', 'personId', 'text', 'kind']) {
       requireValue(item[key] === undefined || typeof item[key] === 'string', `Ungültiges Eintragsfeld ${key}.`);
     }
+    if (item.type === 'person-date') validatePersonDate(item);
     if (item.type === 'note' || item.type === 'person-note') {
       requireValue(item.updatedAt === undefined || timestamp(item.updatedAt), 'Ungültiger Bearbeitungszeitpunkt.');
       if (item.context !== undefined) {
@@ -107,6 +109,9 @@ export function validateImport(payload) {
       ids.add(item.id);
     }
     stores[name] = records;
+  }
+  for (const entry of stores.entries) {
+    if (entry.type === 'person-date') requireValue(stores.people.some(person => person.id === entry.personId), 'Person für wichtiges Datum fehlt.');
   }
   // Validation and writes must see the same immutable snapshot.
   return structuredClone(stores);

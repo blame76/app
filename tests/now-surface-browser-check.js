@@ -147,7 +147,8 @@ async (page) => {
     await absent('training');
     await open('training');
     await app.locator('#trainingStart').click();
-    await app.waitForSelector('#trainingActivityForm, .training-reference');
+    await app.locator('[data-training="without-title"]').click();
+    await app.waitForSelector('#trainingActivityForm');
     await app.locator('#backButton').click();
     // Training Back may first return to its internal home.
     if (await app.locator('#view-helper').isVisible()) await app.locator('#backButton').click();
@@ -159,8 +160,6 @@ async (page) => {
     await home(); await absent('training');
     check(true, 'Ending an empty active training removes active relevance');
     await open('training');
-    await app.locator('#trainingStart').click();
-    await app.waitForSelector('.training-reference');
     await app.locator('[data-training="repeat"]').click();
     await app.locator('[data-activity-form="a1"] input[name="duration"]').fill('10');
     await app.locator('[data-activity-form="a1"] button').click();
